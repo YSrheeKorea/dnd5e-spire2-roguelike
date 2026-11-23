@@ -1,0 +1,314 @@
+/* ============================================================================
+   D&D 5E SPIRE II - DEDICATED MOBILE TOUCH EDITION STYLESHEET (mobile.css)
+   Optimized for Portrait Smartphones, One-Hand Thumb Reach & Horizontal Swipe Hand
+   ============================================================================ */
+
+body.mobile-edition {
+  padding-bottom: 64px; /* Space for bottom dock */
+  max-width: 540px;
+  margin: 0 auto;
+  border-left: 1px solid #25304d;
+  border-right: 1px solid #25304d;
+  min-height: 100dvh;
+}
+
+.mobile-edition .top-bar {
+  height: 50px;
+  padding: 0 12px;
+}
+
+.mobile-edition .brand-logo {
+  font-size: 1.02rem;
+}
+
+.mobile-edition .pc-switch-btn {
+  text-decoration: none;
+  background: #273c75;
+  border-color: #74b9ff;
+  font-size: 0.76rem;
+  padding: 5px 9px;
+}
+
+.mobile-run-strip {
+  background: rgba(18, 23, 38, 0.96);
+  border-bottom: 1px solid #3b4d80;
+  padding: 6px 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  position: sticky;
+  top: 50px;
+  z-index: 95;
+}
+
+.mobile-edition .stat-pill {
+  font-size: 0.76rem;
+  padding: 3px 8px;
+}
+
+.mobile-edition .screen {
+  padding: 10px 12px;
+}
+
+/* Mobile Hub: 2x4 Class Grid & Vertical Stack */
+.mobile-edition .hub-hero {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  padding: 12px 14px;
+}
+
+.mobile-edition .hub-header-text h1 {
+  font-size: 1.15rem;
+}
+
+.mobile-edition .hub-header-text p {
+  font-size: 0.78rem;
+}
+
+.mobile-edition .hub-char-grid {
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.mobile-edition .char-avatar-wrap {
+  width: 48px;
+  height: 48px;
+  margin: 12px 0 4px;
+}
+
+.mobile-edition .char-roster-card {
+  padding: 8px 4px;
+}
+
+.mobile-edition .char-roster-card h3 {
+  font-size: 0.78rem;
+}
+
+.mobile-edition .hub-selected-panel {
+  grid-template-columns: 1fr;
+  padding: 12px 14px;
+  gap: 12px;
+}
+
+.mobile-edition .subclass-grid {
+  grid-template-columns: 1fr;
+  gap: 7px;
+}
+
+.mobile-edition .btn-start-run {
+  width: 100%;
+  padding: 14px;
+  font-size: 1.05rem;
+}
+
+/* Mobile 30-Stage Map */
+.mobile-edition .map-container {
+  padding: 12px;
+  max-height: none;
+}
+
+.mobile-edition .map-header {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.mobile-edition .map-act-progress-bar {
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+}
+
+.mobile-edition .act-pill {
+  font-size: 0.65rem;
+  padding: 5px 2px;
+}
+
+.mobile-edition .map-floor-row {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding: 10px 12px;
+}
+
+.mobile-edition .floor-label {
+  width: 100%;
+  text-align: center;
+  font-size: 0.8rem;
+}
+
+.mobile-edition .floor-nodes-group {
+  flex-direction: column;
+  gap: 7px;
+}
+
+.mobile-edition .map-node-btn {
+  width: 100%;
+  justify-content: center;
+  padding: 10px 12px;
+  font-size: 0.82rem;
+}
+
+/* Mobile Combat Arena */
+.mobile-edition .combat-top-banner {
+  padding: 6px 10px;
+}
+
+.mobile-ticker {
+  background: rgba(0, 0, 0, 0.45);
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+.mobile-edition .battlefield-row {
+  flex-direction: column;
+  padding: 10px;
+  gap: 12px;
+  min-height: 220px;
+}
+
+.mobile-edition .enemies-zone,
+.mobile-edition .allies-zone {
+  width: 100%;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mobile-edition .unit-card {
+  width: 152px;
+  padding: 8px 10px;
+}
+
+.mobile-edition .unit-avatar {
+  width: 58px;
+  height: 58px;
+}
+
+.mobile-edition .summon-unit-card {
+  width: 150px;
+  padding: 8px 10px;
+}
+
+/* Mobile Combat Controls & Swipeable Card Hand */
+.mobile-edition .combat-bottom-hud {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.mobile-combat-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.mobile-edition .energy-orb {
+  padding: 6px 10px;
+  border-radius: 10px;
+}
+
+.mobile-edition .energy-val {
+  font-size: 1rem;
+}
+
+.mobile-edition .energy-lbl {
+  display: none;
+}
+
+.mobile-edition .secondary-orb {
+  padding: 5px 8px;
+  flex: 1;
+}
+
+.mobile-edition .pile-btn {
+  padding: 7px 9px;
+  font-size: 0.78rem;
+}
+
+.mobile-edition .btn-end-turn {
+  padding: 9px 12px;
+  font-size: 0.86rem;
+}
+
+.mobile-edition .hand-container {
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  overflow-x: auto;
+  padding: 12px 6px 8px;
+  min-height: 205px;
+  gap: 8px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-edition .game-card {
+  flex: 0 0 138px;
+  width: 138px;
+  min-height: 192px;
+  padding: 8px;
+}
+
+.mobile-edition .game-card:hover {
+  transform: translateY(-6px);
+}
+
+.mobile-edition .card-title {
+  font-size: 0.8rem;
+}
+
+.mobile-edition .card-art-banner {
+  height: 34px;
+  font-size: 1.2rem;
+}
+
+.mobile-edition .card-desc {
+  font-size: 0.7rem;
+}
+
+/* Mobile Modals & Grids */
+.mobile-edition .rest-options-grid,
+.mobile-edition .gear-slots-summary,
+.mobile-edition .gear-list-grid,
+.mobile-edition .mastery-grid,
+.mobile-edition .run-stat-grid,
+.mobile-edition .shop-bottom-row {
+  grid-template-columns: 1fr;
+}
+
+/* Fixed Bottom Mobile Navigation Bar */
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-width: 540px;
+  margin: 0 auto;
+  height: 56px;
+  background: rgba(11, 13, 20, 0.98);
+  border-top: 2px solid #4a5c8a;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  z-index: 150;
+}
+
+.mobile-bottom-nav button {
+  background: transparent;
+  border: none;
+  color: #dfe6e9;
+  font-size: 0.76rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-bottom-nav button:active {
+  background: rgba(253, 203, 110, 0.15);
+  color: #fdcb6e;
+}
