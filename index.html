@@ -34,14 +34,11 @@
     </div>
 
     <div class="global-actions">
-      <div class="stat-pill gem-pill" title="모험가 소환·C~S승급·마법무구·특성용 아스트랄 다이아몬드(마석)">
-        💎 마석 <span id="hud-gems">1200</span>
+      <div class="stat-pill gem-pill" title="첨탑 등반으로 획득한 명성 마석 (클래스 승급·마법무구·특성 연구용)">
+        💎 등반 마석 <span id="hud-gems">300</span>
       </div>
       <button id="btn-view-deck" class="hud-btn hidden" onclick="Game.openDeckModal('all')">
         🎴 주문서/덱 (<span id="hud-deck-count">10</span>)
-      </button>
-      <button class="hud-btn" onclick="Game.openGachaModal()">
-        🎲 모험가 소환
       </button>
       <button class="hud-btn" onclick="Game.openGearModal()">
         ⚜️ 마법 무구
@@ -61,18 +58,19 @@
   <!-- MAIN SCREEN CONTAINER -->
   <main id="app-container">
 
-    <!-- 1. YAWNING PORTAL TAVERN HUB (8 CLASSES x 4 SUBCLASSES) -->
+    <!-- 1. YAWNING PORTAL TAVERN HUB (8 CLASSES TOWER CLIMB) -->
     <section id="screen-hub" class="screen active">
       <div class="hub-hero">
         <div class="hub-header-text">
-          <span class="badge-tag">DUNGEONS & DRAGONS 5E · FORGOTTEN REALMS DECKBUILDER</span>
-          <h1>워터딥 ‘하품하는 포털’ 모험가 길드 (8클래스 × 4하위직업)</h1>
-          <p>D&D 5판 공식 <strong>8대 클래스</strong>와 클래스별 <strong>4가지 하위 직업(총 32가지 빌드 루트)</strong>을 선택하고, <strong>5개 계층 × 30스테이지(총 150스테이지)</strong>의 언더마운틴 대미궁을 정복하세요!</p>
+          <span class="badge-tag">DUNGEONS & DRAGONS 5E · SLAY THE SPIRE 2 ROGUELIKE</span>
+          <h1>워터딥 첨탑 등반 출격 — 8대 클래스 선택</h1>
+          <p>D&D 5판 공식 <strong>8대 클래스(전원 해금)</strong> 중 하나를 선택해 출격하세요! 첨탑을 오르며 <strong>클래스별 44종 카드(공용 4종 + 4개 하위직업 각 10종)</strong>를 수집하고 <strong>5개 층 × 30스테이지(총 150층)</strong> 정상을 정복하세요!</p>
         </div>
         <div class="hub-cta-group">
-          <button class="btn-gacha-banner" onclick="Game.openGachaModal()">
-            🎲 차원문 모험가 가챠 소환 <span>8대 클래스 해금 & C→B→A→S 승급 조각 획득!</span>
-          </button>
+          <div class="mech-box" style="text-align:right; min-width:230px;">
+            <h4>🏔️ 첨탑 최고 등반 기록</h4>
+            <p id="hub-best-record" style="color:#55efc4; font-weight:800; font-size:0.92rem;">제1층 - Stage 1 / 30</p>
+          </div>
         </div>
       </div>
 
@@ -249,35 +247,8 @@
   </main>
 
   <!-- ====================================================================== -->
-  <!-- MODALS (Gacha, Magic Gear, Feats, D&D Ability Scores, Rewards)         -->
+  <!-- MODALS (Magic Gear, Feats, D&D Ability Scores, Rewards, Deck)          -->
   <!-- ====================================================================== -->
-
-  <!-- 1. ADVENTURER GACHA MODAL -->
-  <div id="modal-gacha" class="modal-backdrop hidden">
-    <div class="modal-box gacha-modal-box">
-      <div class="modal-header">
-        <h2>🎲 하품하는 포털 차원문 모험가 소환 (C · B · A · S 등급)</h2>
-        <button class="btn-close" onclick="Game.closeGachaModal()">✕</button>
-      </div>
-      <p class="gacha-sub">
-        마석을 사용해 D&D 8대 클래스 영웅을 소환하세요! 중복 소환 시 해당 클래스의 <strong>[승급 문장 조각 +10개]</strong>를 획득하며, 모든 클래스를 <strong>C급 ➔ B급 ➔ A급 ➔ S급(Tier 4 데미갓)</strong>으로 승급시킬 수 있습니다!
-      </p>
-      <div class="gacha-Action-row">
-        <button class="btn-gacha-pull single" onclick="Game.pullGacha(1)">
-          ✨ 1회 영웅 소환 (💎 100 마석)
-        </button>
-        <button class="btn-gacha-pull multi" onclick="Game.pullGacha(5)">
-          🌟 5연속 영웅 소환 (💎 450 마석 - 미보유 클래스 확정!)
-        </button>
-        <button class="btn-gacha-pull free" onclick="Game.grantFreeGems()">
-          🎁 워터딥 길드 후원금 (+600 마석 무료 지급)
-        </button>
-      </div>
-      <div id="gacha-results-grid" class="gacha-results-grid">
-        <div class="gacha-placeholder">소환 버튼을 눌러 8대 클래스 영웅과 승급 조각을 획득하세요!</div>
-      </div>
-    </div>
-  </div>
 
   <!-- 2. D&D MAGIC EQUIPMENT & ARTIFICER FORGE (+UPGRADE) MODAL -->
   <div id="modal-gear" class="modal-backdrop hidden">
