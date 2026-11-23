@@ -1,8 +1,6 @@
 // ============================================================================
 // D&D 5E SPIRE II: TALES OF THE YAWNING PORTAL & UNDERMOUNTAIN
-// - 8 Core Classes x (4 Shared Cards + 4 Subclasses x 10 Cards = 44 Cards/Class = 352 Cards Total!)
-// - 4 Card Rarities: 일반(common), 고급(uncommon), 희귀(rare), 전설(legendary)
-// - 5 Massive Acts (Floors) x 30 Stages per Floor (150 Stages) & 20 Unique Bosses
+// - Slay the Spire 1 Mechanics + Rank Card Pool Unlocks & 16 Class-Unique Rank Relics
 // ============================================================================
 
 window.GAME_DATA = {
@@ -24,28 +22,32 @@ window.GAME_DATA = {
       "str": 0,
       "dex": 0,
       "resourceStart": 0,
-      "desc": "기본 모험가 등급 (Tier 1)"
+      "unlockTier": "일반 + 고급 카드 풀",
+      "desc": "기본 모험가 (일반·고급 카드 풀 해금)"
     },
     "B": {
       "hp": 6,
       "str": 1,
       "dex": 0,
       "resourceStart": 1,
-      "desc": "최대 체력 +6, 공격력(힘) +1, 시작 클래스 자원 +1"
+      "unlockTier": "희귀(Rare) 카드 풀 해금 + B급 고유 유물",
+      "desc": "체력 +6, 힘 +1, [희귀(Rare) 카드 풀] 영구 해금 + [B급 클래스 고유 유물] 장착 시작!"
     },
     "A": {
       "hp": 14,
       "str": 1,
       "dex": 1,
       "resourceStart": 1,
-      "desc": "체력 +14, 힘 +1, 민첩 +1, 시작 자원 +1, 클래스 전용 5레벨 필살 카드 해금!"
+      "unlockTier": "전설(Legendary) 카드 풀 해금 + 각성 카드 시작 덱",
+      "desc": "체력 +14, 힘/민첩 +1, [전설(Legendary) 카드 풀] 영구 해금 + 클래스 각성 카드 시작 덱 포함!"
     },
     "S": {
       "hp": 24,
       "str": 2,
       "dex": 2,
       "resourceStart": 2,
-      "desc": "체력 +24, 힘 +2, 민첩 +2, 시작 자원 +2, S급 9레벨 전설 카드(+) 시작 덱 추가!"
+      "unlockTier": "S급 고유 신화 유물 + 각성 카드(+) 강화 시작",
+      "desc": "체력 +24, 힘/민첩 +2, [S급 클래스 신화 유물] 추가 장착 + 각성 카드(+) 강화 시작!"
     }
   },
   "acts": [
@@ -58,14 +60,20 @@ window.GAME_DATA = {
         "goblin_skirmisher",
         "kobold_inventor",
         "skeleton_warrior",
-        "orc_berserker"
+        "orc_berserker",
+        "gelatinous_cube",
+        "gnoll_pack_lord",
+        "rust_monster",
+        "carrion_crawler"
       ],
       "elitePool": [
         "owlbear_alpha",
-        "bugbear_chieftain"
+        "bugbear_chieftain",
+        "mimic_hunter"
       ],
       "midBossPool": [
         "troll_warlord",
+        "manticore_ravager",
         "bugbear_chieftain"
       ],
       "bossPool": [
@@ -84,15 +92,21 @@ window.GAME_DATA = {
         "drow_assassin",
         "hook_horror",
         "giant_phase_spider",
-        "duergar_hammerer"
+        "duergar_hammerer",
+        "displacer_beast",
+        "basilisk_gazer",
+        "ochre_jelly",
+        "myconid_sovereign"
       ],
       "elitePool": [
         "drider_champion",
-        "umbeR_hulk"
+        "umbeR_hulk",
+        "roper_ambusher"
       ],
       "midBossPool": [
         "drow_priestess",
-        "drider_champion"
+        "cloaker_shadow",
+        "roper_ambusher"
       ],
       "bossPool": [
         "arachne_matron",
@@ -110,14 +124,20 @@ window.GAME_DATA = {
         "intellect_devourer",
         "mind_flayer_arcanist",
         "grimlock_brute",
-        "nothics_eye"
+        "nothics_eye",
+        "chuul_pincer",
+        "grell_strangler",
+        "otyugh_filth",
+        "slaad_death"
       ],
       "elitePool": [
         "mind_flayer_inquisitor",
-        "githyanki_kithrak"
+        "githyanki_kithrak",
+        "beholder_zombie_elite"
       ],
       "midBossPool": [
         "ulitharid_lord",
+        "mindwitness_overseer",
         "githyanki_kithrak"
       ],
       "bossPool": [
@@ -136,15 +156,21 @@ window.GAME_DATA = {
         "wight_executioner",
         "wraith_stalker",
         "flesh_golem",
-        "vampire_spawn"
+        "vampire_spawn",
+        "banshee_wailer",
+        "bone_naga",
+        "mummy_guardian",
+        "shadow_demon"
       ],
       "elitePool": [
         "death_knight_general",
-        "iron_golem_sentinel"
+        "iron_golem_sentinel",
+        "skull_lord_elite"
       ],
       "midBossPool": [
         "vampire_lord_strahd",
-        "death_knight_general"
+        "nightwalker_titan",
+        "skull_lord_elite"
       ],
       "bossPool": [
         "archlich_acererak",
@@ -162,14 +188,18 @@ window.GAME_DATA = {
         "bearded_devil",
         "erinyes_valkyrie",
         "red_abishai",
-        "hellfire_engine"
+        "hellfire_engine",
+        "chain_devil_kyton",
+        "horned_devil_malebranche"
       ],
       "elitePool": [
         "pit_fiend_overlord",
-        "ancient_red_dragon"
+        "ancient_red_dragon",
+        "balor_abyssal_lord"
       ],
       "midBossPool": [
         "zariel_archduke",
+        "balor_abyssal_lord",
         "ancient_red_dragon"
       ],
       "bossPool": [
@@ -344,7 +374,11 @@ window.GAME_DATA = {
         "ftr_sh_2",
         "ftr_sh_3",
         "ftr_sh_4"
-      ]
+      ],
+      "rankRelics": {
+        "B": "ftr_rank_b",
+        "S": "ftr_rank_s"
+      }
     },
     "barbarian": {
       "id": "barbarian",
@@ -509,7 +543,11 @@ window.GAME_DATA = {
         "bar_sh_2",
         "bar_sh_3",
         "bar_sh_4"
-      ]
+      ],
+      "rankRelics": {
+        "B": "bar_rank_b",
+        "S": "bar_rank_s"
+      }
     },
     "rogue": {
       "id": "rogue",
@@ -674,7 +712,11 @@ window.GAME_DATA = {
         "rog_sh_2",
         "rog_sh_3",
         "rog_sh_4"
-      ]
+      ],
+      "rankRelics": {
+        "B": "rog_rank_b",
+        "S": "rog_rank_s"
+      }
     },
     "ranger": {
       "id": "ranger",
@@ -839,7 +881,11 @@ window.GAME_DATA = {
         "rng_sh_2",
         "rng_sh_3",
         "rng_sh_4"
-      ]
+      ],
+      "rankRelics": {
+        "B": "rng_rank_b",
+        "S": "rng_rank_s"
+      }
     },
     "wizard": {
       "id": "wizard",
@@ -1004,7 +1050,11 @@ window.GAME_DATA = {
         "wiz_sh_2",
         "wiz_sh_3",
         "wiz_sh_4"
-      ]
+      ],
+      "rankRelics": {
+        "B": "wiz_rank_b",
+        "S": "wiz_rank_s"
+      }
     },
     "cleric": {
       "id": "cleric",
@@ -1169,7 +1219,11 @@ window.GAME_DATA = {
         "clr_sh_2",
         "clr_sh_3",
         "clr_sh_4"
-      ]
+      ],
+      "rankRelics": {
+        "B": "clr_rank_b",
+        "S": "clr_rank_s"
+      }
     },
     "paladin": {
       "id": "paladin",
@@ -1334,7 +1388,11 @@ window.GAME_DATA = {
         "pal_sh_2",
         "pal_sh_3",
         "pal_sh_4"
-      ]
+      ],
+      "rankRelics": {
+        "B": "pal_rank_b",
+        "S": "pal_rank_s"
+      }
     },
     "warlock": {
       "id": "warlock",
@@ -1499,7 +1557,11 @@ window.GAME_DATA = {
         "wlk_sh_2",
         "wlk_sh_3",
         "wlk_sh_4"
-      ]
+      ],
+      "rankRelics": {
+        "B": "wlk_rank_b",
+        "S": "wlk_rank_s"
+      }
     }
   },
   "equipment": {
@@ -1705,8 +1767,7 @@ window.GAME_DATA = {
       "cost": 1,
       "damage": 6,
       "upgradeDamage": 9,
-      "resourceGain": 1,
-      "desc": "피해를 {damage} 줍니다. 우위 주사위 +1.",
+      "desc": "적에게 피해를 {damage} 줍니다.",
       "classId": "fighter",
       "subclassId": "shared"
     },
@@ -1728,13 +1789,14 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 1,
-      "block": 7,
-      "upgradeBlock": 10,
-      "healOnHit": 4,
-      "resourceGain": 2,
-      "desc": "방어도 {block}을 얻고 내 체력을 4 회복합니다. 주사위 +2.",
+      "block": 5,
+      "upgradeBlock": 8,
+      "healOnHit": 2,
+      "resourceGain": 1,
+      "desc": "방어도 {block}을 얻고 내 체력을 4 회복합니다. 주사위 +1. (소멸)",
       "classId": "fighter",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "exhaust": true
     },
     "ftr_sh_4": {
       "id": "ftr_sh_4",
@@ -1742,9 +1804,9 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "rare",
       "cost": 0,
-      "gainEnergy": 2,
-      "draw": 2,
-      "upgradeDraw": 3,
+      "gainEnergy": 1,
+      "draw": 1,
+      "upgradeDraw": 2,
       "exhaust": true,
       "desc": "0코스트! 행동력(AP) +2, 카드를 {draw}장 뽑습니다! (소멸)",
       "classId": "fighter",
@@ -1756,8 +1818,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 9,
-      "upgradeDamage": 13,
+      "damage": 7,
+      "upgradeDamage": 10,
       "resourceGain": 1,
       "desc": "피해를 {damage} 줍니다. 우위 주사위 +1.",
       "classId": "fighter",
@@ -1769,10 +1831,9 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 8,
-      "upgradeBlock": 11,
-      "healOnHit": 2,
-      "desc": "방어도 {block}을 얻고 체력을 2 회복합니다.",
+      "block": 6,
+      "upgradeBlock": 8,
+      "desc": "방어도 {block}을 얻고",
       "classId": "fighter",
       "subclassId": "champion"
     },
@@ -1782,10 +1843,10 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 7,
-      "upgradeDamage": 10,
-      "block": 5,
-      "upgradeBlock": 8,
+      "damage": 5,
+      "upgradeDamage": 8,
+      "block": 4,
+      "upgradeBlock": 6,
       "desc": "피해 {damage}를 주고 방어도 {block}을 얻습니다.",
       "classId": "fighter",
       "subclassId": "champion"
@@ -1796,8 +1857,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 8,
-      "upgradeDamage": 11,
+      "damage": 6,
+      "upgradeDamage": 9,
       "target": "all",
       "desc": "적 전체에게 피해를 {damage} 줍니다.",
       "classId": "fighter",
@@ -1809,12 +1870,13 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 0,
-      "draw": 2,
-      "upgradeDraw": 3,
-      "resourceGain": 2,
-      "desc": "0코스트! 카드를 {draw}장 뽑고 주사위 +2를 얻습니다.",
+      "draw": 1,
+      "upgradeDraw": 2,
+      "resourceGain": 1,
+      "desc": "0코스트! 카드를 {draw}장 뽑고 주사위 +1를 얻습니다. (소멸)",
       "classId": "fighter",
-      "subclassId": "champion"
+      "subclassId": "champion",
+      "exhaust": true
     },
     "fighter_champion_6": {
       "id": "fighter_champion_6",
@@ -1822,11 +1884,11 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 4,
-      "upgradeDamage": 6,
+      "damage": 3,
+      "upgradeDamage": 5,
       "hits": 3,
-      "resourceGain": 2,
-      "desc": "피해를 {damage}씩 3번 연속 가합니다. 주사위 +2.",
+      "resourceGain": 1,
+      "desc": "피해를 {damage}씩 3번 연속 가합니다. 주사위 +1.",
       "classId": "fighter",
       "subclassId": "champion"
     },
@@ -1836,12 +1898,13 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 1,
-      "block": 10,
-      "upgradeBlock": 14,
+      "block": 8,
+      "upgradeBlock": 11,
       "doubleBlock": true,
-      "desc": "방어도 {block} 획득 후 현재 방어도를 2배로 증폭합니다!",
+      "desc": "방어도 {block} 획득 후 현재 방어도를 2배로 증폭합니다! (소멸)",
       "classId": "fighter",
-      "subclassId": "champion"
+      "subclassId": "champion",
+      "exhaust": true
     },
     "fighter_champion_8": {
       "id": "fighter_champion_8",
@@ -1849,8 +1912,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "rare",
       "cost": 2,
-      "damage": 20,
-      "upgradeDamage": 28,
+      "damage": 16,
+      "upgradeDamage": 22,
       "vuln": 2,
       "desc": "치명타 강타! 피해 {damage}를 주고 취약 2를 부여합니다.",
       "classId": "fighter",
@@ -1862,9 +1925,9 @@ window.GAME_DATA = {
       "type": "power",
       "rarity": "rare",
       "cost": 1,
-      "strength": 3,
-      "upgradeStrength": 5,
-      "metallicize": 4,
+      "strength": 2,
+      "upgradeStrength": 3,
+      "metallicize": 3,
       "desc": "힘 +{strength} 및 매 턴 종료 시 방어도 +4를 영구 획득합니다.",
       "classId": "fighter",
       "subclassId": "champion"
@@ -1875,13 +1938,14 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "legendary",
       "cost": 2,
-      "damage": 8,
-      "upgradeDamage": 11,
+      "damage": 6,
+      "upgradeDamage": 8,
       "hits": 4,
-      "healOnHit": 6,
-      "desc": "[전설] 피해 {damage}x4 연속 공격 후 내 체력을 6 회복합니다!",
+      "healOnHit": 4,
+      "desc": "[전설] 피해 {damage}x4 연속 공격 후 내 체력을 6 회복합니다! (소멸)",
       "classId": "fighter",
-      "subclassId": "champion"
+      "subclassId": "champion",
+      "exhaust": true
     },
     "fighter_battlemaster_1": {
       "id": "fighter_battlemaster_1",
@@ -1889,12 +1953,12 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 8,
-      "upgradeDamage": 11,
-      "block": 6,
-      "upgradeBlock": 9,
-      "resourceGain": 2,
-      "desc": "피해 {damage}, 방어도 {block}, 우위 주사위 +2.",
+      "damage": 6,
+      "upgradeDamage": 9,
+      "block": 5,
+      "upgradeBlock": 7,
+      "resourceGain": 1,
+      "desc": "피해 {damage}, 방어도 {block}, 우위 주사위 +1.",
       "classId": "fighter",
       "subclassId": "battlemaster"
     },
@@ -1904,8 +1968,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 8,
-      "upgradeDamage": 12,
+      "damage": 6,
+      "upgradeDamage": 9,
       "weak": 2,
       "resourceGain": 1,
       "desc": "피해 {damage}를 주고 대상에게 약화 2를 부여합니다.",
@@ -1918,8 +1982,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 8,
-      "upgradeDamage": 12,
+      "damage": 6,
+      "upgradeDamage": 9,
       "vuln": 2,
       "resourceGain": 1,
       "desc": "피해 {damage}를 주고 대상에게 취약 2를 부여합니다.",
@@ -1932,8 +1996,8 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 9,
-      "upgradeBlock": 13,
+      "block": 7,
+      "upgradeBlock": 10,
       "draw": 1,
       "desc": "방어도 {block}을 얻고 카드를 1장 뽑습니다.",
       "classId": "fighter",
@@ -1945,12 +2009,13 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 0,
-      "strength": 2,
-      "upgradeStrength": 3,
-      "resourceGain": 3,
-      "desc": "0코스트! 힘 +{strength} 및 우위 주사위 +3 획득.",
+      "strength": 1,
+      "upgradeStrength": 2,
+      "resourceGain": 1,
+      "desc": "0코스트! 힘 +{strength} 및 우위 주사위 +1 획득. (소멸)",
       "classId": "fighter",
-      "subclassId": "battlemaster"
+      "subclassId": "battlemaster",
+      "exhaust": true
     },
     "fighter_battlemaster_6": {
       "id": "fighter_battlemaster_6",
@@ -1958,11 +2023,11 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 1,
-      "block": 10,
-      "upgradeBlock": 14,
-      "draw": 2,
-      "resourceGain": 2,
-      "desc": "방어도 {block}, 카드 2장 드로우, 주사위 +2.",
+      "block": 8,
+      "upgradeBlock": 11,
+      "draw": 1,
+      "resourceGain": 1,
+      "desc": "방어도 {block}, 카드 1장 드로우, 주사위 +1.",
       "classId": "fighter",
       "subclassId": "battlemaster"
     },
@@ -1972,8 +2037,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 11,
-      "upgradeDamage": 15,
+      "damage": 9,
+      "upgradeDamage": 12,
       "target": "all",
       "weak": 2,
       "desc": "적 전체에게 피해 {damage}와 약화 2를 부여합니다.",
@@ -1987,8 +2052,8 @@ window.GAME_DATA = {
       "rarity": "rare",
       "cost": 1,
       "strength": 2,
-      "dexterity": 3,
-      "upgradeDexterity": 5,
+      "dexterity": 2,
+      "upgradeDexterity": 3,
       "desc": "적의 약점을 간파해 힘 +2, 민첩 +{dexterity}를 얻습니다.",
       "classId": "fighter",
       "subclassId": "battlemaster"
@@ -1999,8 +2064,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "rare",
       "cost": 2,
-      "damage": 15,
-      "upgradeDamage": 21,
+      "damage": 12,
+      "upgradeDamage": 16,
       "target": "all",
       "bonusPerResource": 2,
       "desc": "적 전체 피해 {damage} + 보유한 주사위 1당 추가 피해 +2!",
@@ -2013,8 +2078,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "legendary",
       "cost": 2,
-      "damage": 22,
-      "upgradeDamage": 30,
+      "damage": 17,
+      "upgradeDamage": 23,
       "target": "all",
       "vuln": 3,
       "weak": 3,
@@ -2030,8 +2095,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 8,
-      "upgradeDamage": 11,
+      "damage": 6,
+      "upgradeDamage": 9,
       "addDrone": 1,
       "desc": "피해 {damage}를 주고 [비전 검기 구체] 1기를 소환합니다!",
       "classId": "fighter",
@@ -2043,11 +2108,11 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 7,
-      "upgradeDamage": 10,
+      "damage": 5,
+      "upgradeDamage": 8,
       "target": "all",
-      "resourceGain": 2,
-      "desc": "적 전체에게 화염 검기 피해 {damage}를 주고 주사위 +2.",
+      "resourceGain": 1,
+      "desc": "적 전체에게 화염 검기 피해 {damage}를 주고 주사위 +1.",
       "classId": "fighter",
       "subclassId": "eldritch_knight"
     },
@@ -2057,8 +2122,8 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 9,
-      "upgradeBlock": 13,
+      "block": 7,
+      "upgradeBlock": 10,
       "blockPerDrone": 3,
       "desc": "방어도 {block} + 소환된 검기 구체 1기당 방어도 +3!",
       "classId": "fighter",
@@ -2070,12 +2135,13 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 0,
-      "draw": 2,
-      "upgradeDraw": 3,
+      "draw": 1,
+      "upgradeDraw": 2,
       "addDrone": 1,
-      "desc": "0코스트! 카드 {draw}장 드로우 및 검기 구체 +1기 생성.",
+      "desc": "0코스트! 카드 {draw}장 드로우 및 검기 구체 +1기 생성. (소멸)",
       "classId": "fighter",
-      "subclassId": "eldritch_knight"
+      "subclassId": "eldritch_knight",
+      "exhaust": true
     },
     "fighter_eldritch_knight_5": {
       "id": "fighter_eldritch_knight_5",
@@ -2083,12 +2149,13 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 1,
-      "block": 11,
-      "upgradeBlock": 15,
-      "strength": 2,
-      "desc": "방어도 {block}을 얻고 원소 마력을 흡수해 힘 +2!",
+      "block": 8,
+      "upgradeBlock": 11,
+      "strength": 1,
+      "desc": "방어도 {block}을 얻고 원소 마력을 흡수해 힘 +2! (소멸)",
       "classId": "fighter",
-      "subclassId": "eldritch_knight"
+      "subclassId": "eldritch_knight",
+      "exhaust": true
     },
     "fighter_eldritch_knight_6": {
       "id": "fighter_eldritch_knight_6",
@@ -2096,8 +2163,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 10,
-      "upgradeDamage": 14,
+      "damage": 8,
+      "upgradeDamage": 11,
       "triggerDronesNow": true,
       "draw": 1,
       "desc": "피해 {damage}, 모든 검기 구체 즉시 발사, 카드 1장 드로우!",
@@ -2110,8 +2177,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 12,
-      "upgradeDamage": 16,
+      "damage": 9,
+      "upgradeDamage": 12,
       "vuln": 2,
       "addDrone": 1,
       "desc": "피해 {damage}, 취약 2 부여 및 검기 구체 +1기 소환.",
@@ -2124,8 +2191,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "rare",
       "cost": 2,
-      "damage": 18,
-      "upgradeDamage": 24,
+      "damage": 14,
+      "upgradeDamage": 19,
       "weak": 2,
       "vuln": 2,
       "triggerDronesNow": true,
@@ -2152,8 +2219,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "legendary",
       "cost": 2,
-      "damage": 25,
-      "upgradeDamage": 34,
+      "damage": 20,
+      "upgradeDamage": 27,
       "target": "all",
       "addDrone": 2,
       "triggerDronesNow": true,
@@ -2167,9 +2234,9 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "summonHeal": 12,
-      "upgradeSummonHeal": 17,
-      "summonAtkBoost": 3,
+      "summonHeal": 8,
+      "upgradeSummonHeal": 11,
+      "summonAtkBoost": 2,
       "desc": "전방에 [그림자 잔상]을 소환/체력 +{summonHeal}, 공격력 +3 강화!",
       "classId": "fighter",
       "subclassId": "echo_knight"
@@ -2180,8 +2247,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 7,
-      "upgradeDamage": 10,
+      "damage": 5,
+      "upgradeDamage": 8,
       "triggerSummonAttack": true,
       "desc": "피해 {damage}를 주고 [그림자 잔상]이 즉시 협동 공격합니다!",
       "classId": "fighter",
@@ -2193,9 +2260,9 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 8,
-      "upgradeBlock": 11,
-      "summonHeal": 6,
+      "block": 6,
+      "upgradeBlock": 8,
+      "summonHeal": 4,
       "draw": 1,
       "desc": "잔상과 위치를 바꿔 방어도 {block}, 잔상 체력 +6, 카드 1장 드로우.",
       "classId": "fighter",
@@ -2207,8 +2274,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 0,
-      "damage": 5,
-      "upgradeDamage": 8,
+      "damage": 4,
+      "upgradeDamage": 6,
       "triggerSummonAttack": true,
       "desc": "0코스트! 피해 {damage}를 주고 그림자 잔상이 즉시 협공합니다.",
       "classId": "fighter",
@@ -2220,11 +2287,11 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 6,
-      "upgradeDamage": 9,
+      "damage": 5,
+      "upgradeDamage": 7,
       "hits": 2,
       "triggerSummonAttack": true,
-      "summonAtkBoost": 2,
+      "summonAtkBoost": 1,
       "desc": "피해 {damage}x2, 잔상 공격력 +2 및 즉시 잔상 협공!",
       "classId": "fighter",
       "subclassId": "echo_knight"
@@ -2235,9 +2302,9 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 1,
-      "block": 12,
-      "upgradeBlock": 16,
-      "summonHeal": 12,
+      "block": 9,
+      "upgradeBlock": 12,
+      "summonHeal": 8,
       "desc": "내 방어도 +{block} 및 그림자 잔상의 체력을 +12 회복합니다.",
       "classId": "fighter",
       "subclassId": "echo_knight"
@@ -2248,8 +2315,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 9,
-      "upgradeDamage": 13,
+      "damage": 7,
+      "upgradeDamage": 10,
       "target": "all",
       "triggerSummonAttack": true,
       "desc": "적 전체에게 피해 {damage}를 주고 잔상이 대상을 추가 타격합니다!",
@@ -2262,13 +2329,14 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "rare",
       "cost": 1,
-      "block": 10,
-      "healOnHit": 7,
-      "summonHeal": 10,
-      "draw": 2,
-      "desc": "방어도 10, 내 체력 +7 회복, 잔상 체력 +10, 카드 2장 드로우!",
+      "block": 8,
+      "healOnHit": 4,
+      "summonHeal": 7,
+      "draw": 1,
+      "desc": "방어도 10, 내 체력 +7 회복, 잔상 체력 +10, 카드 1장 드로우! (소멸)",
       "classId": "fighter",
-      "subclassId": "echo_knight"
+      "subclassId": "echo_knight",
+      "exhaust": true
     },
     "fighter_echo_knight_9": {
       "id": "fighter_echo_knight_9",
@@ -2276,9 +2344,9 @@ window.GAME_DATA = {
       "type": "power",
       "rarity": "rare",
       "cost": 2,
-      "strength": 3,
-      "summonHeal": 18,
-      "summonAtkBoost": 5,
+      "strength": 2,
+      "summonHeal": 12,
+      "summonAtkBoost": 3,
       "desc": "두 개의 잔상! 힘 +3, 잔상 체력 +18 및 공격력 +5 영구 강화!",
       "classId": "fighter",
       "subclassId": "echo_knight"
@@ -2289,8 +2357,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "legendary",
       "cost": 2,
-      "damage": 20,
-      "upgradeDamage": 28,
+      "damage": 16,
+      "upgradeDamage": 22,
       "damagePlusSummonHp": true,
       "triggerSummonAttack": true,
       "desc": "[전설] 피해 {damage} + 잔상의 현재 체력만큼 추가 피해 후 잔상 협공!",
@@ -2303,10 +2371,9 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 7,
-      "upgradeDamage": 10,
-      "resourceGain": 1,
-      "desc": "피해를 {damage} 줍니다. 격노 +1.",
+      "damage": 6,
+      "upgradeDamage": 9,
+      "desc": "적에게 피해를 {damage} 줍니다.",
       "classId": "barbarian",
       "subclassId": "shared"
     },
@@ -2318,8 +2385,7 @@ window.GAME_DATA = {
       "cost": 1,
       "block": 5,
       "upgradeBlock": 8,
-      "resourceGain": 1,
-      "desc": "방어도를 {block} 얻습니다. 격노 +1.",
+      "desc": "방어도를 {block} 얻습니다.",
       "classId": "barbarian",
       "subclassId": "shared"
     },
@@ -2329,11 +2395,11 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 12,
-      "upgradeDamage": 17,
+      "damage": 9,
+      "upgradeDamage": 13,
       "vuln": 2,
-      "resourceGain": 2,
-      "desc": "피해 {damage}를 주고 취약 2를 부여합니다. 격노 +2.",
+      "resourceGain": 1,
+      "desc": "피해 {damage}를 주고 취약 2를 부여합니다. 격노 +1.",
       "classId": "barbarian",
       "subclassId": "shared"
     },
@@ -2344,13 +2410,14 @@ window.GAME_DATA = {
       "rarity": "rare",
       "cost": 0,
       "selfDamage": 2,
-      "strength": 2,
-      "upgradeStrength": 3,
-      "block": 6,
-      "resourceGain": 3,
-      "desc": "0코스트! 체력 2 소모, 힘 +{strength}, 방어도 6, 격노 +3!",
+      "strength": 1,
+      "upgradeStrength": 2,
+      "block": 5,
+      "resourceGain": 1,
+      "desc": "0코스트! 체력 2 소모, 힘 +{strength}, 방어도 6, 격노 +1! (소멸)",
       "classId": "barbarian",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "exhaust": true
     },
     "barbarian_berserker_1": {
       "id": "barbarian_berserker_1",
@@ -2358,10 +2425,10 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 10,
-      "upgradeDamage": 14,
-      "resourceGain": 2,
-      "desc": "피해를 {damage} 줍니다. 격노 +2.",
+      "damage": 8,
+      "upgradeDamage": 11,
+      "resourceGain": 1,
+      "desc": "피해를 {damage} 줍니다. 격노 +1.",
       "classId": "barbarian",
       "subclassId": "berserker"
     },
@@ -2371,13 +2438,14 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 7,
-      "upgradeBlock": 10,
+      "block": 5,
+      "upgradeBlock": 8,
       "strength": 1,
       "resourceGain": 1,
-      "desc": "방어도 {block}, 힘 +1, 격노 +1을 얻습니다.",
+      "desc": "방어도 {block}, 힘 +1, 격노 +1을 얻습니다. (소멸)",
       "classId": "barbarian",
-      "subclassId": "berserker"
+      "subclassId": "berserker",
+      "exhaust": true
     },
     "barbarian_berserker_3": {
       "id": "barbarian_berserker_3",
@@ -2385,8 +2453,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 8,
-      "upgradeDamage": 12,
+      "damage": 6,
+      "upgradeDamage": 9,
       "vuln": 2,
       "desc": "피해를 {damage} 주고 취약 2를 부여합니다.",
       "classId": "barbarian",
@@ -2398,8 +2466,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 8,
-      "upgradeDamage": 11,
+      "damage": 6,
+      "upgradeDamage": 9,
       "target": "all",
       "resourceGain": 1,
       "desc": "적 전체에게 피해를 {damage} 줍니다. 격노 +1.",
@@ -2412,10 +2480,10 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 11,
-      "upgradeDamage": 15,
+      "damage": 9,
+      "upgradeDamage": 12,
       "stance": "wrath",
-      "resourceGain": 2,
+      "resourceGain": 1,
       "desc": "피해 {damage}를 주고 [광란(공격력 2배)] 태세에 돌입합니다!",
       "classId": "barbarian",
       "subclassId": "berserker"
@@ -2426,12 +2494,13 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 10,
-      "upgradeDamage": 14,
-      "healOnHit": 5,
-      "desc": "피해를 {damage} 주고 내 체력을 5 회복합니다.",
+      "damage": 8,
+      "upgradeDamage": 11,
+      "healOnHit": 3,
+      "desc": "피해를 {damage} 주고 내 체력을 5 회복합니다. (소멸)",
       "classId": "barbarian",
-      "subclassId": "berserker"
+      "subclassId": "berserker",
+      "exhaust": true
     },
     "barbarian_berserker_7": {
       "id": "barbarian_berserker_7",
@@ -2439,11 +2508,11 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 6,
-      "upgradeDamage": 9,
+      "damage": 5,
+      "upgradeDamage": 7,
       "hits": 3,
-      "resourceGain": 2,
-      "desc": "피해를 {damage}씩 3번 연속 줍니다. 격노 +2.",
+      "resourceGain": 1,
+      "desc": "피해를 {damage}씩 3번 연속 줍니다. 격노 +1.",
       "classId": "barbarian",
       "subclassId": "berserker"
     },
@@ -2467,8 +2536,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "rare",
       "cost": 2,
-      "damage": 22,
-      "upgradeDamage": 30,
+      "damage": 17,
+      "upgradeDamage": 23,
       "bonusPerResource": 3,
       "desc": "피해 {damage} + 보유한 격노 1당 추가 피해 +3!",
       "classId": "barbarian",
@@ -2480,8 +2549,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "legendary",
       "cost": 2,
-      "damage": 26,
-      "upgradeDamage": 36,
+      "damage": 20,
+      "upgradeDamage": 28,
       "target": "all",
       "stance": "divinity",
       "consumeResourceAll": true,
@@ -2496,8 +2565,8 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 10,
-      "upgradeBlock": 14,
+      "block": 8,
+      "upgradeBlock": 11,
       "resourceGain": 1,
       "desc": "곰의 인내로 방어도 {block}과 격노 +1을 얻습니다.",
       "classId": "barbarian",
@@ -2509,8 +2578,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 8,
-      "upgradeDamage": 11,
+      "damage": 6,
+      "upgradeDamage": 9,
       "draw": 1,
       "desc": "피해를 {damage} 주고 카드를 1장 뽑습니다.",
       "classId": "barbarian",
@@ -2522,11 +2591,11 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 7,
-      "upgradeDamage": 10,
+      "damage": 5,
+      "upgradeDamage": 8,
       "vuln": 2,
-      "resourceGain": 2,
-      "desc": "피해 {damage}, 대상에게 취약 2 부여, 격노 +2.",
+      "resourceGain": 1,
+      "desc": "피해 {damage}, 대상에게 취약 2 부여, 격노 +1.",
       "classId": "barbarian",
       "subclassId": "totem_warrior"
     },
@@ -2536,10 +2605,10 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 6,
-      "upgradeDamage": 8,
-      "block": 6,
-      "upgradeBlock": 8,
+      "damage": 5,
+      "upgradeDamage": 7,
+      "block": 5,
+      "upgradeBlock": 7,
       "desc": "피해 {damage}를 주고 방어도 {block}을 얻습니다.",
       "classId": "barbarian",
       "subclassId": "totem_warrior"
@@ -2550,8 +2619,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 2,
-      "damage": 13,
-      "upgradeDamage": 18,
+      "damage": 10,
+      "upgradeDamage": 14,
       "damagePerBlock": true,
       "desc": "피해 {damage} + 현재 내 방어도만큼 추가 피해를 줍니다!",
       "classId": "barbarian",
@@ -2563,13 +2632,14 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 1,
-      "block": 9,
-      "upgradeBlock": 13,
-      "healOnHit": 5,
+      "block": 7,
+      "upgradeBlock": 10,
+      "healOnHit": 3,
       "stance": "calm",
-      "desc": "방어도 {block}, 체력 +5 회복 및 [평온(해제 시 AP+2)] 돌입!",
+      "desc": "방어도 {block}, 체력 +5 회복 및 [평온(해제 시 AP+2)] 돌입! (소멸)",
       "classId": "barbarian",
-      "subclassId": "totem_warrior"
+      "subclassId": "totem_warrior",
+      "exhaust": true
     },
     "barbarian_totem_warrior_7": {
       "id": "barbarian_totem_warrior_7",
@@ -2577,12 +2647,13 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 1,
-      "block": 8,
-      "upgradeBlock": 12,
+      "block": 6,
+      "upgradeBlock": 9,
       "doubleBlock": true,
-      "desc": "방어도 {block}을 얻고 현재 방어도를 2배로 만듭니다!",
+      "desc": "방어도 {block}을 얻고 현재 방어도를 2배로 만듭니다! (소멸)",
       "classId": "barbarian",
-      "subclassId": "totem_warrior"
+      "subclassId": "totem_warrior",
+      "exhaust": true
     },
     "barbarian_totem_warrior_8": {
       "id": "barbarian_totem_warrior_8",
@@ -2590,9 +2661,9 @@ window.GAME_DATA = {
       "type": "power",
       "rarity": "rare",
       "cost": 1,
-      "strength": 3,
-      "dexterity": 3,
-      "metallicize": 6,
+      "strength": 2,
+      "dexterity": 2,
+      "metallicize": 3,
       "desc": "힘 +3, 민첩 +3 및 매 턴 종료 시 방어도 +6을 얻습니다!",
       "classId": "barbarian",
       "subclassId": "totem_warrior"
@@ -2603,14 +2674,15 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "rare",
       "cost": 2,
-      "damage": 18,
-      "upgradeDamage": 25,
+      "damage": 14,
+      "upgradeDamage": 20,
       "target": "all",
       "weak": 2,
-      "healOnHit": 5,
-      "desc": "적 전체 피해 {damage}, 약화 2 부여 및 체력 5 회복.",
+      "healOnHit": 3,
+      "desc": "적 전체 피해 {damage}, 약화 2 부여 및 체력 5 회복. (소멸)",
       "classId": "barbarian",
-      "subclassId": "totem_warrior"
+      "subclassId": "totem_warrior",
+      "exhaust": true
     },
     "barbarian_totem_warrior_10": {
       "id": "barbarian_totem_warrior_10",
@@ -2618,11 +2690,11 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "legendary",
       "cost": 2,
-      "damage": 24,
-      "upgradeDamage": 32,
+      "damage": 19,
+      "upgradeDamage": 25,
       "target": "all",
       "damagePerBlock": true,
-      "block": 15,
+      "block": 11,
       "desc": "[전설] 방어도 +15 획득 후 적 전체에게 피해 {damage} + 내 방어도만큼 추가 피해!",
       "classId": "barbarian",
       "subclassId": "totem_warrior"
@@ -2633,9 +2705,9 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "summonHeal": 12,
-      "upgradeSummonHeal": 17,
-      "block": 5,
+      "summonHeal": 8,
+      "upgradeSummonHeal": 11,
+      "block": 4,
       "desc": "전방에 [선조 수호령] 체력 +{summonHeal} 소환 및 내 방어도 +5.",
       "classId": "barbarian",
       "subclassId": "ancestral_guardian"
@@ -2646,8 +2718,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 8,
-      "upgradeDamage": 11,
+      "damage": 6,
+      "upgradeDamage": 9,
       "triggerSummonAttack": true,
       "desc": "피해 {damage}를 주고 선조 수호령이 즉시 협동 공격합니다!",
       "classId": "barbarian",
@@ -2659,9 +2731,9 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 8,
-      "upgradeBlock": 11,
-      "summonHeal": 8,
+      "block": 6,
+      "upgradeBlock": 8,
+      "summonHeal": 5,
       "desc": "내 방어도 +{block} 및 선조 수호령의 체력을 +8 회복합니다.",
       "classId": "barbarian",
       "subclassId": "ancestral_guardian"
@@ -2672,11 +2744,11 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 7,
-      "upgradeDamage": 10,
+      "damage": 5,
+      "upgradeDamage": 8,
       "weak": 2,
-      "resourceGain": 2,
-      "desc": "피해 {damage}를 주고 약화 2를 부여합니다. 격노 +2.",
+      "resourceGain": 1,
+      "desc": "피해 {damage}를 주고 약화 2를 부여합니다. 격노 +1.",
       "classId": "barbarian",
       "subclassId": "ancestral_guardian"
     },
@@ -2686,9 +2758,9 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 9,
-      "upgradeDamage": 13,
-      "summonAtkBoost": 4,
+      "damage": 7,
+      "upgradeDamage": 10,
+      "summonAtkBoost": 2,
       "triggerSummonAttack": true,
       "desc": "피해 {damage}, 수호령 공격력 +4 강화 후 즉시 수호령 협공!",
       "classId": "barbarian",
@@ -2700,13 +2772,14 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 0,
-      "draw": 2,
-      "upgradeDraw": 3,
-      "summonHeal": 8,
-      "resourceGain": 2,
-      "desc": "0코스트! 카드 {draw}장 드로우, 수호령 체력 +8, 격노 +2.",
+      "draw": 1,
+      "upgradeDraw": 2,
+      "summonHeal": 5,
+      "resourceGain": 1,
+      "desc": "0코스트! 카드 {draw}장 드로우, 수호령 체력 +8, 격노 +1. (소멸)",
       "classId": "barbarian",
-      "subclassId": "ancestral_guardian"
+      "subclassId": "ancestral_guardian",
+      "exhaust": true
     },
     "barbarian_ancestral_guardian_7": {
       "id": "barbarian_ancestral_guardian_7",
@@ -2714,8 +2787,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 10,
-      "upgradeDamage": 14,
+      "damage": 8,
+      "upgradeDamage": 11,
       "target": "all",
       "triggerSummonAttack": true,
       "desc": "적 전체에게 피해 {damage}를 주고 수호령이 추가 타격합니다.",
@@ -2729,8 +2802,8 @@ window.GAME_DATA = {
       "rarity": "rare",
       "cost": 2,
       "strength": 2,
-      "summonHeal": 18,
-      "summonAtkBoost": 5,
+      "summonHeal": 12,
+      "summonAtkBoost": 3,
       "desc": "힘 +2, 선조 수호령 체력 +18 및 공격력 +5 영구 강화!",
       "classId": "barbarian",
       "subclassId": "ancestral_guardian"
@@ -2741,12 +2814,13 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "rare",
       "cost": 1,
-      "block": 12,
-      "healOnHit": 6,
-      "summonHeal": 14,
-      "desc": "방어도 12, 내 체력 +6 회복, 수호령 체력 +14 회복!",
+      "block": 9,
+      "healOnHit": 4,
+      "summonHeal": 9,
+      "desc": "방어도 12, 내 체력 +6 회복, 수호령 체력 +14 회복! (소멸)",
       "classId": "barbarian",
-      "subclassId": "ancestral_guardian"
+      "subclassId": "ancestral_guardian",
+      "exhaust": true
     },
     "barbarian_ancestral_guardian_10": {
       "id": "barbarian_ancestral_guardian_10",
@@ -2754,8 +2828,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "legendary",
       "cost": 2,
-      "damage": 22,
-      "upgradeDamage": 30,
+      "damage": 17,
+      "upgradeDamage": 23,
       "target": "all",
       "damagePlusSummonHp": true,
       "triggerSummonAttack": true,
@@ -2769,8 +2843,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 8,
-      "upgradeDamage": 11,
+      "damage": 6,
+      "upgradeDamage": 9,
       "addDrone": 1,
       "desc": "피해 {damage}를 주고 [야생 마력 구체] 1기를 생성합니다!",
       "classId": "barbarian",
@@ -2782,8 +2856,8 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 8,
-      "upgradeBlock": 11,
+      "block": 6,
+      "upgradeBlock": 8,
       "blockPerDrone": 3,
       "desc": "방어도 {block} + 야생 마력 구체 1기당 방어도 +3!",
       "classId": "barbarian",
@@ -2795,11 +2869,11 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 7,
-      "upgradeDamage": 10,
+      "damage": 5,
+      "upgradeDamage": 8,
       "target": "all",
-      "resourceGain": 2,
-      "desc": "적 전체에게 마력 피해 {damage}를 주고 격노 +2.",
+      "resourceGain": 1,
+      "desc": "적 전체에게 마력 피해 {damage}를 주고 격노 +1.",
       "classId": "barbarian",
       "subclassId": "wild_magic"
     },
@@ -2809,12 +2883,13 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 0,
-      "draw": 2,
-      "upgradeDraw": 3,
-      "resourceGain": 2,
-      "desc": "0코스트! 카드 {draw}장을 뽑고 격노 +2를 얻습니다.",
+      "draw": 1,
+      "upgradeDraw": 2,
+      "resourceGain": 1,
+      "desc": "0코스트! 카드 {draw}장을 뽑고 격노 +1를 얻습니다. (소멸)",
       "classId": "barbarian",
-      "subclassId": "wild_magic"
+      "subclassId": "wild_magic",
+      "exhaust": true
     },
     "barbarian_wild_magic_5": {
       "id": "barbarian_wild_magic_5",
@@ -2836,10 +2911,10 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 11,
-      "upgradeDamage": 15,
+      "damage": 9,
+      "upgradeDamage": 12,
       "triggerDronesNow": true,
-      "block": 6,
+      "block": 5,
       "desc": "피해 {damage}, 방어도 6, 모든 야생 마력 구체 즉시 발사!",
       "classId": "barbarian",
       "subclassId": "wild_magic"
@@ -2850,8 +2925,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 9,
-      "upgradeDamage": 13,
+      "damage": 7,
+      "upgradeDamage": 10,
       "target": "all",
       "weak": 2,
       "addDrone": 1,
@@ -2865,8 +2940,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "rare",
       "cost": 2,
-      "damage": 18,
-      "upgradeDamage": 25,
+      "damage": 14,
+      "upgradeDamage": 20,
       "target": "all",
       "triggerDronesNow": true,
       "desc": "적 전체에게 피해 {damage}를 주고 모든 구체가 일제 폭격합니다!",
@@ -2880,7 +2955,7 @@ window.GAME_DATA = {
       "rarity": "rare",
       "cost": 1,
       "addDrone": 2,
-      "strength": 3,
+      "strength": 2,
       "dexterity": 2,
       "desc": "야생 마력 구체 2기 생성 및 힘 +3, 민첩 +2 영구 획득!",
       "classId": "barbarian",
@@ -2892,8 +2967,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "legendary",
       "cost": 2,
-      "damage": 25,
-      "upgradeDamage": 35,
+      "damage": 20,
+      "upgradeDamage": 27,
       "target": "all",
       "addDrone": 2,
       "triggerDronesNow": true,
@@ -2908,12 +2983,11 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 5,
-      "upgradeDamage": 8,
+      "damage": 6,
+      "upgradeDamage": 9,
       "poison": 2,
       "upgradePoison": 3,
-      "resourceGain": 1,
-      "desc": "피해 {damage}와 맹독 {poison}을 부여합니다. 급소 주사위 +1.",
+      "desc": "적에게 피해를 {damage} 줍니다.",
       "classId": "rogue",
       "subclassId": "shared"
     },
@@ -2925,8 +2999,7 @@ window.GAME_DATA = {
       "cost": 1,
       "block": 5,
       "upgradeBlock": 8,
-      "resourceGain": 1,
-      "desc": "방어도를 {block} 얻습니다. 급소 주사위 +1.",
+      "desc": "방어도를 {block} 얻습니다.",
       "classId": "rogue",
       "subclassId": "shared"
     },
@@ -2936,13 +3009,14 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 0,
-      "block": 4,
-      "upgradeBlock": 7,
-      "draw": 2,
-      "resourceGain": 2,
-      "desc": "0코스트! 방어도 {block}, 카드 2장 드로우, 급소 주사위 +2.",
+      "block": 3,
+      "upgradeBlock": 5,
+      "draw": 1,
+      "resourceGain": 1,
+      "desc": "0코스트! 방어도 {block}, 카드 2장 드로우, 급소 주사위 +1. (소멸)",
       "classId": "rogue",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "exhaust": true
     },
     "rog_sh_4": {
       "id": "rog_sh_4",
@@ -2950,11 +3024,11 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "rare",
       "cost": 1,
-      "damage": 10,
-      "upgradeDamage": 14,
+      "damage": 8,
+      "upgradeDamage": 11,
       "bonusPerResource": 2,
-      "resourceGain": 2,
-      "desc": "피해 {damage} + 보유한 급소 주사위 1당 추가 피해 +2!",
+      "resourceGain": 1,
+      "desc": "피해 {damage} + 보유한 급소 주사위 1당 추가 피해 +1!",
       "classId": "rogue",
       "subclassId": "shared"
     },
@@ -2964,12 +3038,13 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 0,
-      "draw": 2,
-      "upgradeDraw": 3,
-      "block": 4,
-      "desc": "0코스트! 카드를 {draw}장 뽑고 방어도 4를 얻습니다.",
+      "draw": 1,
+      "upgradeDraw": 2,
+      "block": 3,
+      "desc": "0코스트! 카드를 {draw}장 뽑고 방어도 4를 얻습니다. (소멸)",
       "classId": "rogue",
-      "subclassId": "thief"
+      "subclassId": "thief",
+      "exhaust": true
     },
     "rogue_thief_2": {
       "id": "rogue_thief_2",
@@ -2977,8 +3052,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 8,
-      "upgradeDamage": 12,
+      "damage": 6,
+      "upgradeDamage": 9,
       "draw": 1,
       "resourceGain": 1,
       "desc": "피해를 {damage} 주고 카드를 1장 뽑습니다. 주사위 +1.",
@@ -2991,12 +3066,13 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 9,
-      "upgradeBlock": 13,
+      "block": 7,
+      "upgradeBlock": 10,
       "dexterity": 1,
-      "desc": "방어도 {block}을 얻고 민첩 +1을 얻습니다.",
+      "desc": "방어도 {block}을 얻고 민첩 +1을 얻습니다. (소멸)",
       "classId": "rogue",
-      "subclassId": "thief"
+      "subclassId": "thief",
+      "exhaust": true
     },
     "rogue_thief_4": {
       "id": "rogue_thief_4",
@@ -3004,8 +3080,8 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 7,
-      "upgradeBlock": 10,
+      "block": 5,
+      "upgradeBlock": 8,
       "weak": 2,
       "target": "all",
       "desc": "방어도 {block}을 얻고 적 전체에게 약화 2를 부여합니다.",
@@ -3018,11 +3094,11 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 1,
-      "block": 12,
-      "upgradeBlock": 16,
+      "block": 9,
+      "upgradeBlock": 12,
       "stance": "calm",
-      "resourceGain": 2,
-      "desc": "방어도 {block}을 얻고 [은신/명경(해제 시 AP+2)] 태세에 돌입!",
+      "resourceGain": 1,
+      "desc": "방어도 {block}을 얻고 [은신/명경(해제 시 AP+1)] 태세에 돌입!",
       "classId": "rogue",
       "subclassId": "thief"
     },
@@ -3032,10 +3108,10 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 5,
-      "upgradeDamage": 7,
+      "damage": 4,
+      "upgradeDamage": 5,
       "hits": 2,
-      "poison": 4,
+      "poison": 3,
       "target": "all",
       "desc": "적 전체에게 피해 {damage}x2와 산성 맹독 4를 부여합니다.",
       "classId": "rogue",
@@ -3048,10 +3124,10 @@ window.GAME_DATA = {
       "rarity": "uncommon",
       "cost": 0,
       "gainEnergy": 1,
-      "draw": 2,
-      "resourceGain": 2,
+      "draw": 1,
+      "resourceGain": 1,
       "exhaust": true,
-      "desc": "0코스트! 행동력 +1, 카드 2장 드로우, 주사위 +2 (소멸)",
+      "desc": "0코스트! 행동력 +1, 카드 2장 드로우, 주사위 +1 (소멸)",
       "classId": "rogue",
       "subclassId": "thief"
     },
@@ -3061,7 +3137,7 @@ window.GAME_DATA = {
       "type": "power",
       "rarity": "rare",
       "cost": 1,
-      "dexterity": 3,
+      "dexterity": 2,
       "strength": 2,
       "draw": 2,
       "desc": "민첩 +3, 힘 +2를 영구 획득하고 즉시 카드를 2장 뽑습니다!",
@@ -3074,11 +3150,11 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "rare",
       "cost": 1,
-      "damage": 5,
-      "upgradeDamage": 7,
+      "damage": 4,
+      "upgradeDamage": 5,
       "hits": 4,
-      "resourceGain": 2,
-      "desc": "피해를 {damage}씩 4번 연속 가합니다! 주사위 +2.",
+      "resourceGain": 1,
+      "desc": "피해를 {damage}씩 4번 연속 가합니다! 주사위 +1.",
       "classId": "rogue",
       "subclassId": "thief"
     },
@@ -3088,11 +3164,11 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "legendary",
       "cost": 2,
-      "damage": 20,
-      "upgradeDamage": 28,
+      "damage": 16,
+      "upgradeDamage": 22,
       "target": "all",
       "gainEnergy": 2,
-      "draw": 3,
+      "draw": 1,
       "desc": "[전설] 적 전체 피해 {damage} 후 행동력(AP) +2 및 카드 3장 드로우!",
       "classId": "rogue",
       "subclassId": "thief"
@@ -3103,10 +3179,10 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "poison": 7,
-      "upgradePoison": 10,
-      "resourceGain": 2,
-      "desc": "대상에게 와이번 맹독 {poison}을 부여합니다. 주사위 +2.",
+      "poison": 5,
+      "upgradePoison": 7,
+      "resourceGain": 1,
+      "desc": "대상에게 와이번 맹독 {poison}을 부여합니다. 주사위 +1.",
       "classId": "rogue",
       "subclassId": "assassin"
     },
@@ -3116,10 +3192,10 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 8,
-      "upgradeDamage": 11,
+      "damage": 6,
+      "upgradeDamage": 9,
       "vuln": 2,
-      "poison": 3,
+      "poison": 2,
       "desc": "피해 {damage}, 취약 2 및 맹독 3을 부여합니다.",
       "classId": "rogue",
       "subclassId": "assassin"
@@ -3132,7 +3208,7 @@ window.GAME_DATA = {
       "cost": 0,
       "damage": 4,
       "upgradeDamage": 6,
-      "poison": 4,
+      "poison": 3,
       "resourceGain": 1,
       "desc": "0코스트! 피해 {damage}와 맹독 4를 부여합니다.",
       "classId": "rogue",
@@ -3144,10 +3220,10 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 9,
-      "upgradeBlock": 13,
-      "resourceGain": 2,
-      "desc": "방어도 {block}과 급소 주사위 +2를 얻습니다.",
+      "block": 7,
+      "upgradeBlock": 10,
+      "resourceGain": 1,
+      "desc": "방어도 {block}과 급소 주사위 +1를 얻습니다.",
       "classId": "rogue",
       "subclassId": "assassin"
     },
@@ -3157,8 +3233,8 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 1,
-      "poison": 8,
-      "upgradePoison": 11,
+      "poison": 6,
+      "upgradePoison": 8,
       "weak": 2,
       "target": "all",
       "desc": "적 전체에게 맹독 {poison}과 약화 2를 퍼뜨립니다!",
@@ -3171,8 +3247,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 10,
-      "upgradeDamage": 14,
+      "damage": 8,
+      "upgradeDamage": 11,
       "damagePerPoison": true,
       "desc": "피해 {damage} + 대상의 현재 맹독 수치만큼 추가 피해를 줍니다!",
       "classId": "rogue",
@@ -3198,8 +3274,8 @@ window.GAME_DATA = {
       "rarity": "rare",
       "cost": 1,
       "strength": 2,
-      "dexterity": 3,
-      "poison": 6,
+      "dexterity": 2,
+      "poison": 4,
       "target": "all",
       "desc": "힘 +2, 민첩 +3을 얻고 적 전체에게 맹독 6을 부여합니다.",
       "classId": "rogue",
@@ -3211,8 +3287,8 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "rare",
       "cost": 1,
-      "poison": 14,
-      "upgradePoison": 20,
+      "poison": 10,
+      "upgradePoison": 14,
       "vuln": 2,
       "desc": "D&D 최강의 맹독! 대상에게 맹독 {poison}과 취약 2를 부여합니다.",
       "classId": "rogue",
@@ -3224,13 +3300,14 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "legendary",
       "cost": 2,
-      "damage": 22,
-      "upgradeDamage": 30,
+      "damage": 17,
+      "upgradeDamage": 23,
       "doublePoison": true,
       "triggerPoisonNow": true,
-      "desc": "[전설] 피해 {damage}를 주고 대상의 맹독을 2배로 증폭한 뒤 즉시 격발!",
+      "desc": "[전설] 피해 {damage}를 주고 대상의 맹독을 2배로 증폭한 뒤 즉시 격발! (소멸)",
       "classId": "rogue",
-      "subclassId": "assassin"
+      "subclassId": "assassin",
+      "exhaust": true
     },
     "rogue_arcane_trickster_1": {
       "id": "rogue_arcane_trickster_1",
@@ -3239,8 +3316,8 @@ window.GAME_DATA = {
       "rarity": "common",
       "cost": 1,
       "addDrone": 1,
-      "block": 7,
-      "upgradeBlock": 10,
+      "block": 5,
+      "upgradeBlock": 8,
       "desc": "방어도 {block}을 얻고 [마법사의 손 구체] 1기를 소환합니다!",
       "classId": "rogue",
       "subclassId": "arcane_trickster"
@@ -3251,8 +3328,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 8,
-      "upgradeDamage": 11,
+      "damage": 6,
+      "upgradeDamage": 9,
       "triggerDronesNow": true,
       "desc": "피해 {damage}를 주고 마법사의 손 구체가 즉시 협공합니다!",
       "classId": "rogue",
@@ -3264,8 +3341,8 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 9,
-      "upgradeBlock": 13,
+      "block": 7,
+      "upgradeBlock": 10,
       "blockPerDrone": 3,
       "desc": "방어도 {block} + 소환된 구체 1기당 방어도 +3 획득!",
       "classId": "rogue",
@@ -3277,8 +3354,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 0,
-      "damage": 5,
-      "upgradeDamage": 8,
+      "damage": 4,
+      "upgradeDamage": 6,
       "draw": 1,
       "resourceGain": 1,
       "desc": "0코스트! 피해 {damage}, 카드 1장 드로우, 주사위 +1.",
@@ -3291,8 +3368,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 10,
-      "upgradeDamage": 14,
+      "damage": 8,
+      "upgradeDamage": 11,
       "target": "all",
       "weak": 2,
       "addDrone": 1,
@@ -3309,7 +3386,7 @@ window.GAME_DATA = {
       "vuln": 2,
       "weak": 2,
       "draw": 2,
-      "resourceGain": 2,
+      "resourceGain": 1,
       "desc": "대상에게 취약 2, 약화 2를 걸고 카드를 2장 뽑습니다.",
       "classId": "rogue",
       "subclassId": "arcane_trickster"
@@ -3320,8 +3397,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 7,
-      "upgradeDamage": 10,
+      "damage": 5,
+      "upgradeDamage": 8,
       "hits": 2,
       "triggerDronesNow": true,
       "desc": "피해 {damage}x2를 주고 모든 마법사의 손 구체가 일제 타격!",
@@ -3335,7 +3412,7 @@ window.GAME_DATA = {
       "rarity": "rare",
       "cost": 1,
       "addDrone": 2,
-      "dexterity": 3,
+      "dexterity": 2,
       "strength": 2,
       "desc": "마법사의 손 구체 2기 소환 및 민첩 +3, 힘 +2 획득!",
       "classId": "rogue",
@@ -3347,11 +3424,11 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "rare",
       "cost": 1,
-      "block": 14,
-      "upgradeBlock": 19,
+      "block": 11,
+      "upgradeBlock": 14,
       "stance": "calm",
-      "draw": 2,
-      "desc": "방어도 {block}, 카드 2장 드로우 및 [투명화/명경(AP+2)] 돌입!",
+      "draw": 1,
+      "desc": "방어도 {block}, 카드 1장 드로우 및 [투명화/명경(AP+2)] 돌입!",
       "classId": "rogue",
       "subclassId": "arcane_trickster"
     },
@@ -3361,8 +3438,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "legendary",
       "cost": 2,
-      "damage": 24,
-      "upgradeDamage": 32,
+      "damage": 19,
+      "upgradeDamage": 25,
       "target": "all",
       "gainEnergy": 2,
       "triggerDronesNow": true,
@@ -3376,8 +3453,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 8,
-      "upgradeDamage": 11,
+      "damage": 6,
+      "upgradeDamage": 9,
       "triggerSummonAttack": true,
       "desc": "피해 {damage}를 주고 전방의 [원한의 망령]이 즉시 협공합니다!",
       "classId": "rogue",
@@ -3389,9 +3466,9 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "summonHeal": 12,
-      "upgradeSummonHeal": 17,
-      "block": 6,
+      "summonHeal": 8,
+      "upgradeSummonHeal": 11,
+      "block": 5,
       "desc": "[원한의 망령] 체력 +{summonHeal} 소환 및 내 방어도 +6.",
       "classId": "rogue",
       "subclassId": "phantom"
@@ -3402,9 +3479,9 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 7,
-      "upgradeDamage": 10,
-      "poison": 3,
+      "damage": 5,
+      "upgradeDamage": 8,
+      "poison": 2,
       "summonHeal": 4,
       "desc": "피해 {damage}, 영혼 저주 3 부여, 망령 체력 +4 회복.",
       "classId": "rogue",
@@ -3416,12 +3493,13 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 0,
-      "draw": 2,
-      "upgradeDraw": 3,
-      "resourceGain": 2,
-      "desc": "0코스트! 망자의 지혜로 카드를 {draw}장 뽑고 주사위 +2.",
+      "draw": 1,
+      "upgradeDraw": 2,
+      "resourceGain": 1,
+      "desc": "0코스트! 망자의 지혜로 카드를 {draw}장 뽑고 주사위 +1. (소멸)",
       "classId": "rogue",
-      "subclassId": "phantom"
+      "subclassId": "phantom",
+      "exhaust": true
     },
     "rogue_phantom_5": {
       "id": "rogue_phantom_5",
@@ -3429,9 +3507,9 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 1,
-      "block": 12,
-      "upgradeBlock": 16,
-      "summonHeal": 10,
+      "block": 9,
+      "upgradeBlock": 12,
+      "summonHeal": 7,
       "draw": 1,
       "desc": "비물질화! 내 방어도 +{block}, 망령 체력 +10, 카드 1장 드로우.",
       "classId": "rogue",
@@ -3443,13 +3521,14 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 10,
-      "upgradeDamage": 14,
-      "healOnHit": 4,
-      "summonHeal": 6,
-      "desc": "피해 {damage}를 주고 내 체력 4, 망령 체력 6을 회복합니다.",
+      "damage": 8,
+      "upgradeDamage": 11,
+      "healOnHit": 2,
+      "summonHeal": 4,
+      "desc": "피해 {damage}를 주고 내 체력 4, 망령 체력 6을 회복합니다. (소멸)",
       "classId": "rogue",
-      "subclassId": "phantom"
+      "subclassId": "phantom",
+      "exhaust": true
     },
     "rogue_phantom_7": {
       "id": "rogue_phantom_7",
@@ -3457,9 +3536,9 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 9,
-      "upgradeDamage": 13,
-      "poison": 5,
+      "damage": 7,
+      "upgradeDamage": 10,
+      "poison": 4,
       "target": "all",
       "triggerSummonAttack": true,
       "desc": "적 전체 피해 {damage} 및 저주 5 부여 후 망령 협공!",
@@ -3473,8 +3552,8 @@ window.GAME_DATA = {
       "rarity": "rare",
       "cost": 1,
       "strength": 2,
-      "summonHeal": 16,
-      "summonAtkBoost": 5,
+      "summonHeal": 10,
+      "summonAtkBoost": 3,
       "desc": "힘 +2, 원한의 망령 체력 +16 및 공격력 +5 영구 강화!",
       "classId": "rogue",
       "subclassId": "phantom"
@@ -3485,8 +3564,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "rare",
       "cost": 2,
-      "damage": 16,
-      "upgradeDamage": 22,
+      "damage": 12,
+      "upgradeDamage": 17,
       "damagePlusSummonHp": true,
       "desc": "피해 {damage} + 원한의 망령 현재 체력만큼 추가 피해!",
       "classId": "rogue",
@@ -3498,15 +3577,16 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "legendary",
       "cost": 2,
-      "damage": 22,
-      "upgradeDamage": 30,
+      "damage": 17,
+      "upgradeDamage": 23,
       "target": "all",
-      "poison": 8,
+      "poison": 6,
       "triggerSummonAttack": true,
-      "healOnHit": 6,
-      "desc": "[전설] 적 전체 피해 {damage}, 저주 8 부여, 내 체력 +6 및 망령 협공!",
+      "healOnHit": 4,
+      "desc": "[전설] 적 전체 피해 {damage}, 저주 8 부여, 내 체력 +6 및 망령 협공! (소멸)",
       "classId": "rogue",
-      "subclassId": "phantom"
+      "subclassId": "phantom",
+      "exhaust": true
     },
     "rng_sh_1": {
       "id": "rng_sh_1",
@@ -3516,8 +3596,7 @@ window.GAME_DATA = {
       "cost": 1,
       "damage": 6,
       "upgradeDamage": 9,
-      "resourceGain": 1,
-      "desc": "피해를 {damage} 줍니다. 사냥꾼의 징표 +1.",
+      "desc": "적에게 피해를 {damage} 줍니다.",
       "classId": "ranger",
       "subclassId": "shared"
     },
@@ -3529,8 +3608,7 @@ window.GAME_DATA = {
       "cost": 1,
       "block": 5,
       "upgradeBlock": 8,
-      "resourceGain": 1,
-      "desc": "방어도를 {block} 얻습니다. 사냥꾼의 징표 +1.",
+      "desc": "방어도를 {block} 얻습니다.",
       "classId": "ranger",
       "subclassId": "shared"
     },
@@ -3540,11 +3618,11 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 8,
-      "upgradeDamage": 12,
+      "damage": 6,
+      "upgradeDamage": 9,
       "vuln": 2,
-      "resourceGain": 2,
-      "desc": "피해 {damage}, 대상에게 취약 2 부여, 사냥꾼의 징표 +2.",
+      "resourceGain": 1,
+      "desc": "피해 {damage}, 대상에게 취약 2 부여, 사냥꾼의 징표 +1.",
       "classId": "ranger",
       "subclassId": "shared"
     },
@@ -3554,13 +3632,14 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "rare",
       "cost": 1,
-      "block": 8,
-      "upgradeBlock": 11,
-      "healOnHit": 6,
+      "block": 6,
+      "upgradeBlock": 8,
+      "healOnHit": 4,
       "draw": 1,
-      "desc": "방어도 {block}, 내 체력 +6 회복, 카드 1장 드로우!",
+      "desc": "방어도 {block}, 내 체력 +6 회복, 카드 1장 드로우! (소멸)",
       "classId": "ranger",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "exhaust": true
     },
     "ranger_hunter_conclave_1": {
       "id": "ranger_hunter_conclave_1",
@@ -3568,8 +3647,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 10,
-      "upgradeDamage": 14,
+      "damage": 8,
+      "upgradeDamage": 11,
       "resourceGain": 1,
       "desc": "거인 사냥용 강사! 피해를 {damage} 줍니다. 징표 +1.",
       "classId": "ranger",
@@ -3581,8 +3660,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 8,
-      "upgradeDamage": 11,
+      "damage": 6,
+      "upgradeDamage": 9,
       "target": "all",
       "resourceGain": 1,
       "desc": "적 전체에게 동시에 화살을 쏘아 피해 {damage}를 줍니다.",
@@ -3595,8 +3674,8 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 9,
-      "upgradeBlock": 13,
+      "block": 7,
+      "upgradeBlock": 10,
       "weak": 1,
       "desc": "방어도 {block}을 얻고 대상에게 약화 1을 부여합니다.",
       "classId": "ranger",
@@ -3608,11 +3687,11 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 5,
-      "upgradeDamage": 7,
+      "damage": 4,
+      "upgradeDamage": 5,
       "hits": 2,
-      "resourceGain": 2,
-      "desc": "피해를 {damage}씩 2번 주고 징표 +2를 얻습니다.",
+      "resourceGain": 1,
+      "desc": "피해를 {damage}씩 2번 주고 징표 +1를 얻습니다.",
       "classId": "ranger",
       "subclassId": "hunter_conclave"
     },
@@ -3622,8 +3701,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 10,
-      "upgradeDamage": 14,
+      "damage": 8,
+      "upgradeDamage": 11,
       "target": "all",
       "bonusPerResource": 2,
       "desc": "적 전체 피해 {damage} + 보유한 징표 1당 추가 피해 +2!",
@@ -3636,8 +3715,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 5,
-      "upgradeDamage": 7,
+      "damage": 4,
+      "upgradeDamage": 5,
       "hits": 3,
       "target": "all",
       "desc": "적 전체에게 피해 {damage}씩 3번 연속 폭풍 참격을 가합니다!",
@@ -3650,8 +3729,8 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 1,
-      "block": 12,
-      "upgradeBlock": 16,
+      "block": 9,
+      "upgradeBlock": 12,
       "vuln": 2,
       "desc": "방어도 {block}을 얻고 적의 공격을 흘려 취약 2를 부여합니다.",
       "classId": "ranger",
@@ -3663,8 +3742,8 @@ window.GAME_DATA = {
       "type": "power",
       "rarity": "rare",
       "cost": 1,
-      "strength": 3,
-      "upgradeStrength": 5,
+      "strength": 2,
+      "upgradeStrength": 3,
       "dexterity": 2,
       "desc": "영구적으로 힘 +{strength} 및 민첩 +2를 얻습니다.",
       "classId": "ranger",
@@ -3676,8 +3755,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "rare",
       "cost": 2,
-      "damage": 18,
-      "upgradeDamage": 24,
+      "damage": 14,
+      "upgradeDamage": 19,
       "target": "all",
       "vuln": 2,
       "desc": "적 전체에게 뇌전 화살 피해 {damage}와 취약 2를 부여합니다!",
@@ -3690,8 +3769,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "legendary",
       "cost": 2,
-      "damage": 24,
-      "upgradeDamage": 32,
+      "damage": 19,
+      "upgradeDamage": 25,
       "target": "all",
       "consumeResourceAll": true,
       "bonusPerResource": 4,
@@ -3705,9 +3784,9 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "summonHeal": 12,
-      "upgradeSummonHeal": 17,
-      "summonAtkBoost": 3,
+      "summonHeal": 8,
+      "upgradeSummonHeal": 11,
+      "summonAtkBoost": 2,
       "desc": "전방에 [흑표범 동료] 체력 +{summonHeal}, 공격력 +3 강화!",
       "classId": "ranger",
       "subclassId": "beast_master"
@@ -3718,8 +3797,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 7,
-      "upgradeDamage": 10,
+      "damage": 5,
+      "upgradeDamage": 8,
       "triggerSummonAttack": true,
       "desc": "피해 {damage}를 주고 흑표범이 즉시 적을 물어뜯습니다!",
       "classId": "ranger",
@@ -3731,9 +3810,9 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 7,
-      "upgradeBlock": 10,
-      "summonHeal": 8,
+      "block": 5,
+      "upgradeBlock": 8,
+      "summonHeal": 5,
       "desc": "내 방어도 +{block} 및 흑표범의 체력을 +8 회복합니다.",
       "classId": "ranger",
       "subclassId": "beast_master"
@@ -3745,7 +3824,7 @@ window.GAME_DATA = {
       "rarity": "common",
       "cost": 0,
       "damage": 4,
-      "upgradeDamage": 7,
+      "upgradeDamage": 6,
       "triggerSummonAttack": true,
       "desc": "0코스트! 피해 {damage}를 주고 흑표범이 즉시 협공합니다.",
       "classId": "ranger",
@@ -3757,9 +3836,9 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 8,
-      "upgradeDamage": 12,
-      "summonAtkBoost": 4,
+      "damage": 6,
+      "upgradeDamage": 9,
+      "summonAtkBoost": 2,
       "triggerSummonAttack": true,
       "draw": 1,
       "desc": "피해 {damage}, 흑표범 공격력 +4 후 협공, 카드 1장 드로우!",
@@ -3772,9 +3851,9 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 1,
-      "block": 11,
-      "upgradeBlock": 15,
-      "summonHeal": 12,
+      "block": 8,
+      "upgradeBlock": 11,
+      "summonHeal": 8,
       "desc": "나무껍질 피부로 내 방어도 +{block} 및 흑표범 체력 +12!",
       "classId": "ranger",
       "subclassId": "beast_master"
@@ -3785,8 +3864,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 10,
-      "upgradeDamage": 14,
+      "damage": 8,
+      "upgradeDamage": 11,
       "vuln": 2,
       "triggerSummonAttack": true,
       "desc": "피해 {damage}, 취약 2 부여 후 흑표범이 치명타 협공!",
@@ -3799,13 +3878,14 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "rare",
       "cost": 1,
-      "block": 10,
-      "healOnHit": 5,
-      "summonHeal": 12,
-      "draw": 2,
-      "desc": "방어도 10, 레인저 체력 +5, 흑표범 체력 +12, 카드 2장 드로우!",
+      "block": 8,
+      "healOnHit": 3,
+      "summonHeal": 8,
+      "draw": 1,
+      "desc": "방어도 10, 레인저 체력 +5, 흑표범 체력 +12, 카드 1장 드로우! (소멸)",
       "classId": "ranger",
-      "subclassId": "beast_master"
+      "subclassId": "beast_master",
+      "exhaust": true
     },
     "ranger_beast_master_9": {
       "id": "ranger_beast_master_9",
@@ -3814,8 +3894,8 @@ window.GAME_DATA = {
       "rarity": "rare",
       "cost": 2,
       "strength": 2,
-      "summonHeal": 18,
-      "summonAtkBoost": 5,
+      "summonHeal": 12,
+      "summonAtkBoost": 3,
       "desc": "힘 +2, 흑표범의 체력 +18 및 공격력 +5 영구 강화!",
       "classId": "ranger",
       "subclassId": "beast_master"
@@ -3826,8 +3906,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "legendary",
       "cost": 2,
-      "damage": 22,
-      "upgradeDamage": 30,
+      "damage": 17,
+      "upgradeDamage": 23,
       "target": "all",
       "damagePlusSummonHp": true,
       "triggerSummonAttack": true,
@@ -3841,11 +3921,11 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 0,
-      "damage": 7,
-      "upgradeDamage": 10,
+      "damage": 5,
+      "upgradeDamage": 8,
       "draw": 1,
-      "resourceGain": 2,
-      "desc": "0코스트 기습! 피해 {damage}, 카드 1장 드로우, 징표 +2.",
+      "resourceGain": 1,
+      "desc": "0코스트 기습! 피해 {damage}, 카드 1장 드로우, 징표 +1.",
       "classId": "ranger",
       "subclassId": "gloom_stalker"
     },
@@ -3855,8 +3935,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 9,
-      "upgradeDamage": 13,
+      "damage": 7,
+      "upgradeDamage": 10,
       "vuln": 1,
       "resourceGain": 1,
       "desc": "어둠 속에서 저격해 피해 {damage}와 취약 1을 부여합니다.",
@@ -3869,10 +3949,10 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 9,
-      "upgradeBlock": 13,
-      "resourceGain": 2,
-      "desc": "방어도 {block}을 얻고 사냥꾼의 징표 +2를 얻습니다.",
+      "block": 7,
+      "upgradeBlock": 10,
+      "resourceGain": 1,
+      "desc": "방어도 {block}을 얻고 사냥꾼의 징표 +1를 얻습니다.",
       "classId": "ranger",
       "subclassId": "gloom_stalker"
     },
@@ -3882,8 +3962,8 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 8,
-      "upgradeBlock": 11,
+      "block": 6,
+      "upgradeBlock": 8,
       "draw": 1,
       "desc": "방어도 {block}을 얻고 카드를 1장 뽑습니다.",
       "classId": "ranger",
@@ -3895,8 +3975,8 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 1,
-      "block": 11,
-      "upgradeBlock": 15,
+      "block": 8,
+      "upgradeBlock": 11,
       "stance": "calm",
       "draw": 1,
       "desc": "방어도 {block}, 카드 1장 드로우 및 [어둠 매복(해제 시 AP+2)] 돌입!",
@@ -3909,11 +3989,11 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 5,
-      "upgradeDamage": 7,
+      "damage": 4,
+      "upgradeDamage": 5,
       "hits": 3,
-      "resourceGain": 2,
-      "desc": "피해를 {damage}씩 3번 연속 퍼붓습니다! 징표 +2.",
+      "resourceGain": 1,
+      "desc": "피해를 {damage}씩 3번 연속 퍼붓습니다! 징표 +1.",
       "classId": "ranger",
       "subclassId": "gloom_stalker"
     },
@@ -3923,8 +4003,8 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 1,
-      "block": 10,
-      "upgradeBlock": 14,
+      "block": 8,
+      "upgradeBlock": 11,
       "weak": 2,
       "target": "all",
       "desc": "방어도 {block}을 얻고 적 전체에게 약화 2를 부여합니다.",
@@ -3937,11 +4017,11 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "rare",
       "cost": 1,
-      "damage": 12,
-      "upgradeDamage": 16,
+      "damage": 9,
+      "upgradeDamage": 12,
       "stance": "wrath",
-      "draw": 2,
-      "desc": "피해 {damage}, 카드 2장 드로우 및 [광기/학살(피해 2배)] 돌입!",
+      "draw": 1,
+      "desc": "피해 {damage}, 카드 1장 드로우 및 [광기/학살(피해 2배)] 돌입!",
       "classId": "ranger",
       "subclassId": "gloom_stalker"
     },
@@ -3951,11 +4031,11 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "rare",
       "cost": 2,
-      "damage": 19,
-      "upgradeDamage": 26,
+      "damage": 15,
+      "upgradeDamage": 20,
       "target": "all",
-      "resourceGain": 3,
-      "desc": "순간이동 참격! 적 전체에게 피해 {damage}를 주고 징표 +3.",
+      "resourceGain": 1,
+      "desc": "순간이동 참격! 적 전체에게 피해 {damage}를 주고 징표 +1.",
       "classId": "ranger",
       "subclassId": "gloom_stalker"
     },
@@ -3965,12 +4045,12 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "legendary",
       "cost": 2,
-      "damage": 24,
-      "upgradeDamage": 32,
+      "damage": 19,
+      "upgradeDamage": 25,
       "target": "all",
       "stance": "divinity",
-      "draw": 2,
-      "desc": "[전설] 적 전체 피해 {damage}, 카드 2장 드로우 및 [초월(피해 3배)] 돌입!",
+      "draw": 1,
+      "desc": "[전설] 적 전체 피해 {damage}, 카드 1장 드로우 및 [초월(피해 3배)] 돌입!",
       "classId": "ranger",
       "subclassId": "gloom_stalker"
     },
@@ -3980,8 +4060,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 8,
-      "upgradeDamage": 11,
+      "damage": 6,
+      "upgradeDamage": 9,
       "addDrone": 1,
       "desc": "정신 피해 {damage}를 주고 [요정계 정령 구체] 1기를 소환합니다!",
       "classId": "ranger",
@@ -3993,8 +4073,8 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 8,
-      "upgradeBlock": 11,
+      "block": 6,
+      "upgradeBlock": 8,
       "draw": 1,
       "addDrone": 1,
       "desc": "방어도 {block}, 카드 1장 드로우, 요정 정령 구체 +1기 소환!",
@@ -4007,8 +4087,8 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 7,
-      "upgradeBlock": 10,
+      "block": 5,
+      "upgradeBlock": 8,
       "weak": 2,
       "target": "all",
       "desc": "방어도 {block}을 얻고 적 전체를 매혹해 약화 2를 부여합니다.",
@@ -4021,9 +4101,9 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 6,
-      "upgradeDamage": 9,
-      "poison": 3,
+      "damage": 5,
+      "upgradeDamage": 7,
+      "poison": 2,
       "resourceGain": 1,
       "desc": "피해 {damage}와 맹독 3을 부여합니다. 징표 +1.",
       "classId": "ranger",
@@ -4037,7 +4117,7 @@ window.GAME_DATA = {
       "cost": 1,
       "weak": 2,
       "vuln": 2,
-      "poison": 5,
+      "poison": 4,
       "target": "all",
       "desc": "적 전체에게 공포를 반사해 약화 2, 취약 2, 맹독 5 부여!",
       "classId": "ranger",
@@ -4049,8 +4129,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 10,
-      "upgradeDamage": 14,
+      "damage": 8,
+      "upgradeDamage": 11,
       "triggerDronesNow": true,
       "draw": 1,
       "desc": "피해 {damage}, 모든 요정 정령 구체 즉시 공격, 카드 1장 드로우!",
@@ -4063,8 +4143,8 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 1,
-      "block": 9,
-      "upgradeBlock": 13,
+      "block": 7,
+      "upgradeBlock": 10,
       "blockPerDrone": 4,
       "desc": "방어도 {block} + 소환된 요정 정령 구체 1기당 방어도 +4!",
       "classId": "ranger",
@@ -4078,7 +4158,7 @@ window.GAME_DATA = {
       "cost": 1,
       "addDrone": 2,
       "strength": 2,
-      "dexterity": 3,
+      "dexterity": 2,
       "desc": "요정 정령 구체 2기 즉시 소환 및 힘 +2, 민첩 +3 획득!",
       "classId": "ranger",
       "subclassId": "fey_wanderer"
@@ -4090,7 +4170,7 @@ window.GAME_DATA = {
       "rarity": "rare",
       "cost": 0,
       "gainEnergy": 1,
-      "draw": 2,
+      "draw": 1,
       "addDrone": 1,
       "exhaust": true,
       "desc": "0코스트! 행동력 +1, 카드 2장 드로우, 요정 구체 +1기 (소멸)",
@@ -4103,15 +4183,16 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "legendary",
       "cost": 2,
-      "damage": 23,
-      "upgradeDamage": 31,
+      "damage": 18,
+      "upgradeDamage": 24,
       "target": "all",
       "addDrone": 2,
       "triggerDronesNow": true,
-      "healOnHit": 6,
-      "desc": "[전설] 적 전체 피해 {damage}, 내 체력 +6, 요정 구체 2기 소환 및 총공격!",
+      "healOnHit": 4,
+      "desc": "[전설] 적 전체 피해 {damage}, 내 체력 +6, 요정 구체 2기 소환 및 총공격! (소멸)",
       "classId": "ranger",
-      "subclassId": "fey_wanderer"
+      "subclassId": "fey_wanderer",
+      "exhaust": true
     },
     "wiz_sh_1": {
       "id": "wiz_sh_1",
@@ -4121,8 +4202,7 @@ window.GAME_DATA = {
       "cost": 1,
       "damage": 6,
       "upgradeDamage": 9,
-      "resourceGain": 1,
-      "desc": "화염 피해를 {damage} 줍니다. 비전 주문력 +1.",
+      "desc": "적에게 피해를 {damage} 줍니다.",
       "classId": "wizard",
       "subclassId": "shared"
     },
@@ -4134,8 +4214,7 @@ window.GAME_DATA = {
       "cost": 1,
       "block": 5,
       "upgradeBlock": 8,
-      "resourceGain": 1,
-      "desc": "방어도를 {block} 얻습니다. 비전 주문력 +1.",
+      "desc": "방어도를 {block} 얻습니다.",
       "classId": "wizard",
       "subclassId": "shared"
     },
@@ -4145,8 +4224,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 4,
-      "upgradeDamage": 6,
+      "damage": 3,
+      "upgradeDamage": 5,
       "hits": 3,
       "addDrone": 1,
       "desc": "필중 마력탄 피해 {damage}x3 및 [비전 구체] 1기를 생성합니다!",
@@ -4159,8 +4238,8 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "rare",
       "cost": 1,
-      "block": 9,
-      "upgradeBlock": 13,
+      "block": 7,
+      "upgradeBlock": 10,
       "blockPerDrone": 3,
       "draw": 1,
       "desc": "방어도 {block} + 비전 구체 1기당 방어도 +3! 카드 1장 드로우.",
@@ -4173,8 +4252,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 8,
-      "upgradeDamage": 12,
+      "damage": 6,
+      "upgradeDamage": 9,
       "target": "all",
       "resourceGain": 1,
       "desc": "적 전체에게 화염 피해를 {damage} 줍니다. 주문력 +1.",
@@ -4187,8 +4266,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 9,
-      "upgradeDamage": 13,
+      "damage": 7,
+      "upgradeDamage": 10,
       "addDrone": 1,
       "desc": "원소 구체를 던져 피해 {damage}를 주고 비전 구체 +1기 생성!",
       "classId": "wizard",
@@ -4200,11 +4279,11 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 4,
-      "upgradeDamage": 6,
+      "damage": 3,
+      "upgradeDamage": 5,
       "hits": 3,
-      "resourceGain": 2,
-      "desc": "화염 광선 3줄기로 피해 {damage}x3을 줍니다. 주문력 +2.",
+      "resourceGain": 1,
+      "desc": "화염 광선 3줄기로 피해 {damage}x3을 줍니다. 주문력 +1.",
       "classId": "wizard",
       "subclassId": "evocation"
     },
@@ -4214,10 +4293,10 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 9,
-      "upgradeBlock": 13,
-      "resourceGain": 2,
-      "desc": "방어도 {block}을 얻고 비전 주문력 +2를 충전합니다.",
+      "block": 7,
+      "upgradeBlock": 10,
+      "resourceGain": 1,
+      "desc": "방어도 {block}을 얻고 비전 주문력 +1를 충전합니다.",
       "classId": "wizard",
       "subclassId": "evocation"
     },
@@ -4227,11 +4306,11 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 2,
-      "damage": 16,
-      "upgradeDamage": 22,
+      "damage": 12,
+      "upgradeDamage": 17,
       "target": "all",
-      "resourceGain": 2,
-      "desc": "대폭발! 적 전체에게 화염 피해를 {damage} 줍니다. 주문력 +2.",
+      "resourceGain": 1,
+      "desc": "대폭발! 적 전체에게 화염 피해를 {damage} 줍니다. 주문력 +1.",
       "classId": "wizard",
       "subclassId": "evocation"
     },
@@ -4241,8 +4320,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 11,
-      "upgradeDamage": 15,
+      "damage": 9,
+      "upgradeDamage": 12,
       "target": "all",
       "triggerDronesNow": true,
       "desc": "적 전체 뇌전 피해 {damage} 및 모든 비전 구체 즉시 발사!",
@@ -4255,8 +4334,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 2,
-      "damage": 14,
-      "upgradeDamage": 19,
+      "damage": 11,
+      "upgradeDamage": 15,
       "target": "all",
       "weak": 2,
       "vuln": 2,
@@ -4270,8 +4349,8 @@ window.GAME_DATA = {
       "type": "power",
       "rarity": "rare",
       "cost": 1,
-      "strength": 3,
-      "upgradeStrength": 5,
+      "strength": 2,
+      "upgradeStrength": 3,
       "addDrone": 2,
       "desc": "주문 공격력(힘) +{strength} 및 비전 구체 2기 즉시 생성!",
       "classId": "wizard",
@@ -4283,8 +4362,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "rare",
       "cost": 1,
-      "damage": 18,
-      "upgradeDamage": 24,
+      "damage": 14,
+      "upgradeDamage": 19,
       "bonusPerResource": 2,
       "desc": "최대 위력 주문! 피해 {damage} + 보유한 주문력 1당 피해 +2!",
       "classId": "wizard",
@@ -4296,8 +4375,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "legendary",
       "cost": 2,
-      "damage": 26,
-      "upgradeDamage": 35,
+      "damage": 20,
+      "upgradeDamage": 27,
       "target": "all",
       "consumeResourceAll": true,
       "bonusPerResource": 3,
@@ -4312,8 +4391,8 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 10,
-      "upgradeBlock": 14,
+      "block": 8,
+      "upgradeBlock": 11,
       "addDrone": 1,
       "desc": "방어도 {block}을 얻고 수호 구체 +1기를 생성합니다.",
       "classId": "wizard",
@@ -4325,8 +4404,8 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 8,
-      "upgradeBlock": 11,
+      "block": 6,
+      "upgradeBlock": 8,
       "weak": 2,
       "desc": "적의 주문을 차단해 방어도 {block}과 약화 2를 부여합니다.",
       "classId": "wizard",
@@ -4338,10 +4417,10 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 7,
-      "upgradeDamage": 10,
-      "block": 6,
-      "upgradeBlock": 9,
+      "damage": 5,
+      "upgradeDamage": 8,
+      "block": 5,
+      "upgradeBlock": 7,
       "desc": "폭발 문양으로 피해 {damage}와 방어도 {block}을 동시에 얻습니다.",
       "classId": "wizard",
       "subclassId": "abjuration"
@@ -4352,11 +4431,11 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 8,
-      "upgradeBlock": 11,
-      "resourceGain": 2,
+      "block": 6,
+      "upgradeBlock": 8,
+      "resourceGain": 1,
       "draw": 1,
-      "desc": "방어도 {block}, 주문력 +2, 카드 1장 드로우.",
+      "desc": "방어도 {block}, 주문력 +1, 카드 1장 드로우.",
       "classId": "wizard",
       "subclassId": "abjuration"
     },
@@ -4366,12 +4445,13 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 1,
-      "block": 10,
-      "upgradeBlock": 14,
+      "block": 8,
+      "upgradeBlock": 11,
       "doubleBlock": true,
-      "desc": "방어도 {block}을 얻은 뒤 현재 방어도를 2배로 증폭합니다!",
+      "desc": "방어도 {block}을 얻은 뒤 현재 방어도를 2배로 증폭합니다! (소멸)",
       "classId": "wizard",
-      "subclassId": "abjuration"
+      "subclassId": "abjuration",
+      "exhaust": true
     },
     "wizard_abjuration_6": {
       "id": "wizard_abjuration_6",
@@ -4379,8 +4459,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 2,
-      "damage": 12,
-      "upgradeDamage": 16,
+      "damage": 9,
+      "upgradeDamage": 12,
       "damagePerBlock": true,
       "desc": "피해 {damage} + 현재 내 방어도만큼 추가 반사 피해를 줍니다!",
       "classId": "wizard",
@@ -4394,7 +4474,7 @@ window.GAME_DATA = {
       "cost": 1,
       "weak": 3,
       "vuln": 2,
-      "block": 8,
+      "block": 6,
       "exhaust": true,
       "desc": "대상을 이차원으로 추방해 약화 3, 취약 2 부여 및 방어도 8 (소멸)",
       "classId": "wizard",
@@ -4406,9 +4486,9 @@ window.GAME_DATA = {
       "type": "power",
       "rarity": "rare",
       "cost": 1,
-      "dexterity": 4,
-      "upgradeDexterity": 6,
-      "metallicize": 5,
+      "dexterity": 2,
+      "upgradeDexterity": 3,
+      "metallicize": 3,
       "desc": "민첩 +{dexterity} 및 매 턴 종료 시 방어도 +5를 영구 획득합니다!",
       "classId": "wizard",
       "subclassId": "abjuration"
@@ -4419,11 +4499,11 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "rare",
       "cost": 2,
-      "block": 22,
-      "upgradeBlock": 30,
-      "draw": 2,
+      "block": 17,
+      "upgradeBlock": 23,
+      "draw": 1,
       "stance": "calm",
-      "desc": "방어도 {block}, 카드 2장 드로우 및 [명경(해제 시 AP+2)] 돌입!",
+      "desc": "방어도 {block}, 카드 1장 드로우 및 [명경(해제 시 AP+2)] 돌입!",
       "classId": "wizard",
       "subclassId": "abjuration"
     },
@@ -4433,10 +4513,10 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "legendary",
       "cost": 2,
-      "damage": 22,
-      "upgradeDamage": 30,
+      "damage": 17,
+      "upgradeDamage": 23,
       "target": "all",
-      "block": 20,
+      "block": 15,
       "weak": 3,
       "vuln": 3,
       "desc": "[전설] 방어도 +20 획득 및 적 전체에게 7색 광선 피해 {damage}, 약화 3, 취약 3!",
@@ -4449,9 +4529,9 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "summonHeal": 12,
-      "upgradeSummonHeal": 17,
-      "summonAtkBoost": 3,
+      "summonHeal": 8,
+      "upgradeSummonHeal": 11,
+      "summonAtkBoost": 2,
       "desc": "전방에 [해골 기사]를 소환/체력 +{summonHeal}, 공격력 +3 강화!",
       "classId": "wizard",
       "subclassId": "necromancy"
@@ -4462,8 +4542,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 7,
-      "upgradeDamage": 10,
+      "damage": 5,
+      "upgradeDamage": 8,
       "triggerSummonAttack": true,
       "desc": "사령의 손길로 피해 {damage}를 주고 해골 기사가 즉시 협공합니다!",
       "classId": "wizard",
@@ -4475,9 +4555,9 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 8,
-      "upgradeDamage": 12,
-      "poison": 3,
+      "damage": 6,
+      "upgradeDamage": 9,
+      "poison": 2,
       "desc": "사령의 종소리로 피해 {damage}와 부패(맹독) 3을 부여합니다.",
       "classId": "wizard",
       "subclassId": "necromancy"
@@ -4488,9 +4568,9 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 7,
-      "upgradeBlock": 10,
-      "summonHeal": 7,
+      "block": 5,
+      "upgradeBlock": 8,
+      "summonHeal": 5,
       "desc": "내 방어도 +{block} 및 해골 기사의 체력을 +7 회복합니다.",
       "classId": "wizard",
       "subclassId": "necromancy"
@@ -4501,13 +4581,14 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 10,
-      "upgradeDamage": 14,
-      "healOnHit": 4,
-      "summonHeal": 6,
-      "desc": "피해 {damage}를 주고 내 체력 4, 해골 기사 체력 6을 회복합니다!",
+      "damage": 8,
+      "upgradeDamage": 11,
+      "healOnHit": 2,
+      "summonHeal": 4,
+      "desc": "피해 {damage}를 주고 내 체력 4, 해골 기사 체력 6을 회복합니다! (소멸)",
       "classId": "wizard",
-      "subclassId": "necromancy"
+      "subclassId": "necromancy",
+      "exhaust": true
     },
     "wizard_necromancy_6": {
       "id": "wizard_necromancy_6",
@@ -4516,7 +4597,7 @@ window.GAME_DATA = {
       "rarity": "uncommon",
       "cost": 1,
       "weak": 3,
-      "poison": 6,
+      "poison": 4,
       "target": "all",
       "desc": "적 전체의 근력을 앗아가 약화 3과 부패 6을 부여합니다.",
       "classId": "wizard",
@@ -4528,9 +4609,9 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 8,
-      "upgradeDamage": 12,
-      "summonAtkBoost": 4,
+      "damage": 6,
+      "upgradeDamage": 9,
+      "summonAtkBoost": 2,
       "triggerSummonAttack": true,
       "draw": 1,
       "desc": "피해 {damage}, 해골 기사 공격력 +4 후 즉시 협공, 카드 1장 드로우!",
@@ -4544,8 +4625,8 @@ window.GAME_DATA = {
       "rarity": "rare",
       "cost": 2,
       "strength": 2,
-      "summonHeal": 18,
-      "summonAtkBoost": 5,
+      "summonHeal": 12,
+      "summonAtkBoost": 3,
       "desc": "주문력 +2, 해골 기사 체력 +18 및 공격력 +5 영구 강화!",
       "classId": "wizard",
       "subclassId": "necromancy"
@@ -4556,10 +4637,10 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "rare",
       "cost": 2,
-      "damage": 17,
-      "upgradeDamage": 23,
+      "damage": 13,
+      "upgradeDamage": 18,
       "target": "all",
-      "poison": 6,
+      "poison": 4,
       "triggerSummonAttack": true,
       "desc": "적 전체에게 사령 피해 {damage}, 부패 6 부여 및 해골 기사 협공!",
       "classId": "wizard",
@@ -4571,13 +4652,14 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "legendary",
       "cost": 2,
-      "damage": 28,
-      "upgradeDamage": 38,
+      "damage": 22,
+      "upgradeDamage": 30,
       "damagePlusSummonHp": true,
-      "healOnHit": 8,
-      "desc": "[전설] 피해 {damage} + 해골 기사 체력만큼 즉사급 피해 및 내 체력 +8 회복!",
+      "healOnHit": 5,
+      "desc": "[전설] 피해 {damage} + 해골 기사 체력만큼 즉사급 피해 및 내 체력 +8 회복! (소멸)",
       "classId": "wizard",
-      "subclassId": "necromancy"
+      "subclassId": "necromancy",
+      "exhaust": true
     },
     "wizard_divination_1": {
       "id": "wizard_divination_1",
@@ -4585,12 +4667,13 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 0,
-      "draw": 2,
-      "upgradeDraw": 3,
-      "resourceGain": 2,
-      "desc": "0코스트! 미래를 엿보아 카드 {draw}장을 뽑고 주문력 +2.",
+      "draw": 1,
+      "upgradeDraw": 2,
+      "resourceGain": 1,
+      "desc": "0코스트! 미래를 엿보아 카드 {draw}장을 뽑고 주문력 +1. (소멸)",
       "classId": "wizard",
-      "subclassId": "divination"
+      "subclassId": "divination",
+      "exhaust": true
     },
     "wizard_divination_2": {
       "id": "wizard_divination_2",
@@ -4598,8 +4681,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 8,
-      "upgradeDamage": 12,
+      "damage": 6,
+      "upgradeDamage": 9,
       "vuln": 1,
       "draw": 1,
       "desc": "피해 {damage}, 취약 1 부여 후 카드를 1장 뽑습니다.",
@@ -4612,8 +4695,8 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 8,
-      "upgradeBlock": 11,
+      "block": 6,
+      "upgradeBlock": 8,
       "draw": 1,
       "resourceGain": 1,
       "desc": "방어도 {block}, 카드 1장 드로우, 주문력 +1.",
@@ -4626,11 +4709,11 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 7,
-      "upgradeDamage": 10,
+      "damage": 5,
+      "upgradeDamage": 8,
       "vuln": 2,
-      "resourceGain": 2,
-      "desc": "약점을 꿰뚫어 피해 {damage}와 취약 2를 부여합니다. 주문력 +2.",
+      "resourceGain": 1,
+      "desc": "약점을 꿰뚫어 피해 {damage}와 취약 2를 부여합니다. 주문력 +1.",
       "classId": "wizard",
       "subclassId": "divination"
     },
@@ -4640,11 +4723,11 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 1,
-      "block": 10,
-      "upgradeBlock": 14,
+      "block": 8,
+      "upgradeBlock": 11,
       "stance": "calm",
-      "draw": 2,
-      "desc": "방어도 {block}, 카드 2장 드로우 및 [예지/명경(해제 시 AP+2)] 돌입!",
+      "draw": 1,
+      "desc": "방어도 {block}, 카드 1장 드로우 및 [예지/명경(해제 시 AP+2)] 돌입!",
       "classId": "wizard",
       "subclassId": "divination"
     },
@@ -4655,10 +4738,10 @@ window.GAME_DATA = {
       "rarity": "uncommon",
       "cost": 0,
       "gainEnergy": 1,
-      "draw": 2,
-      "resourceGain": 2,
+      "draw": 1,
+      "resourceGain": 1,
       "exhaust": true,
-      "desc": "0코스트! 주문 슬롯을 회수해 행동력 +1, 카드 2장 드로우, 주문력 +2 (소멸)",
+      "desc": "0코스트! 주문 슬롯을 회수해 행동력 +1, 카드 2장 드로우, 주문력 +1 (소멸)",
       "classId": "wizard",
       "subclassId": "divination"
     },
@@ -4668,8 +4751,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 11,
-      "upgradeDamage": 15,
+      "damage": 9,
+      "upgradeDamage": 12,
       "weak": 2,
       "vuln": 2,
       "desc": "피해 {damage}를 주고 대상의 운명을 비틀어 약화 2, 취약 2 부여!",
@@ -4682,8 +4765,8 @@ window.GAME_DATA = {
       "type": "power",
       "rarity": "rare",
       "cost": 1,
-      "strength": 3,
-      "dexterity": 3,
+      "strength": 2,
+      "dexterity": 2,
       "addDrone": 1,
       "draw": 2,
       "desc": "힘 +3, 민첩 +3, 비전 구체 +1기 생성 및 카드 2장 드로우!",
@@ -4697,8 +4780,8 @@ window.GAME_DATA = {
       "rarity": "rare",
       "cost": 1,
       "stance": "divinity",
-      "block": 12,
-      "draw": 2,
+      "block": 9,
+      "draw": 1,
       "desc": "미래를 완벽히 예측해 방어도 12, 2드로우 및 [초월(피해 3배)] 돌입!",
       "classId": "wizard",
       "subclassId": "divination"
@@ -4709,11 +4792,11 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "legendary",
       "cost": 2,
-      "damage": 22,
-      "upgradeDamage": 30,
+      "damage": 17,
+      "upgradeDamage": 23,
       "target": "all",
       "gainEnergy": 2,
-      "draw": 3,
+      "draw": 1,
       "desc": "[전설] 시간을 멈춰 적 전체 피해 {damage} 후 행동력(AP) +2 및 카드 3장 드로우!",
       "classId": "wizard",
       "subclassId": "divination"
@@ -4726,8 +4809,7 @@ window.GAME_DATA = {
       "cost": 1,
       "damage": 6,
       "upgradeDamage": 9,
-      "resourceGain": 1,
-      "desc": "광휘 피해를 {damage} 줍니다. 신성력 +1.",
+      "desc": "적에게 피해를 {damage} 줍니다.",
       "classId": "cleric",
       "subclassId": "shared"
     },
@@ -4737,10 +4819,9 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 6,
-      "upgradeBlock": 9,
-      "resourceGain": 1,
-      "desc": "방어도를 {block} 얻습니다. 신성력 +1.",
+      "block": 5,
+      "upgradeBlock": 8,
+      "desc": "방어도를 {block} 얻습니다.",
       "classId": "cleric",
       "subclassId": "shared"
     },
@@ -4750,11 +4831,11 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 10,
-      "upgradeDamage": 14,
+      "damage": 8,
+      "upgradeDamage": 11,
       "vuln": 2,
-      "resourceGain": 2,
-      "desc": "광휘 피해 {damage}를 주고 취약 2를 부여합니다! 신성력 +2.",
+      "resourceGain": 1,
+      "desc": "광휘 피해 {damage}를 주고 취약 2를 부여합니다! 신성력 +1.",
       "classId": "cleric",
       "subclassId": "shared"
     },
@@ -4765,8 +4846,8 @@ window.GAME_DATA = {
       "rarity": "rare",
       "cost": 1,
       "addDrone": 1,
-      "block": 7,
-      "upgradeBlock": 10,
+      "block": 5,
+      "upgradeBlock": 8,
       "triggerDronesNow": true,
       "desc": "방어도 {block}, [천상의 수호령 구체] 1기 소환 및 즉시 광휘 타격!",
       "classId": "cleric",
@@ -4778,11 +4859,10 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 7,
-      "upgradeBlock": 10,
-      "healOnHit": 5,
+      "block": 5,
+      "upgradeBlock": 8,
       "resourceGain": 1,
-      "desc": "방어도 {block}을 얻고 내 체력을 5 회복합니다. 신성력 +1.",
+      "desc": "방어도 {block}을 얻고 내  신성력 +1.",
       "classId": "cleric",
       "subclassId": "life_domain"
     },
@@ -4792,10 +4872,9 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 8,
-      "upgradeDamage": 11,
-      "healOnHit": 3,
-      "desc": "광휘 피해 {damage}를 주고 내 체력을 3 회복합니다.",
+      "damage": 6,
+      "upgradeDamage": 9,
+      "desc": "광휘 피해 {damage}를 주고 내",
       "classId": "cleric",
       "subclassId": "life_domain"
     },
@@ -4807,11 +4886,12 @@ window.GAME_DATA = {
       "cost": 0,
       "strength": 1,
       "upgradeStrength": 2,
-      "block": 4,
+      "block": 3,
       "draw": 1,
-      "desc": "0코스트! 힘 +{strength}, 방어도 4, 카드 1장 드로우.",
+      "desc": "0코스트! 힘 +{strength}, 방어도 4, 카드 1장 드로우. (소멸)",
       "classId": "cleric",
-      "subclassId": "life_domain"
+      "subclassId": "life_domain",
+      "exhaust": true
     },
     "cleric_life_domain_4": {
       "id": "cleric_life_domain_4",
@@ -4819,10 +4899,10 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 10,
-      "upgradeBlock": 14,
-      "resourceGain": 2,
-      "desc": "방어도 {block}을 얻고 신성력 +2를 얻습니다.",
+      "block": 8,
+      "upgradeBlock": 11,
+      "resourceGain": 1,
+      "desc": "방어도 {block}을 얻고 신성력 +1를 얻습니다.",
       "classId": "cleric",
       "subclassId": "life_domain"
     },
@@ -4832,13 +4912,14 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 1,
-      "block": 10,
-      "upgradeBlock": 14,
-      "healOnHit": 8,
-      "summonHeal": 10,
-      "desc": "신성력 전달! 방어도 {block}, 내 체력 +8, 소환수 체력 +10 회복!",
+      "block": 8,
+      "upgradeBlock": 11,
+      "healOnHit": 5,
+      "summonHeal": 7,
+      "desc": "신성력 전달! 방어도 {block}, 내 체력 +8, 소환수 체력 +10 회복! (소멸)",
       "classId": "cleric",
-      "subclassId": "life_domain"
+      "subclassId": "life_domain",
+      "exhaust": true
     },
     "cleric_life_domain_6": {
       "id": "cleric_life_domain_6",
@@ -4846,13 +4927,14 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 1,
-      "block": 9,
-      "upgradeBlock": 13,
-      "healOnHit": 5,
-      "draw": 2,
-      "desc": "방어도 {block}, 내 체력 +5 회복 및 카드 2장 드로우!",
+      "block": 7,
+      "upgradeBlock": 10,
+      "healOnHit": 3,
+      "draw": 1,
+      "desc": "방어도 {block}, 내 체력 +5 회복 및 카드 1장 드로우! (소멸)",
       "classId": "cleric",
-      "subclassId": "life_domain"
+      "subclassId": "life_domain",
+      "exhaust": true
     },
     "cleric_life_domain_7": {
       "id": "cleric_life_domain_7",
@@ -4860,11 +4942,11 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 1,
-      "block": 12,
-      "upgradeBlock": 16,
+      "block": 9,
+      "upgradeBlock": 12,
       "stance": "calm",
-      "resourceGain": 3,
-      "desc": "방어도 {block}, 신성력 +3 및 [은총/명경(해제 시 AP+2)] 돌입!",
+      "resourceGain": 1,
+      "desc": "방어도 {block}, 신성력 +1 및 [은총/명경(해제 시 AP+1)] 돌입!",
       "classId": "cleric",
       "subclassId": "life_domain"
     },
@@ -4874,9 +4956,9 @@ window.GAME_DATA = {
       "type": "power",
       "rarity": "rare",
       "cost": 1,
-      "dexterity": 3,
+      "dexterity": 2,
       "strength": 2,
-      "metallicize": 5,
+      "metallicize": 3,
       "desc": "민첩 +3, 힘 +2 및 매 턴 종료 시 방어도 +5를 영구 획득합니다!",
       "classId": "cleric",
       "subclassId": "life_domain"
@@ -4887,8 +4969,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "rare",
       "cost": 2,
-      "damage": 16,
-      "upgradeDamage": 22,
+      "damage": 12,
+      "upgradeDamage": 17,
       "damagePerBlock": true,
       "desc": "피해 {damage} + 현재 내 방어도만큼 추가 광휘 피해를 줍니다!",
       "classId": "cleric",
@@ -4900,14 +4982,15 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "legendary",
       "cost": 2,
-      "damage": 22,
-      "upgradeDamage": 30,
+      "damage": 17,
+      "upgradeDamage": 23,
       "target": "all",
-      "healOnHit": 15,
-      "block": 15,
-      "desc": "[전설] 내 체력 +15 회복, 방어도 +15 및 적 전체에게 정화의 빛 {damage} 피해!",
+      "healOnHit": 9,
+      "block": 11,
+      "desc": "[전설] 내 체력 +15 회복, 방어도 +15 및 적 전체에게 정화의 빛 {damage} 피해! (소멸)",
       "classId": "cleric",
-      "subclassId": "life_domain"
+      "subclassId": "life_domain",
+      "exhaust": true
     },
     "cleric_light_domain_1": {
       "id": "cleric_light_domain_1",
@@ -4915,8 +4998,8 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 8,
-      "upgradeBlock": 11,
+      "block": 6,
+      "upgradeBlock": 8,
       "weak": 2,
       "desc": "눈부신 섬광으로 방어도 {block}을 얻고 적에게 약화 2를 부여합니다.",
       "classId": "cleric",
@@ -4928,9 +5011,9 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 8,
-      "upgradeDamage": 11,
-      "poison": 3,
+      "damage": 6,
+      "upgradeDamage": 9,
+      "poison": 2,
       "addDrone": 1,
       "desc": "피해 {damage}, 화상 3 부여 및 [태양 광휘 구체] 1기 소환!",
       "classId": "cleric",
@@ -4945,7 +5028,7 @@ window.GAME_DATA = {
       "vuln": 2,
       "target": "all",
       "draw": 1,
-      "resourceGain": 2,
+      "resourceGain": 1,
       "desc": "적 전체를 빛으로 감싸 취약 2를 부여하고 카드를 1장 뽑습니다.",
       "classId": "cleric",
       "subclassId": "light_domain"
@@ -4956,8 +5039,8 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 7,
-      "upgradeBlock": 10,
+      "block": 5,
+      "upgradeBlock": 8,
       "blockPerDrone": 3,
       "desc": "방어도 {block} + 소환된 광휘 구체 1기당 방어도 +3!",
       "classId": "cleric",
@@ -4969,10 +5052,10 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 10,
-      "upgradeDamage": 14,
+      "damage": 8,
+      "upgradeDamage": 11,
       "target": "all",
-      "poison": 4,
+      "poison": 3,
       "weak": 2,
       "desc": "어둠을 걷어내는 태양빛! 적 전체 피해 {damage}, 화상 4, 약화 2!",
       "classId": "cleric",
@@ -4984,8 +5067,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 2,
-      "damage": 16,
-      "upgradeDamage": 22,
+      "damage": 12,
+      "upgradeDamage": 17,
       "target": "all",
       "triggerDronesNow": true,
       "desc": "적 전체에게 태양 화염 피해 {damage}를 주고 모든 광휘 구체 발사!",
@@ -4998,9 +5081,9 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 1,
-      "block": 11,
-      "upgradeBlock": 15,
-      "poison": 6,
+      "block": 8,
+      "upgradeBlock": 11,
+      "poison": 4,
       "target": "all",
       "desc": "방어도 {block}을 얻고 적 전체에게 화상(맹독) 6을 부여합니다.",
       "classId": "cleric",
@@ -5012,8 +5095,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "rare",
       "cost": 2,
-      "damage": 18,
-      "upgradeDamage": 25,
+      "damage": 14,
+      "upgradeDamage": 20,
       "target": "all",
       "vuln": 2,
       "triggerDronesNow": true,
@@ -5028,7 +5111,7 @@ window.GAME_DATA = {
       "rarity": "rare",
       "cost": 1,
       "addDrone": 2,
-      "strength": 3,
+      "strength": 2,
       "dexterity": 2,
       "desc": "태양 광휘 구체 2기 소환 및 힘 +3, 민첩 +2 영구 획득!",
       "classId": "cleric",
@@ -5040,10 +5123,10 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "legendary",
       "cost": 2,
-      "damage": 25,
-      "upgradeDamage": 34,
+      "damage": 20,
+      "upgradeDamage": 27,
       "target": "all",
-      "poison": 8,
+      "poison": 6,
       "weak": 3,
       "triggerDronesNow": true,
       "desc": "[전설] 적 전체 태양 폭발 피해 {damage}, 화상 8, 실명(약화 3) 및 구체 총공격!",
@@ -5056,11 +5139,11 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 5,
-      "upgradeDamage": 7,
+      "damage": 4,
+      "upgradeDamage": 5,
       "hits": 2,
-      "resourceGain": 2,
-      "desc": "전쟁망치로 피해 {damage}x2를 주고 신성력 +2를 얻습니다.",
+      "resourceGain": 1,
+      "desc": "전쟁망치로 피해 {damage}x2를 주고 신성력 +1를 얻습니다.",
       "classId": "cleric",
       "subclassId": "war_domain"
     },
@@ -5070,9 +5153,9 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "summonHeal": 12,
-      "upgradeSummonHeal": 17,
-      "summonAtkBoost": 3,
+      "summonHeal": 8,
+      "upgradeSummonHeal": 11,
+      "summonAtkBoost": 2,
       "desc": "전방에 [영체 대검 수호자] 체력 +{summonHeal}, 공격력 +3 소환!",
       "classId": "cleric",
       "subclassId": "war_domain"
@@ -5083,8 +5166,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 9,
-      "upgradeDamage": 13,
+      "damage": 7,
+      "upgradeDamage": 10,
       "triggerSummonAttack": true,
       "desc": "명중률 보정! 피해 {damage}를 주고 영체 수호자가 즉시 협공합니다!",
       "classId": "cleric",
@@ -5096,9 +5179,9 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 8,
-      "upgradeBlock": 11,
-      "summonHeal": 6,
+      "block": 6,
+      "upgradeBlock": 8,
+      "summonHeal": 4,
       "desc": "내 방어도 +{block} 및 영체 수호자의 체력을 +6 회복합니다.",
       "classId": "cleric",
       "subclassId": "war_domain"
@@ -5109,12 +5192,13 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 1,
-      "strength": 2,
-      "summonAtkBoost": 4,
-      "block": 8,
-      "desc": "방어도 8, 내 힘 +2 및 영체 수호자 공격력을 +4 강화합니다!",
+      "strength": 1,
+      "summonAtkBoost": 2,
+      "block": 6,
+      "desc": "방어도 8, 내 힘 +2 및 영체 수호자 공격력을 +4 강화합니다! (소멸)",
       "classId": "cleric",
-      "subclassId": "war_domain"
+      "subclassId": "war_domain",
+      "exhaust": true
     },
     "cleric_war_domain_6": {
       "id": "cleric_war_domain_6",
@@ -5122,8 +5206,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 10,
-      "upgradeDamage": 14,
+      "damage": 8,
+      "upgradeDamage": 11,
       "vuln": 2,
       "triggerSummonAttack": true,
       "draw": 1,
@@ -5137,8 +5221,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 0,
-      "damage": 6,
-      "upgradeDamage": 9,
+      "damage": 5,
+      "upgradeDamage": 7,
       "triggerSummonAttack": true,
       "desc": "0코스트 보너스 행동! 피해 {damage} 및 영체 수호자 즉시 협공!",
       "classId": "cleric",
@@ -5150,9 +5234,9 @@ window.GAME_DATA = {
       "type": "power",
       "rarity": "rare",
       "cost": 2,
-      "strength": 3,
-      "summonHeal": 18,
-      "summonAtkBoost": 5,
+      "strength": 2,
+      "summonHeal": 12,
+      "summonAtkBoost": 3,
       "desc": "힘 +3, 영체 수호자의 체력 +18 및 공격력 +5 영구 강화!",
       "classId": "cleric",
       "subclassId": "war_domain"
@@ -5163,8 +5247,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "rare",
       "cost": 2,
-      "damage": 18,
-      "upgradeDamage": 24,
+      "damage": 14,
+      "upgradeDamage": 19,
       "damagePlusSummonHp": true,
       "desc": "피해 {damage} + 영체 수호자의 현재 체력만큼 추가 피해!",
       "classId": "cleric",
@@ -5176,8 +5260,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "legendary",
       "cost": 2,
-      "damage": 24,
-      "upgradeDamage": 32,
+      "damage": 19,
+      "upgradeDamage": 25,
       "target": "all",
       "stance": "divinity",
       "triggerSummonAttack": true,
@@ -5191,9 +5275,9 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 8,
-      "upgradeDamage": 11,
-      "poison": 3,
+      "damage": 6,
+      "upgradeDamage": 9,
+      "poison": 2,
       "resourceGain": 1,
       "desc": "피해 {damage}와 사령 저주(맹독) 3을 부여합니다. 신성력 +1.",
       "classId": "cleric",
@@ -5205,8 +5289,8 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 7,
-      "upgradeBlock": 10,
+      "block": 5,
+      "upgradeBlock": 8,
       "vuln": 2,
       "desc": "방어도 {block}을 얻고 죽음의 그림자를 읽어 취약 2를 부여합니다.",
       "classId": "cleric",
@@ -5219,7 +5303,7 @@ window.GAME_DATA = {
       "rarity": "common",
       "cost": 1,
       "weak": 2,
-      "poison": 4,
+      "poison": 3,
       "target": "all",
       "desc": "적 전체에게 약화 2와 사령 저주 4를 부여합니다.",
       "classId": "cleric",
@@ -5231,12 +5315,13 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 0,
-      "draw": 2,
-      "upgradeDraw": 3,
-      "resourceGain": 2,
-      "desc": "0코스트! 카드를 {draw}장 뽑고 신성력 +2를 얻습니다.",
+      "draw": 1,
+      "upgradeDraw": 2,
+      "resourceGain": 1,
+      "desc": "0코스트! 카드를 {draw}장 뽑고 신성력 +1를 얻습니다. (소멸)",
       "classId": "cleric",
-      "subclassId": "grave_domain"
+      "subclassId": "grave_domain",
+      "exhaust": true
     },
     "cleric_grave_domain_5": {
       "id": "cleric_grave_domain_5",
@@ -5257,13 +5342,14 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 1,
-      "block": 12,
-      "upgradeBlock": 16,
-      "healOnHit": 5,
+      "block": 9,
+      "upgradeBlock": 12,
+      "healOnHit": 3,
       "stance": "calm",
-      "desc": "적의 치명타를 무효화해 방어도 {block}, 체력 +5, [명경(AP+2)] 돌입!",
+      "desc": "적의 치명타를 무효화해 방어도 {block}, 체력 +5, [명경(AP+2)] 돌입! (소멸)",
       "classId": "cleric",
-      "subclassId": "grave_domain"
+      "subclassId": "grave_domain",
+      "exhaust": true
     },
     "cleric_grave_domain_7": {
       "id": "cleric_grave_domain_7",
@@ -5271,8 +5357,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 10,
-      "upgradeDamage": 14,
+      "damage": 8,
+      "upgradeDamage": 11,
       "damagePerPoison": true,
       "desc": "피해 {damage} + 대상의 현재 저주(맹독) 수치만큼 추가 피해!",
       "classId": "cleric",
@@ -5284,10 +5370,10 @@ window.GAME_DATA = {
       "type": "power",
       "rarity": "rare",
       "cost": 1,
-      "strength": 3,
-      "dexterity": 3,
-      "resourceGain": 3,
-      "desc": "힘 +3, 민첩 +3을 영구 획득하고 즉시 신성력 +3을 얻습니다!",
+      "strength": 2,
+      "dexterity": 2,
+      "resourceGain": 1,
+      "desc": "힘 +1, 민첩 +1을 영구 획득하고 즉시 신성력 +1을 얻습니다!",
       "classId": "cleric",
       "subclassId": "grave_domain"
     },
@@ -5297,13 +5383,14 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "rare",
       "cost": 2,
-      "damage": 18,
-      "upgradeDamage": 24,
-      "healOnHit": 8,
+      "damage": 14,
+      "upgradeDamage": 19,
+      "healOnHit": 5,
       "doublePoison": true,
-      "desc": "피해 {damage}, 대상의 저주(맹독) 2배 증폭 및 내 체력 +8 회복!",
+      "desc": "피해 {damage}, 대상의 저주(맹독) 2배 증폭 및 내 체력 +8 회복! (소멸)",
       "classId": "cleric",
-      "subclassId": "grave_domain"
+      "subclassId": "grave_domain",
+      "exhaust": true
     },
     "cleric_grave_domain_10": {
       "id": "cleric_grave_domain_10",
@@ -5311,8 +5398,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "legendary",
       "cost": 2,
-      "damage": 24,
-      "upgradeDamage": 32,
+      "damage": 19,
+      "upgradeDamage": 25,
       "target": "all",
       "stance": "divinity",
       "triggerPoisonNow": true,
@@ -5328,8 +5415,7 @@ window.GAME_DATA = {
       "cost": 1,
       "damage": 6,
       "upgradeDamage": 9,
-      "resourceGain": 1,
-      "desc": "피해를 {damage} 줍니다. 신성한 강타 +1.",
+      "desc": "적에게 피해를 {damage} 줍니다.",
       "classId": "paladin",
       "subclassId": "shared"
     },
@@ -5339,10 +5425,9 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 6,
-      "upgradeBlock": 9,
-      "resourceGain": 1,
-      "desc": "방어도를 {block} 얻습니다. 신성한 강타 +1.",
+      "block": 5,
+      "upgradeBlock": 8,
+      "desc": "방어도를 {block} 얻습니다.",
       "classId": "paladin",
       "subclassId": "shared"
     },
@@ -5352,11 +5437,11 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 10,
-      "upgradeDamage": 14,
+      "damage": 8,
+      "upgradeDamage": 11,
       "bonusPerResource": 2,
-      "resourceGain": 2,
-      "desc": "피해 {damage} + 보유한 강타 충전 1당 추가 광휘 피해 +2!",
+      "resourceGain": 1,
+      "desc": "피해 {damage} + 보유한 강타 충전 1당 추가 광휘 피해 +1!",
       "classId": "paladin",
       "subclassId": "shared"
     },
@@ -5366,13 +5451,14 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "rare",
       "cost": 1,
-      "block": 9,
-      "upgradeBlock": 13,
-      "healOnHit": 6,
-      "resourceGain": 2,
-      "desc": "방어도 {block}을 얻고 내 체력을 6 회복합니다. 강타 +2.",
+      "block": 7,
+      "upgradeBlock": 10,
+      "healOnHit": 4,
+      "resourceGain": 1,
+      "desc": "방어도 {block}을 얻고 내 체력을 6 회복합니다. 강타 +1. (소멸)",
       "classId": "paladin",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "exhaust": true
     },
     "paladin_devotion_1": {
       "id": "paladin_devotion_1",
@@ -5380,8 +5466,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 9,
-      "upgradeDamage": 13,
+      "damage": 7,
+      "upgradeDamage": 10,
       "vuln": 1,
       "resourceGain": 1,
       "desc": "피해 {damage}를 주고 취약 1을 부여합니다. 강타 +1.",
@@ -5394,10 +5480,10 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 9,
-      "upgradeBlock": 13,
-      "resourceGain": 2,
-      "desc": "방어도 {block}과 신성한 강타 +2를 얻습니다.",
+      "block": 7,
+      "upgradeBlock": 10,
+      "resourceGain": 1,
+      "desc": "방어도 {block}과 신성한 강타 +1를 얻습니다.",
       "classId": "paladin",
       "subclassId": "devotion"
     },
@@ -5409,7 +5495,7 @@ window.GAME_DATA = {
       "cost": 1,
       "weak": 2,
       "target": "all",
-      "block": 6,
+      "block": 5,
       "desc": "방어도 6을 얻고 적 전체에게 약화 2를 부여합니다.",
       "classId": "paladin",
       "subclassId": "devotion"
@@ -5420,11 +5506,11 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 5,
-      "upgradeDamage": 7,
+      "damage": 4,
+      "upgradeDamage": 5,
       "hits": 2,
-      "resourceGain": 2,
-      "desc": "피해를 {damage}씩 2번 주고 신성한 강타 +2.",
+      "resourceGain": 1,
+      "desc": "피해를 {damage}씩 2번 주고 신성한 강타 +1.",
       "classId": "paladin",
       "subclassId": "devotion"
     },
@@ -5434,9 +5520,9 @@ window.GAME_DATA = {
       "type": "power",
       "rarity": "uncommon",
       "cost": 1,
-      "strength": 3,
-      "upgradeStrength": 5,
-      "metallicize": 4,
+      "strength": 2,
+      "upgradeStrength": 3,
+      "metallicize": 3,
       "desc": "성검에 빛을 부여해 힘 +{strength} 및 매 턴 종료 시 방어도 +4!",
       "classId": "paladin",
       "subclassId": "devotion"
@@ -5447,12 +5533,13 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 1,
-      "block": 11,
-      "upgradeBlock": 15,
+      "block": 8,
+      "upgradeBlock": 11,
       "doubleBlock": true,
-      "desc": "방어도 {block}을 얻고 현재 방어도를 2배로 증폭합니다!",
+      "desc": "방어도 {block}을 얻고 현재 방어도를 2배로 증폭합니다! (소멸)",
       "classId": "paladin",
-      "subclassId": "devotion"
+      "subclassId": "devotion",
+      "exhaust": true
     },
     "paladin_devotion_7": {
       "id": "paladin_devotion_7",
@@ -5460,8 +5547,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 11,
-      "upgradeDamage": 15,
+      "damage": 9,
+      "upgradeDamage": 12,
       "weak": 2,
       "vuln": 2,
       "desc": "피해 {damage}를 주고 대상에게 실명(약화 2, 취약 2)을 부여합니다.",
@@ -5474,13 +5561,14 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "rare",
       "cost": 1,
-      "block": 12,
-      "healOnHit": 7,
-      "draw": 2,
+      "block": 9,
+      "healOnHit": 4,
+      "draw": 1,
       "stance": "calm",
-      "desc": "방어도 12, 체력 +7 회복, 2드로우 및 [헌신/명경(AP+2)] 돌입!",
+      "desc": "방어도 12, 체력 +7 회복, 2드로우 및 [헌신/명경(AP+2)] 돌입! (소멸)",
       "classId": "paladin",
-      "subclassId": "devotion"
+      "subclassId": "devotion",
+      "exhaust": true
     },
     "paladin_devotion_9": {
       "id": "paladin_devotion_9",
@@ -5488,8 +5576,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "rare",
       "cost": 2,
-      "damage": 16,
-      "upgradeDamage": 22,
+      "damage": 12,
+      "upgradeDamage": 17,
       "damagePerBlock": true,
       "desc": "피해 {damage} + 현재 내 방어도만큼 추가 광휘 피해!",
       "classId": "paladin",
@@ -5501,10 +5589,10 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "legendary",
       "cost": 2,
-      "damage": 24,
-      "upgradeDamage": 32,
+      "damage": 19,
+      "upgradeDamage": 25,
       "target": "all",
-      "block": 16,
+      "block": 12,
       "stance": "divinity",
       "desc": "[전설] 태양의 후광! 방어도 +16, 적 전체 피해 {damage} 및 [천상 강림(3배)]!",
       "classId": "paladin",
@@ -5516,10 +5604,10 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 9,
-      "upgradeDamage": 13,
-      "resourceGain": 2,
-      "desc": "피해를 {damage} 주고 신성한 강타 +2를 얻습니다.",
+      "damage": 7,
+      "upgradeDamage": 10,
+      "resourceGain": 1,
+      "desc": "피해를 {damage} 주고 신성한 강타 +1를 얻습니다.",
       "classId": "paladin",
       "subclassId": "vengeance"
     },
@@ -5529,8 +5617,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 8,
-      "upgradeDamage": 11,
+      "damage": 6,
+      "upgradeDamage": 9,
       "vuln": 2,
       "desc": "피해를 {damage} 주고 대상에게 취약 2를 부여합니다.",
       "classId": "paladin",
@@ -5542,12 +5630,13 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 0,
-      "draw": 2,
-      "upgradeDraw": 3,
-      "resourceGain": 2,
-      "desc": "0코스트! 카드를 {draw}장 뽑고 강타 +2를 얻습니다.",
+      "draw": 1,
+      "upgradeDraw": 2,
+      "resourceGain": 1,
+      "desc": "0코스트! 카드를 {draw}장 뽑고 강타 +1를 얻습니다. (소멸)",
       "classId": "paladin",
-      "subclassId": "vengeance"
+      "subclassId": "vengeance",
+      "exhaust": true
     },
     "paladin_vengeance_4": {
       "id": "paladin_vengeance_4",
@@ -5555,12 +5644,13 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 8,
-      "upgradeBlock": 11,
+      "block": 6,
+      "upgradeBlock": 8,
       "strength": 1,
-      "desc": "방어도 {block}과 힘 +1을 얻습니다.",
+      "desc": "방어도 {block}과 힘 +1을 얻습니다. (소멸)",
       "classId": "paladin",
-      "subclassId": "vengeance"
+      "subclassId": "vengeance",
+      "exhaust": true
     },
     "paladin_vengeance_5": {
       "id": "paladin_vengeance_5",
@@ -5568,8 +5658,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 10,
-      "upgradeDamage": 14,
+      "damage": 8,
+      "upgradeDamage": 11,
       "stance": "wrath",
       "vuln": 2,
       "desc": "피해 {damage}, 취약 2 부여 후 [복수(공격력 2배)] 태세 돌입!",
@@ -5582,11 +5672,11 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 5,
-      "upgradeDamage": 7,
+      "damage": 4,
+      "upgradeDamage": 5,
       "hits": 3,
-      "resourceGain": 2,
-      "desc": "피해를 {damage}씩 3번 연속 가합니다! 강타 +2.",
+      "resourceGain": 1,
+      "desc": "피해를 {damage}씩 3번 연속 가합니다! 강타 +1.",
       "classId": "paladin",
       "subclassId": "vengeance"
     },
@@ -5597,7 +5687,7 @@ window.GAME_DATA = {
       "rarity": "uncommon",
       "cost": 0,
       "gainEnergy": 1,
-      "draw": 2,
+      "draw": 1,
       "strength": 1,
       "exhaust": true,
       "desc": "0코스트! 행동력 +1, 힘 +1, 카드 2장 드로우 (소멸)",
@@ -5610,8 +5700,8 @@ window.GAME_DATA = {
       "type": "power",
       "rarity": "rare",
       "cost": 1,
-      "strength": 4,
-      "upgradeStrength": 6,
+      "strength": 2,
+      "upgradeStrength": 3,
       "dexterity": 2,
       "desc": "영구적으로 힘 +{strength} 및 민첩 +2를 획득합니다!",
       "classId": "paladin",
@@ -5623,8 +5713,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "rare",
       "cost": 2,
-      "damage": 22,
-      "upgradeDamage": 30,
+      "damage": 17,
+      "upgradeDamage": 23,
       "bonusPerResource": 3,
       "desc": "5레벨 최강 강타! 피해 {damage} + 보유한 강타 1당 피해 +3!",
       "classId": "paladin",
@@ -5636,8 +5726,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "legendary",
       "cost": 2,
-      "damage": 25,
-      "upgradeDamage": 34,
+      "damage": 20,
+      "upgradeDamage": 27,
       "target": "all",
       "stance": "divinity",
       "consumeResourceAll": true,
@@ -5652,9 +5742,9 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "summonHeal": 12,
-      "upgradeSummonHeal": 17,
-      "summonAtkBoost": 3,
+      "summonHeal": 8,
+      "upgradeSummonHeal": 11,
+      "summonAtkBoost": 2,
       "desc": "전방에 [천상의 그리폰]을 소환/체력 +{summonHeal}, 공격력 +3 강화!",
       "classId": "paladin",
       "subclassId": "conquest"
@@ -5665,8 +5755,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 8,
-      "upgradeDamage": 11,
+      "damage": 6,
+      "upgradeDamage": 9,
       "triggerSummonAttack": true,
       "desc": "피해 {damage}를 주고 그리폰 군마가 즉시 협동 타격합니다!",
       "classId": "paladin",
@@ -5678,8 +5768,8 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 8,
-      "upgradeBlock": 11,
+      "block": 6,
+      "upgradeBlock": 8,
       "weak": 2,
       "target": "all",
       "desc": "방어도 {block}을 얻고 적 전체를 위압해 약화 2를 부여합니다.",
@@ -5692,9 +5782,9 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 7,
-      "upgradeBlock": 10,
-      "summonHeal": 7,
+      "block": 5,
+      "upgradeBlock": 8,
+      "summonHeal": 5,
       "desc": "내 방어도 +{block} 및 그리폰 군마의 체력을 +7 회복합니다.",
       "classId": "paladin",
       "subclassId": "conquest"
@@ -5705,8 +5795,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 10,
-      "upgradeDamage": 14,
+      "damage": 8,
+      "upgradeDamage": 11,
       "target": "all",
       "weak": 2,
       "triggerSummonAttack": true,
@@ -5720,9 +5810,9 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 11,
-      "upgradeDamage": 15,
-      "summonAtkBoost": 4,
+      "damage": 9,
+      "upgradeDamage": 12,
+      "summonAtkBoost": 2,
       "triggerSummonAttack": true,
       "desc": "피해 {damage}, 그리폰 공격력 +4 강화 후 즉시 그리폰 협공!",
       "classId": "paladin",
@@ -5734,9 +5824,9 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 1,
-      "block": 12,
-      "upgradeBlock": 16,
-      "summonHeal": 10,
+      "block": 9,
+      "upgradeBlock": 12,
+      "summonHeal": 7,
       "draw": 1,
       "desc": "내 방어도 +{block}, 그리폰 체력 +10, 카드 1장 드로우!",
       "classId": "paladin",
@@ -5748,9 +5838,9 @@ window.GAME_DATA = {
       "type": "power",
       "rarity": "rare",
       "cost": 2,
-      "strength": 3,
-      "summonHeal": 18,
-      "summonAtkBoost": 5,
+      "strength": 2,
+      "summonHeal": 12,
+      "summonAtkBoost": 3,
       "desc": "힘 +3, 천상의 그리폰 체력 +18 및 공격력 +5 영구 강화!",
       "classId": "paladin",
       "subclassId": "conquest"
@@ -5761,8 +5851,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "rare",
       "cost": 2,
-      "damage": 18,
-      "upgradeDamage": 24,
+      "damage": 14,
+      "upgradeDamage": 19,
       "damagePlusSummonHp": true,
       "desc": "피해 {damage} + 그리폰 군마의 현재 체력만큼 추가 피해!",
       "classId": "paladin",
@@ -5774,15 +5864,16 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "legendary",
       "cost": 2,
-      "damage": 24,
-      "upgradeDamage": 32,
+      "damage": 19,
+      "upgradeDamage": 25,
       "target": "all",
       "triggerSummonAttack": true,
-      "healOnHit": 8,
-      "block": 14,
-      "desc": "[전설] 적 전체 피해 {damage}, 방어도 +14, 내 체력 +8 및 그리폰 협공!",
+      "healOnHit": 5,
+      "block": 11,
+      "desc": "[전설] 적 전체 피해 {damage}, 방어도 +14, 내 체력 +8 및 그리폰 협공! (소멸)",
       "classId": "paladin",
-      "subclassId": "conquest"
+      "subclassId": "conquest",
+      "exhaust": true
     },
     "paladin_oathbreaker_1": {
       "id": "paladin_oathbreaker_1",
@@ -5790,9 +5881,9 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "summonHeal": 12,
-      "upgradeSummonHeal": 17,
-      "summonAtkBoost": 3,
+      "summonHeal": 8,
+      "upgradeSummonHeal": 11,
+      "summonAtkBoost": 2,
       "desc": "전방에 [타락 데스나이트] 체력 +{summonHeal}, 공격력 +3 소환!",
       "classId": "paladin",
       "subclassId": "oathbreaker"
@@ -5803,9 +5894,9 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 8,
-      "upgradeDamage": 11,
-      "poison": 3,
+      "damage": 6,
+      "upgradeDamage": 9,
+      "poison": 2,
       "triggerSummonAttack": true,
       "desc": "피해 {damage}, 암흑 저주 3 부여 후 데스나이트가 즉시 협공!",
       "classId": "paladin",
@@ -5817,8 +5908,8 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 7,
-      "upgradeBlock": 10,
+      "block": 5,
+      "upgradeBlock": 8,
       "vuln": 2,
       "target": "all",
       "desc": "방어도 {block}을 얻고 적 전체에게 공포(취약 2)를 부여합니다.",
@@ -5831,9 +5922,9 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 9,
-      "upgradeDamage": 13,
-      "poison": 4,
+      "damage": 7,
+      "upgradeDamage": 10,
+      "poison": 3,
       "desc": "암흑 에너지를 꽂아 피해 {damage}와 부패 저주 4를 부여합니다.",
       "classId": "paladin",
       "subclassId": "oathbreaker"
@@ -5844,9 +5935,9 @@ window.GAME_DATA = {
       "type": "power",
       "rarity": "uncommon",
       "cost": 1,
-      "strength": 3,
-      "upgradeStrength": 5,
-      "summonAtkBoost": 5,
+      "strength": 2,
+      "upgradeStrength": 3,
+      "summonAtkBoost": 3,
       "desc": "내 힘 +{strength} 및 데스나이트 소환수의 공격력을 +5 영구 증폭!",
       "classId": "paladin",
       "subclassId": "oathbreaker"
@@ -5857,13 +5948,14 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 10,
-      "upgradeDamage": 14,
-      "healOnHit": 4,
-      "summonHeal": 6,
-      "desc": "피해 {damage}를 주고 내 체력 4, 데스나이트 체력 6을 회복합니다.",
+      "damage": 8,
+      "upgradeDamage": 11,
+      "healOnHit": 2,
+      "summonHeal": 4,
+      "desc": "피해 {damage}를 주고 내 체력 4, 데스나이트 체력 6을 회복합니다. (소멸)",
       "classId": "paladin",
-      "subclassId": "oathbreaker"
+      "subclassId": "oathbreaker",
+      "exhaust": true
     },
     "paladin_oathbreaker_7": {
       "id": "paladin_oathbreaker_7",
@@ -5871,8 +5963,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 11,
-      "upgradeDamage": 15,
+      "damage": 9,
+      "upgradeDamage": 12,
       "damagePerPoison": true,
       "triggerSummonAttack": true,
       "desc": "피해 {damage} + 대상의 현재 저주 수치만큼 추가 피해 후 데스나이트 협공!",
@@ -5885,9 +5977,9 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "rare",
       "cost": 1,
-      "poison": 8,
+      "poison": 6,
       "target": "all",
-      "summonHeal": 15,
+      "summonHeal": 10,
       "draw": 2,
       "desc": "적 전체 암흑 저주 8 부여, 데스나이트 체력 +15, 카드 2장 드로우!",
       "classId": "paladin",
@@ -5899,8 +5991,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "rare",
       "cost": 2,
-      "damage": 19,
-      "upgradeDamage": 26,
+      "damage": 15,
+      "upgradeDamage": 20,
       "target": "all",
       "vuln": 2,
       "triggerSummonAttack": true,
@@ -5914,8 +6006,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "legendary",
       "cost": 2,
-      "damage": 25,
-      "upgradeDamage": 34,
+      "damage": 20,
+      "upgradeDamage": 27,
       "target": "all",
       "damagePlusSummonHp": true,
       "triggerSummonAttack": true,
@@ -5929,11 +6021,10 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 4,
-      "upgradeDamage": 6,
+      "damage": 6,
+      "upgradeDamage": 9,
       "hits": 2,
-      "resourceGain": 1,
-      "desc": "역장 광선으로 피해 {damage}x2를 줍니다. 영혼 조각 +1.",
+      "desc": "적에게 피해를 {damage} 줍니다.",
       "classId": "warlock",
       "subclassId": "shared"
     },
@@ -5946,8 +6037,7 @@ window.GAME_DATA = {
       "block": 5,
       "upgradeBlock": 8,
       "summonHeal": 3,
-      "resourceGain": 1,
-      "desc": "방어도 {block}을 얻고 계약 악마의 체력을 3 회복합니다.",
+      "desc": "방어도를 {block} 얻습니다.",
       "classId": "warlock",
       "subclassId": "shared"
     },
@@ -5957,11 +6047,11 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 0,
-      "poison": 5,
-      "upgradePoison": 8,
+      "poison": 4,
+      "upgradePoison": 6,
       "vuln": 1,
       "draw": 1,
-      "resourceGain": 2,
+      "resourceGain": 1,
       "desc": "0코스트! 대상에게 주술(맹독) {poison}, 취약 1 부여 및 1장 드로우.",
       "classId": "warlock",
       "subclassId": "shared"
@@ -5972,10 +6062,10 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "rare",
       "cost": 1,
-      "block": 10,
-      "upgradeBlock": 14,
-      "summonHeal": 10,
-      "resourceGain": 2,
+      "block": 8,
+      "upgradeBlock": 11,
+      "summonHeal": 7,
+      "resourceGain": 1,
       "desc": "내 냉기 방어도 +{block} 및 계약 악마 체력 +10!",
       "classId": "warlock",
       "subclassId": "shared"
@@ -5986,10 +6076,9 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 8,
-      "upgradeDamage": 11,
-      "healOnHit": 3,
-      "block": 4,
+      "damage": 6,
+      "upgradeDamage": 9,
+      "block": 3,
       "desc": "피해 {damage}를 주고 내 체력 +3 회복 및 방어도 4를 얻습니다.",
       "classId": "warlock",
       "subclassId": "fiend_patron"
@@ -6000,8 +6089,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 8,
-      "upgradeDamage": 11,
+      "damage": 6,
+      "upgradeDamage": 9,
       "target": "all",
       "resourceGain": 1,
       "desc": "적 전체에게 지옥불 피해 {damage}를 줍니다. 영혼 조각 +1.",
@@ -6014,9 +6103,9 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "summonHeal": 12,
-      "upgradeSummonHeal": 17,
-      "summonAtkBoost": 3,
+      "summonHeal": 8,
+      "upgradeSummonHeal": 11,
+      "summonAtkBoost": 2,
       "desc": "계약 악마 [지옥마신 핀드] 체력 +{summonHeal}, 공격력 +3 강화!",
       "classId": "warlock",
       "subclassId": "fiend_patron"
@@ -6027,8 +6116,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 7,
-      "upgradeDamage": 10,
+      "damage": 5,
+      "upgradeDamage": 8,
       "triggerSummonAttack": true,
       "desc": "피해 {damage}를 주고 지옥마신 핀드가 즉시 화염 협공을 가합니다!",
       "classId": "warlock",
@@ -6040,10 +6129,10 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 2,
-      "damage": 15,
-      "upgradeDamage": 21,
+      "damage": 12,
+      "upgradeDamage": 16,
       "target": "all",
-      "poison": 4,
+      "poison": 3,
       "triggerSummonAttack": true,
       "desc": "적 전체 화염 피해 {damage}, 화상 4 부여 및 핀드 협공!",
       "classId": "warlock",
@@ -6055,13 +6144,14 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 0,
-      "draw": 2,
-      "upgradeDraw": 3,
-      "summonHeal": 8,
-      "resourceGain": 2,
-      "desc": "0코스트! 카드 {draw}장 드로우, 핀드 체력 +8, 영혼 조각 +2.",
+      "draw": 1,
+      "upgradeDraw": 2,
+      "summonHeal": 5,
+      "resourceGain": 1,
+      "desc": "0코스트! 카드 {draw}장 드로우, 핀드 체력 +8, 영혼 조각 +1. (소멸)",
       "classId": "warlock",
-      "subclassId": "fiend_patron"
+      "subclassId": "fiend_patron",
+      "exhaust": true
     },
     "warlock_fiend_patron_7": {
       "id": "warlock_fiend_patron_7",
@@ -6069,9 +6159,9 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 1,
-      "block": 11,
-      "upgradeBlock": 15,
-      "poison": 6,
+      "block": 8,
+      "upgradeBlock": 11,
+      "poison": 4,
       "target": "all",
       "desc": "방어도 {block}을 얻고 적 전체에게 지옥불 화상 6을 부여합니다.",
       "classId": "warlock",
@@ -6083,9 +6173,9 @@ window.GAME_DATA = {
       "type": "power",
       "rarity": "rare",
       "cost": 1,
-      "strength": 3,
-      "summonHeal": 16,
-      "summonAtkBoost": 5,
+      "strength": 2,
+      "summonHeal": 10,
+      "summonAtkBoost": 3,
       "desc": "힘 +3, 지옥마신 핀드의 체력 +16 및 공격력 +5 영구 강화!",
       "classId": "warlock",
       "subclassId": "fiend_patron"
@@ -6096,13 +6186,14 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "rare",
       "cost": 2,
-      "damage": 18,
-      "upgradeDamage": 25,
+      "damage": 14,
+      "upgradeDamage": 20,
       "bonusPerResource": 3,
-      "healOnHit": 5,
-      "desc": "피해 {damage}(영혼 조각당 +3) 및 내 체력을 5 회복합니다!",
+      "healOnHit": 3,
+      "desc": "피해 {damage}(영혼 조각당 +3) 및 내 체력을 5 회복합니다! (소멸)",
       "classId": "warlock",
-      "subclassId": "fiend_patron"
+      "subclassId": "fiend_patron",
+      "exhaust": true
     },
     "warlock_fiend_patron_10": {
       "id": "warlock_fiend_patron_10",
@@ -6110,14 +6201,15 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "legendary",
       "cost": 2,
-      "damage": 25,
-      "upgradeDamage": 34,
+      "damage": 20,
+      "upgradeDamage": 27,
       "damagePlusSummonHp": true,
       "triggerSummonAttack": true,
-      "healOnHit": 8,
-      "desc": "[전설] 지옥 차원 추방! 피해 {damage} + 핀드 체력만큼 추가 피해 및 체력 +8!",
+      "healOnHit": 5,
+      "desc": "[전설] 지옥 차원 추방! 피해 {damage} + 핀드 체력만큼 추가 피해 및 체력 +8! (소멸)",
       "classId": "warlock",
-      "subclassId": "fiend_patron"
+      "subclassId": "fiend_patron",
+      "exhaust": true
     },
     "warlock_hexblade_1": {
       "id": "warlock_hexblade_1",
@@ -6125,11 +6217,11 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 0,
-      "poison": 5,
-      "upgradePoison": 8,
+      "poison": 4,
+      "upgradePoison": 6,
       "vuln": 2,
-      "resourceGain": 2,
-      "desc": "0코스트! 대상에게 저주 {poison}과 취약 2를 부여합니다. 조각 +2.",
+      "resourceGain": 1,
+      "desc": "0코스트! 대상에게 저주 {poison}과 취약 2를 부여합니다. 조각 +1.",
       "classId": "warlock",
       "subclassId": "hexblade"
     },
@@ -6139,9 +6231,9 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 9,
-      "upgradeDamage": 13,
-      "poison": 3,
+      "damage": 7,
+      "upgradeDamage": 10,
+      "poison": 2,
       "desc": "저주받은 마검으로 피해 {damage}와 저주 3을 부여합니다.",
       "classId": "warlock",
       "subclassId": "hexblade"
@@ -6152,8 +6244,8 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 9,
-      "upgradeBlock": 13,
+      "block": 7,
+      "upgradeBlock": 10,
       "resourceGain": 1,
       "desc": "방어도를 {block} 얻습니다. 영혼 조각 +1.",
       "classId": "warlock",
@@ -6165,11 +6257,11 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 5,
-      "upgradeDamage": 7,
+      "damage": 4,
+      "upgradeDamage": 5,
       "hits": 2,
-      "resourceGain": 2,
-      "desc": "마검으로 2회 연속 베어 피해 {damage}x2를 줍니다. 조각 +2.",
+      "resourceGain": 1,
+      "desc": "마검으로 2회 연속 베어 피해 {damage}x2를 줍니다. 조각 +1.",
       "classId": "warlock",
       "subclassId": "hexblade"
     },
@@ -6179,10 +6271,10 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 11,
-      "upgradeDamage": 15,
+      "damage": 9,
+      "upgradeDamage": 12,
       "weak": 2,
-      "poison": 4,
+      "poison": 3,
       "desc": "피해 {damage}를 주고 공포(약화 2)와 저주 4를 부여합니다.",
       "classId": "warlock",
       "subclassId": "hexblade"
@@ -6193,9 +6285,9 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 9,
-      "upgradeDamage": 13,
-      "summonHeal": 12,
+      "damage": 7,
+      "upgradeDamage": 10,
+      "summonHeal": 8,
       "triggerSummonAttack": true,
       "desc": "피해 {damage}, 망령 소환수 체력 +12 및 즉시 망령 협공!",
       "classId": "warlock",
@@ -6207,12 +6299,13 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 1,
-      "block": 12,
-      "upgradeBlock": 16,
+      "block": 9,
+      "upgradeBlock": 12,
       "doublePoison": true,
-      "desc": "방어도 {block}을 얻고 대상의 저주(맹독)를 2배로 증폭합니다!",
+      "desc": "방어도 {block}을 얻고 대상의 저주(맹독)를 2배로 증폭합니다! (소멸)",
       "classId": "warlock",
-      "subclassId": "hexblade"
+      "subclassId": "hexblade",
+      "exhaust": true
     },
     "warlock_hexblade_8": {
       "id": "warlock_hexblade_8",
@@ -6220,13 +6313,14 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "rare",
       "cost": 1,
-      "damage": 12,
-      "upgradeDamage": 16,
+      "damage": 9,
+      "upgradeDamage": 12,
       "damagePerPoison": true,
-      "healOnHit": 5,
-      "desc": "피해 {damage} + 대상의 현재 저주 수치만큼 추가 피해 및 체력 +5 회복!",
+      "healOnHit": 3,
+      "desc": "피해 {damage} + 대상의 현재 저주 수치만큼 추가 피해 및 체력 +5 회복! (소멸)",
       "classId": "warlock",
-      "subclassId": "hexblade"
+      "subclassId": "hexblade",
+      "exhaust": true
     },
     "warlock_hexblade_9": {
       "id": "warlock_hexblade_9",
@@ -6234,8 +6328,8 @@ window.GAME_DATA = {
       "type": "power",
       "rarity": "rare",
       "cost": 1,
-      "strength": 4,
-      "upgradeStrength": 6,
+      "strength": 2,
+      "upgradeStrength": 3,
       "dexterity": 2,
       "desc": "마검과 일체화하여 힘 +{strength} 및 민첩 +2를 영구 획득합니다!",
       "classId": "warlock",
@@ -6247,14 +6341,15 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "legendary",
       "cost": 2,
-      "damage": 24,
-      "upgradeDamage": 32,
+      "damage": 19,
+      "upgradeDamage": 25,
       "target": "all",
       "doublePoison": true,
       "triggerPoisonNow": true,
-      "desc": "[전설] 적 전체 피해 {damage} 후 모든 적의 저주를 2배로 증폭하고 즉시 폭발!",
+      "desc": "[전설] 적 전체 피해 {damage} 후 모든 적의 저주를 2배로 증폭하고 즉시 폭발! (소멸)",
       "classId": "warlock",
-      "subclassId": "hexblade"
+      "subclassId": "hexblade",
+      "exhaust": true
     },
     "warlock_great_old_one_1": {
       "id": "warlock_great_old_one_1",
@@ -6262,8 +6357,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 8,
-      "upgradeDamage": 11,
+      "damage": 6,
+      "upgradeDamage": 9,
       "addDrone": 1,
       "desc": "정신 충격 피해 {damage}를 주고 [공허의 촉수 구체] 1기를 소환합니다!",
       "classId": "warlock",
@@ -6275,8 +6370,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 8,
-      "upgradeDamage": 11,
+      "damage": 6,
+      "upgradeDamage": 9,
       "weak": 2,
       "resourceGain": 1,
       "desc": "광기의 속삭임으로 피해 {damage}와 약화 2를 부여합니다.",
@@ -6289,8 +6384,8 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 8,
-      "upgradeBlock": 11,
+      "block": 6,
+      "upgradeBlock": 8,
       "blockPerDrone": 3,
       "desc": "방어도 {block} + 소환된 촉수 구체 1기당 방어도 +3!",
       "classId": "warlock",
@@ -6302,12 +6397,13 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 0,
-      "draw": 2,
-      "upgradeDraw": 3,
-      "resourceGain": 2,
-      "desc": "0코스트! 카드를 {draw}장 뽑고 영혼 조각 +2를 얻습니다.",
+      "draw": 1,
+      "upgradeDraw": 2,
+      "resourceGain": 1,
+      "desc": "0코스트! 카드를 {draw}장 뽑고 영혼 조각 +1를 얻습니다. (소멸)",
       "classId": "warlock",
-      "subclassId": "great_old_one"
+      "subclassId": "great_old_one",
+      "exhaust": true
     },
     "warlock_great_old_one_5": {
       "id": "warlock_great_old_one_5",
@@ -6315,8 +6411,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 9,
-      "upgradeDamage": 13,
+      "damage": 7,
+      "upgradeDamage": 10,
       "target": "all",
       "triggerDronesNow": true,
       "desc": "적 전체 피해 {damage}를 주고 모든 공허의 촉수 구체가 일제 타격!",
@@ -6329,9 +6425,9 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 2,
-      "damage": 14,
-      "upgradeDamage": 19,
-      "poison": 6,
+      "damage": 11,
+      "upgradeDamage": 15,
+      "poison": 4,
       "weak": 2,
       "target": "all",
       "addDrone": 1,
@@ -6345,8 +6441,8 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 1,
-      "block": 11,
-      "upgradeBlock": 15,
+      "block": 8,
+      "upgradeBlock": 11,
       "vuln": 2,
       "target": "all",
       "desc": "방어도 {block}을 얻고 정신 파동을 반사해 적 전체에 취약 2 부여!",
@@ -6360,7 +6456,7 @@ window.GAME_DATA = {
       "rarity": "rare",
       "cost": 1,
       "addDrone": 2,
-      "strength": 3,
+      "strength": 2,
       "dexterity": 2,
       "desc": "공허의 촉수 구체 2기 소환 및 힘 +3, 민첩 +2 영구 획득!",
       "classId": "warlock",
@@ -6387,8 +6483,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "legendary",
       "cost": 2,
-      "damage": 25,
-      "upgradeDamage": 34,
+      "damage": 20,
+      "upgradeDamage": 27,
       "target": "all",
       "addDrone": 2,
       "triggerDronesNow": true,
@@ -6403,9 +6499,9 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "summonHeal": 13,
-      "upgradeSummonHeal": 18,
-      "summonAtkBoost": 3,
+      "summonHeal": 8,
+      "upgradeSummonHeal": 12,
+      "summonAtkBoost": 2,
       "desc": "전방 사역마의 체력 +{summonHeal}, 공격력을 +3 강화합니다!",
       "classId": "warlock",
       "subclassId": "archfey_chain"
@@ -6416,8 +6512,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "common",
       "cost": 1,
-      "damage": 7,
-      "upgradeDamage": 10,
+      "damage": 5,
+      "upgradeDamage": 8,
       "triggerSummonAttack": true,
       "draw": 1,
       "desc": "피해 {damage}, 사역마 즉시 협공 및 카드 1장 드로우!",
@@ -6430,9 +6526,9 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "common",
       "cost": 1,
-      "block": 8,
-      "upgradeBlock": 11,
-      "summonHeal": 7,
+      "block": 6,
+      "upgradeBlock": 8,
+      "summonHeal": 5,
       "desc": "내 방어도 +{block} 및 사역마의 체력을 +7 회복합니다.",
       "classId": "warlock",
       "subclassId": "archfey_chain"
@@ -6444,8 +6540,8 @@ window.GAME_DATA = {
       "rarity": "common",
       "cost": 0,
       "damage": 4,
-      "upgradeDamage": 7,
-      "poison": 3,
+      "upgradeDamage": 6,
+      "poison": 2,
       "triggerSummonAttack": true,
       "desc": "0코스트! 피해 {damage}, 맹독 3 부여 후 사역마 즉시 협공!",
       "classId": "warlock",
@@ -6457,12 +6553,13 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 1,
-      "block": 10,
-      "healOnHit": 6,
-      "summonHeal": 12,
-      "desc": "사역마가 있을 때 최대 회복! 방어도 10, 내 체력 +6, 사역마 체력 +12!",
+      "block": 8,
+      "healOnHit": 4,
+      "summonHeal": 8,
+      "desc": "사역마가 있을 때 최대 회복! 방어도 10, 내 체력 +6, 사역마 체력 +12! (소멸)",
       "classId": "warlock",
-      "subclassId": "archfey_chain"
+      "subclassId": "archfey_chain",
+      "exhaust": true
     },
     "warlock_archfey_chain_6": {
       "id": "warlock_archfey_chain_6",
@@ -6470,9 +6567,9 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "uncommon",
       "cost": 1,
-      "damage": 9,
-      "upgradeDamage": 13,
-      "summonAtkBoost": 4,
+      "damage": 7,
+      "upgradeDamage": 10,
+      "summonAtkBoost": 2,
       "weak": 2,
       "triggerSummonAttack": true,
       "desc": "피해 {damage}, 약화 2, 사역마 공격력 +4 강화 후 즉시 협공!",
@@ -6485,8 +6582,8 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 1,
-      "block": 11,
-      "upgradeBlock": 15,
+      "block": 8,
+      "upgradeBlock": 11,
       "weak": 2,
       "vuln": 2,
       "target": "all",
@@ -6501,8 +6598,8 @@ window.GAME_DATA = {
       "rarity": "rare",
       "cost": 2,
       "strength": 2,
-      "summonHeal": 20,
-      "summonAtkBoost": 6,
+      "summonHeal": 13,
+      "summonAtkBoost": 4,
       "desc": "힘 +2, 사역마의 체력 +20 및 공격력 +6 영구 초월 강화!",
       "classId": "warlock",
       "subclassId": "archfey_chain"
@@ -6513,8 +6610,8 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "rare",
       "cost": 2,
-      "damage": 18,
-      "upgradeDamage": 24,
+      "damage": 14,
+      "upgradeDamage": 19,
       "damagePlusSummonHp": true,
       "desc": "피해 {damage} + 사역마의 현재 체력만큼 추가 피해를 줍니다!",
       "classId": "warlock",
@@ -6526,40 +6623,91 @@ window.GAME_DATA = {
       "type": "attack",
       "rarity": "legendary",
       "cost": 2,
-      "damage": 23,
-      "upgradeDamage": 31,
+      "damage": 18,
+      "upgradeDamage": 24,
       "target": "all",
       "damagePlusSummonHp": true,
       "triggerSummonAttack": true,
-      "draw": 2,
+      "draw": 1,
       "desc": "[전설] 적 전체 피해 {damage} + 사역마 체력만큼 추가 피해, 협공 및 2드로우!",
       "classId": "warlock",
       "subclassId": "archfey_chain"
+    },
+    "status_slimed": {
+      "id": "status_slimed",
+      "name": "🟢 점액 투성이 (Slimed)",
+      "type": "status",
+      "rarity": "common",
+      "cost": 1,
+      "exhaust": true,
+      "desc": "[상태이상] 행동력 1을 소모하여 닦아냅니다. 사용 시 소멸(Exhaust)."
+    },
+    "status_burn": {
+      "id": "status_burn",
+      "name": "🔥 지옥 화상 (Burn)",
+      "type": "status",
+      "rarity": "common",
+      "cost": 1,
+      "selfDamage": 2,
+      "exhaust": true,
+      "endTurnBurn": 4,
+      "desc": "[상태이상] 턴 종료 시 손에 남아있으면 화염 피해를 4 입습니다! (사용 시 체력 -2 소모 후 소멸)"
+    },
+    "status_dazed": {
+      "id": "status_dazed",
+      "name": "💫 정신 혼란 (Dazed)",
+      "type": "status",
+      "rarity": "common",
+      "cost": 1,
+      "exhaust": true,
+      "ethereal": true,
+      "desc": "[상태이상 · 휘발성] 턴 종료 시 손에서 자동으로 소멸합니다. (직접 사용 시 소멸)"
+    },
+    "status_wound": {
+      "id": "status_wound",
+      "name": "🩸 깊은 열상 (Wound)",
+      "type": "status",
+      "rarity": "common",
+      "cost": 1,
+      "selfDamage": 3,
+      "exhaust": true,
+      "desc": "[상태이상] 붕대 감기: 체력을 3 소모하고 이 카드를 소멸시킵니다."
+    },
+    "curse_pain": {
+      "id": "curse_pain",
+      "name": "☠️ 심연의 저주 (Curse)",
+      "type": "curse",
+      "rarity": "common",
+      "cost": 2,
+      "selfDamage": 5,
+      "exhaust": true,
+      "endTurnBurn": 3,
+      "desc": "[저주] 턴 종료 시 손에 있으면 암흑 피해 3을 입습니다. (상점 카드 제거로 영구 정화 가능)"
     }
   },
   "mutations": [
     {
       "id": "rad_infused",
       "name": "🧪 산성/맹독 룬 각인",
-      "desc": "이 카드 사용 시 대상에게 산성/맹독 +4 추가 부여",
+      "desc": "이 카드 사용 시 대상에게 산성/맹독 +2 추가 부여",
       "badgeColor": "#2ecc71"
     },
     {
       "id": "adrenaline_gene",
-      "name": "⚡ 가속(Haste) 룬 각인",
-      "desc": "이 카드 사용 시 카드를 1장 추가로 뽑고 클래스 자원 +2",
+      "name": "⚡ 집중 룬 각인",
+      "desc": "이 카드 사용 시 클래스 고유 자원 +1 추가 획득",
       "badgeColor": "#00d2d3"
     },
     {
       "id": "chitin_coat",
       "name": "🛡️ 방호(Abjuration) 룬 각인",
-      "desc": "이 카드 사용 시 방어도 +6 추가 획득",
+      "desc": "이 카드 사용 시 방어도 +3 추가 획득",
       "badgeColor": "#3498db"
     },
     {
       "id": "vampiric_cell",
-      "name": "🩸 흡혈(Vampiric) 룬 각인",
-      "desc": "이 카드 사용 시 내 체력을 3 회복하고 피해량 +4",
+      "name": "🗡️ 예리함 룬 각인",
+      "desc": "이 공격 카드의 기본 피해량 +3 증가",
       "badgeColor": "#e74c3c"
     }
   ],
@@ -6646,6 +6794,253 @@ window.GAME_DATA = {
       "icon": "🏮",
       "desc": "전투 승리 시 얻는 골드가 +35% 증가하고 최대 체력 +10.",
       "price": 100
+    },
+    "cursed_key": {
+      "id": "cursed_key",
+      "name": "🗝️ 저주받은 열쇠 (Cursed Key)",
+      "icon": "🗝️",
+      "isBossRelic": true,
+      "bonusEnergy": 1,
+      "desc": "[보스 유물] 매 턴 최대 행동력(AP) +1. 단, 보물상자나 이벤트에서 유물을 얻을 때마다 덱에 [☠️심연의 저주]가 1장 추가됩니다."
+    },
+    "velvet_choker": {
+      "id": "velvet_choker",
+      "name": "📿 벨벳 초커 (Velvet Choker)",
+      "icon": "📿",
+      "isBossRelic": true,
+      "bonusEnergy": 1,
+      "desc": "[보스 유물] 매 턴 최대 행동력(AP) +1. 단, 한 턴에 카드를 최대 6장까지만 사용할 수 있습니다."
+    },
+    "coffee_dripper": {
+      "id": "coffee_dripper",
+      "name": "☕ 드워프 커피 드리퍼 (Coffee Dripper)",
+      "icon": "☕",
+      "isBossRelic": true,
+      "bonusEnergy": 1,
+      "desc": "[보스 유물] 매 턴 최대 행동력(AP) +1. 단, 모닥불 휴식처(야영지)에서 [휴식(체력 회복)]을 할 수 없습니다!"
+    },
+    "fusion_hammer": {
+      "id": "fusion_hammer",
+      "name": "🔨 융합 해머 (Fusion Hammer)",
+      "icon": "🔨",
+      "isBossRelic": true,
+      "bonusEnergy": 1,
+      "desc": "[보스 유물] 매 턴 최대 행동력(AP) +1. 단, 모닥불 휴식처(야영지)에서 [단련(카드 강화)]을 할 수 없습니다!"
+    },
+    "philosophers_stone": {
+      "id": "philosophers_stone",
+      "name": "🩸 현자의 돌 (Philosopher's Stone)",
+      "icon": "🩸",
+      "isBossRelic": true,
+      "bonusEnergy": 1,
+      "desc": "[보스 유물] 매 턴 최대 행동력(AP) +1. 단, 모든 적들이 전투 시작 시 힘 +1을 얻은 채로 시작합니다!"
+    },
+    "sozu_brew": {
+      "id": "sozu_brew",
+      "name": "🍶 봉인의 호리병 (Sozu)",
+      "icon": "🍶",
+      "isBossRelic": true,
+      "bonusEnergy": 1,
+      "desc": "[보스 유물] 매 턴 최대 행동력(AP) +1. 단, 더 이상 전투나 상점/이벤트에서 새로운 물약을 획득할 수 없습니다!"
+    },
+    "ectoplasm_slime": {
+      "id": "ectoplasm_slime",
+      "name": "🟢 엑토플라즘 (Ectoplasm)",
+      "icon": "🟢",
+      "isBossRelic": true,
+      "bonusEnergy": 1,
+      "desc": "[보스 유물] 매 턴 최대 행동력(AP) +1. 단, 더 이상 전투나 이벤트에서 금화(GP)를 획득할 수 없습니다!"
+    },
+    "snecko_eye": {
+      "id": "snecko_eye",
+      "name": "🐍 비홀더 스네코의 눈 (Snecko Eye)",
+      "icon": "🐍",
+      "isBossRelic": true,
+      "desc": "[보스 유물] 매 턴 카드를 2장 더 뽑습니다! 단, 혼란에 걸려 카드를 뽑을 때마다 코스트가 0~3 사이로 무작위 변경됩니다."
+    },
+    "black_star": {
+      "id": "black_star",
+      "name": "🌠 검은 별 (Black Star)",
+      "icon": "🌠",
+      "isBossRelic": true,
+      "desc": "[보스 유물] 엘리트 몬스터를 토벌할 때마다 유물을 1개 더(총 2개) 획득하고 최대 체력이 +8 증가합니다!"
+    },
+    "vajra_relic": {
+      "id": "vajra_relic",
+      "name": "🔱 금강저 (Vajra)",
+      "icon": "🔱",
+      "price": 120,
+      "desc": "전투 시작 시 힘 +1을 얻습니다."
+    },
+    "oddly_smooth_stone": {
+      "id": "oddly_smooth_stone",
+      "name": "🪨 매끄러운 돌 (Smooth Stone)",
+      "icon": "🪨",
+      "price": 120,
+      "desc": "전투 시작 시 민첩 +1을 얻습니다."
+    },
+    "anchor_relic": {
+      "id": "anchor_relic",
+      "name": "⚓ 고대 철제 닻 (Anchor)",
+      "icon": "⚓",
+      "price": 125,
+      "desc": "매 전투 첫 번째 턴 시작 시 방어도 +10을 얻습니다."
+    },
+    "lantern_relic": {
+      "id": "lantern_relic",
+      "name": "🕯️ 안내자의 등불 (Lantern)",
+      "icon": "🕯️",
+      "price": 130,
+      "desc": "매 전투 첫 번째 턴 시작 시 행동력(AP) +1을 얻습니다."
+    },
+    "orichalcum_relic": {
+      "id": "orichalcum_relic",
+      "name": "🪙 오리할콘 광석 (Orichalcum)",
+      "icon": "🪙",
+      "price": 135,
+      "desc": "내 턴 종료 시 방어도가 0이라면 자동으로 방어도 +6을 얻습니다."
+    },
+    "bag_of_prep": {
+      "id": "bag_of_prep",
+      "name": "🎒 준비된 자의 배낭 (Bag of Preparation)",
+      "icon": "🎒",
+      "price": 135,
+      "desc": "매 전투 첫 번째 턴에 카드를 2장 더 뽑습니다."
+    },
+    "pen_nib_relic": {
+      "id": "pen_nib_relic",
+      "name": "✒️ 만년필 촉 (Pen Nib)",
+      "icon": "✒️",
+      "price": 145,
+      "desc": "공격 카드를 7장 사용할 때마다 다음 공격 카드가 2배 피해를 줍니다!"
+    },
+    "ftr_rank_b": {
+      "id": "ftr_rank_b",
+      "name": "⚔️ [파이터 B급] 백전노장의 검술 교본",
+      "icon": "📘",
+      "classRelic": "fighter",
+      "rankReq": "B",
+      "desc": "[파이터 고유] 매 전투 1턴 시작 시 방어도 +6 및 우위 주사위 +1 획득."
+    },
+    "ftr_rank_s": {
+      "id": "ftr_rank_s",
+      "name": "👑 [파이터 S급] 아레스의 전장 지휘봉",
+      "icon": "🏆",
+      "classRelic": "fighter",
+      "rankReq": "S",
+      "desc": "[파이터 신화] 매 턴 첫 번째 공격 카드 사용 시 방어도 +5 및 우위 주사위 +1 추가 획득!"
+    },
+    "bar_rank_b": {
+      "id": "bar_rank_b",
+      "name": "🪓 [바바리안 B급] 피에 젖은 전쟁 문신",
+      "icon": "🩸",
+      "classRelic": "barbarian",
+      "rankReq": "B",
+      "desc": "[바바리안 고유] 전투 중 내 체력이 60% 이하일 때 매 턴 시작 시 힘 +1 추가 획득."
+    },
+    "bar_rank_s": {
+      "id": "bar_rank_s",
+      "name": "👑 [바바리안 S급] 원시 타이탄의 심장",
+      "icon": "❤️‍🔥",
+      "classRelic": "barbarian",
+      "rankReq": "S",
+      "desc": "[바바리안 신화] 전투 시작 시 힘 +2 및 최대 체력 +12 영구 증가!"
+    },
+    "rog_rank_b": {
+      "id": "rog_rank_b",
+      "name": "🗡️ [로그 B급] 암살자 길드의 맹독 약병",
+      "icon": "🧪",
+      "classRelic": "rogue",
+      "rankReq": "B",
+      "desc": "[로그 고유] 전투 시작 시 모든 적에게 맹독 +3 추가 부여 및 첫 턴 카드 +1장 드로우."
+    },
+    "rog_rank_s": {
+      "id": "rog_rank_s",
+      "name": "👑 [로그 S급] 그림자 군주의 단검",
+      "icon": "🌑",
+      "classRelic": "rogue",
+      "rankReq": "S",
+      "desc": "[로그 신화] 매 턴 첫 공격 시 대상에게 취약 1과 맹독 +2를 자동 부여!"
+    },
+    "rng_rank_b": {
+      "id": "rng_rank_b",
+      "name": "🏹 [레인저 B급] 실버문 정찰대의 나침반",
+      "icon": "🧭",
+      "classRelic": "ranger",
+      "rankReq": "B",
+      "desc": "[레인저 고유] 전투 시작 시 민첩 +1 및 첫 턴 행동력(AP) +1 획득."
+    },
+    "rng_rank_s": {
+      "id": "rng_rank_s",
+      "name": "👑 [레인저 S급] 야수왕의 뿔피리",
+      "icon": "📯",
+      "classRelic": "ranger",
+      "rankReq": "S",
+      "desc": "[레인저 신화] 전투 시작 시 [🐆 흑표범 구엔위바]를 즉시 소환(체력 16 / 공격력 7)한 채 시작!"
+    },
+    "wiz_rank_b": {
+      "id": "wiz_rank_b",
+      "name": "🔮 [위저드 B급] 워터딥 마탑의 비전 수정",
+      "icon": "💠",
+      "classRelic": "wizard",
+      "rankReq": "B",
+      "desc": "[위저드 고유] 전투 시작 시 비전 구체 +1기 추가 소환 및 비전 주문력 +1."
+    },
+    "wiz_rank_s": {
+      "id": "wiz_rank_s",
+      "name": "👑 [위저드 S급] 대마법사의 아크메이지 로브",
+      "icon": "🧙",
+      "classRelic": "wizard",
+      "rankReq": "S",
+      "desc": "[위저드 신화] 매 턴 종료 시 비전 구체들의 공격력이 +3 증가하고 첫 턴 AP +1 획득!"
+    },
+    "clr_rank_b": {
+      "id": "clr_rank_b",
+      "name": "☀️ [클레릭 B급] 새벽의 성배",
+      "icon": "🏺",
+      "classRelic": "cleric",
+      "rankReq": "B",
+      "desc": "[클레릭 고유] 매 전투 종료 후 체력을 +4 추가 회복하고 전투 시작 시 수호령 구체 +1기 소환."
+    },
+    "clr_rank_s": {
+      "id": "clr_rank_s",
+      "name": "👑 [클레릭 S급] 태양신 라센더의 면류관",
+      "icon": "👑",
+      "classRelic": "cleric",
+      "rankReq": "S",
+      "desc": "[클레릭 신화] 전투 시작 시 방어도 +10 및 매 턴 종료 시 내 체력을 +2 회복!"
+    },
+    "pal_rank_b": {
+      "id": "pal_rank_b",
+      "name": "🛡️ [팔라딘 B급] 은빛 성기사의 맹세 인장",
+      "icon": "⚜️",
+      "classRelic": "paladin",
+      "rankReq": "B",
+      "desc": "[팔라딘 고유] 전투 시작 시 매 턴 종료 방어도(수호오라) +3 영구 획득."
+    },
+    "pal_rank_s": {
+      "id": "pal_rank_s",
+      "name": "👑 [팔라딘 S급] 천상의 심판 대검",
+      "icon": "⚡",
+      "classRelic": "paladin",
+      "rankReq": "S",
+      "desc": "[팔라딘 신화] 전투 시작 시 힘 +2, 방어도 +8 및 신성한 강타 자원 +2 획득!"
+    },
+    "wlk_rank_b": {
+      "id": "wlk_rank_b",
+      "name": "🟣 [워락 B급] 심연의 계약서 사본",
+      "icon": "📜",
+      "classRelic": "warlock",
+      "rankReq": "B",
+      "desc": "[워락 고유] 계약 악마 소환수의 시작 체력 +10 및 공격력 +3 증가!"
+    },
+    "wlk_rank_s": {
+      "id": "wlk_rank_s",
+      "name": "👑 [워락 S급] 아스모데우스의 흑요석 인장",
+      "icon": "👁️",
+      "classRelic": "warlock",
+      "rankReq": "S",
+      "desc": "[워락 신화] 매 턴 시작 시 계약 악마가 체력을 +5 회복하고 공격력이 +1 영구 상승!"
     }
   },
   "potions": {
@@ -6682,7 +7077,7 @@ window.GAME_DATA = {
     "goblin_skirmisher": {
       "id": "goblin_skirmisher",
       "name": "고블린 매복병",
-      "maxHp": 32,
+      "maxHp": 38,
       "type": "normal",
       "expReward": 40,
       "svg": "<svg viewBox=\"0 0 100 100\"><polygon points=\"20,40 35,20 65,20 80,40 70,82 30,82\" fill=\"#1e5631\" stroke=\"#2ecc71\" stroke-width=\"3\"/><circle cx=\"38\" cy=\"48\" r=\"6\" fill=\"#ff3838\"/><circle cx=\"62\" cy=\"48\" r=\"6\" fill=\"#ff3838\"/></svg>",
@@ -6690,29 +7085,32 @@ window.GAME_DATA = {
         {
           "name": "시미터 베기",
           "intent": "attack",
-          "dmg": 8,
-          "desc": "피해 8"
+          "dmg": 11,
+          "desc": "피해 11"
         },
         {
           "name": "가죽 방패 엄폐",
           "intent": "defend_buff",
-          "block": 7,
-          "str": 1,
-          "desc": "방어도 7 + 힘 +1"
+          "block": 9,
+          "str": 2,
+          "desc": "방어도 9 + 힘 +2"
         },
         {
           "name": "독화살 사격",
           "intent": "attack_debuff",
-          "dmg": 6,
+          "dmg": 8,
           "weak": 1,
-          "desc": "피해 6 + 약화 1"
+          "desc": "피해 8 + 약화 1 + [정신] 1장",
+          "addStatus": "status_dazed",
+          "statusCount": 1
         }
-      ]
+      ],
+      "curlUp": 7
     },
     "kobold_inventor": {
       "id": "kobold_inventor",
       "name": "코볼트 함정꾼",
-      "maxHp": 30,
+      "maxHp": 36,
       "type": "normal",
       "expReward": 40,
       "svg": "<svg viewBox=\"0 0 100 100\"><polygon points=\"30,82 25,35 50,18 75,35 70,82\" fill=\"#78281f\" stroke=\"#e67e22\" stroke-width=\"3\"/><circle cx=\"40\" cy=\"45\" r=\"5\" fill=\"#ff0\"/><circle cx=\"60\" cy=\"45\" r=\"5\" fill=\"#ff0\"/></svg>",
@@ -6720,23 +7118,24 @@ window.GAME_DATA = {
         {
           "name": "불항아리 투척",
           "intent": "attack_debuff",
-          "dmg": 7,
+          "dmg": 9,
           "vuln": 1,
-          "desc": "피해 7 + 취약 1"
+          "desc": "피해 9 + 취약 1"
         },
         {
           "name": "무리 전술 찌르기",
           "intent": "multi_attack",
-          "dmg": 5,
+          "dmg": 7,
           "hits": 2,
-          "desc": "피해 5 x 2"
+          "desc": "피해 7 x 2"
         }
-      ]
+      ],
+      "thorns": 2
     },
     "skeleton_warrior": {
       "id": "skeleton_warrior",
       "name": "고대 해골 병사",
-      "maxHp": 38,
+      "maxHp": 46,
       "type": "normal",
       "expReward": 45,
       "svg": "<svg viewBox=\"0 0 100 100\"><circle cx=\"50\" cy=\"45\" r=\"28\" fill=\"#dfe6e9\" stroke=\"#636e72\" stroke-width=\"3\"/><circle cx=\"40\" cy=\"42\" r=\"6\" fill=\"#111\"/><circle cx=\"60\" cy=\"42\" r=\"6\" fill=\"#111\"/><rect x=\"38\" y=\"65\" width=\"24\" height=\"12\" fill=\"#dfe6e9\"/></svg>",
@@ -6744,22 +7143,23 @@ window.GAME_DATA = {
         {
           "name": "녹슨 롱소드",
           "intent": "attack",
-          "dmg": 10,
-          "desc": "피해 10"
+          "dmg": 13,
+          "desc": "피해 13"
         },
         {
           "name": "뼈 방패 재조립",
           "intent": "defend_buff",
-          "block": 9,
-          "str": 2,
-          "desc": "방어도 9 + 힘 +2"
+          "block": 12,
+          "str": 3,
+          "desc": "방어도 12 + 힘 +3"
         }
-      ]
+      ],
+      "metallicize": 4
     },
     "orc_berserker": {
       "id": "orc_berserker",
       "name": "그룸쉬의 오크 광전사",
-      "maxHp": 46,
+      "maxHp": 55,
       "type": "normal",
       "expReward": 50,
       "svg": "<svg viewBox=\"0 0 100 100\"><polygon points=\"25,85 20,35 50,18 80,35 75,85\" fill=\"#4a5d23\" stroke=\"#a3cb38\" stroke-width=\"3\"/><circle cx=\"38\" cy=\"46\" r=\"6\" fill=\"#ff3838\"/><circle cx=\"62\" cy=\"46\" r=\"6\" fill=\"#ff3838\"/></svg>",
@@ -6767,22 +7167,24 @@ window.GAME_DATA = {
         {
           "name": "그레이트액스 강타",
           "intent": "attack",
-          "dmg": 12,
-          "desc": "피해 12"
+          "dmg": 16,
+          "desc": "피해 16"
         },
         {
           "name": "전투의 포효",
           "intent": "defend_buff",
-          "block": 8,
-          "str": 2,
-          "desc": "방어도 8 + 힘 +2"
+          "block": 10,
+          "str": 3,
+          "desc": "방어도 10 + 힘 +3"
         }
-      ]
+      ],
+      "regen": 4,
+      "skillEnrage": 1
     },
     "owlbear_alpha": {
       "id": "owlbear_alpha",
       "name": "🦉 [엘리트] 흉포한 아울베어",
-      "maxHp": 88,
+      "maxHp": 106,
       "type": "elite",
       "expReward": 110,
       "svg": "<svg viewBox=\"0 0 100 100\"><circle cx=\"50\" cy=\"52\" r=\"36\" fill=\"#5c3c10\" stroke=\"#fdcb6e\" stroke-width=\"4\"/><circle cx=\"38\" cy=\"45\" r=\"8\" fill=\"#ff9f43\"/><circle cx=\"62\" cy=\"45\" r=\"8\" fill=\"#ff9f43\"/><polygon points=\"50,52 44,64 56,64\" fill=\"#ffeaa7\"/></svg>",
@@ -6790,30 +7192,34 @@ window.GAME_DATA = {
         {
           "name": "부리와 발톱 다중공격",
           "intent": "multi_attack",
-          "dmg": 7,
+          "dmg": 9,
           "hits": 2,
-          "desc": "피해 7 x 2"
+          "desc": "피해 9 x 2"
         },
         {
           "name": "야수의 괴성",
           "intent": "defend_buff",
-          "block": 12,
-          "str": 3,
-          "desc": "방어도 12 + 힘 +3"
+          "block": 16,
+          "str": 4,
+          "desc": "방어도 16 + 힘 +4"
         },
         {
           "name": "곰의 짓누르기",
           "intent": "attack_debuff",
-          "dmg": 16,
+          "dmg": 21,
           "vuln": 2,
-          "desc": "피해 16 + 취약 2"
+          "desc": "피해 21 + 취약 2 + 손상 2 + [정신] 1장",
+          "addStatus": "status_dazed",
+          "statusCount": 1,
+          "frail": 2
         }
-      ]
+      ],
+      "thorns": 3
     },
     "bugbear_chieftain": {
       "id": "bugbear_chieftain",
       "name": "🔨 [엘리트] 버그베어 족장 클라그",
-      "maxHp": 95,
+      "maxHp": 114,
       "type": "elite",
       "expReward": 115,
       "svg": "<svg viewBox=\"0 0 100 100\"><rect x=\"22\" y=\"22\" width=\"56\" height=\"60\" rx=\"12\" fill=\"#4a2311\" stroke=\"#e67e22\" stroke-width=\"4\"/><circle cx=\"38\" cy=\"46\" r=\"6\" fill=\"#ff3838\"/><circle cx=\"62\" cy=\"46\" r=\"6\" fill=\"#ff3838\"/></svg>",
@@ -6821,22 +7227,25 @@ window.GAME_DATA = {
         {
           "name": "모닝스타 기습 강타",
           "intent": "attack",
-          "dmg": 17,
-          "desc": "피해 17"
+          "dmg": 22,
+          "desc": "피해 22"
         },
         {
           "name": "족장의 호령",
           "intent": "defend_buff",
-          "block": 14,
-          "str": 2,
-          "desc": "방어도 14 + 힘 +2"
+          "block": 18,
+          "str": 3,
+          "desc": "방어도 18 + 힘 +3"
         }
-      ]
+      ],
+      "artifact": 1,
+      "metallicize": 5,
+      "skillEnrage": 2
     },
     "troll_warlord": {
       "id": "troll_warlord",
       "name": "🩸 [1층 중간보스] 초재생 변이 트롤",
-      "maxHp": 125,
+      "maxHp": 150,
       "type": "elite",
       "expReward": 150,
       "svg": "<svg viewBox=\"0 0 100 100\"><polygon points=\"50,15 85,40 75,88 25,88 15,40\" fill=\"#1e5631\" stroke=\"#00ff88\" stroke-width=\"4\"/><circle cx=\"38\" cy=\"48\" r=\"7\" fill=\"#ff0\"/><circle cx=\"62\" cy=\"48\" r=\"7\" fill=\"#ff0\"/></svg>",
@@ -6844,23 +7253,24 @@ window.GAME_DATA = {
         {
           "name": "초재생 피부 & 괴력",
           "intent": "defend_buff",
-          "block": 15,
-          "str": 3,
-          "desc": "방어도 15 + 힘 +3"
+          "block": 20,
+          "str": 4,
+          "desc": "방어도 20 + 힘 +4"
         },
         {
           "name": "갈기갈기 찢기",
           "intent": "multi_attack",
-          "dmg": 7,
+          "dmg": 9,
           "hits": 3,
-          "desc": "피해 7 x 3"
+          "desc": "피해 9 x 3"
         }
-      ]
+      ],
+      "regen": 11
     },
     "beholder_xanathar": {
       "id": "beholder_xanathar",
       "name": "👁️ [1층 보스] 비홀더 군주 자나사르",
-      "maxHp": 175,
+      "maxHp": 210,
       "type": "boss",
       "expReward": 250,
       "svg": "<svg viewBox=\"0 0 120 120\"><circle cx=\"60\" cy=\"65\" r=\"38\" fill=\"#4a154b\" stroke=\"#e056fd\" stroke-width=\"4\"/><circle cx=\"60\" cy=\"60\" r=\"18\" fill=\"#fff\"/><circle cx=\"60\" cy=\"60\" r=\"8\" fill=\"#ff0055\"/><line x1=\"40\" y1=\"30\" x2=\"25\" y2=\"12\" stroke=\"#e056fd\" stroke-width=\"4\"/><circle cx=\"25\" cy=\"12\" r=\"6\" fill=\"#00ff88\"/><line x1=\"80\" y1=\"30\" x2=\"95\" y2=\"12\" stroke=\"#e056fd\" stroke-width=\"4\"/><circle cx=\"95\" cy=\"12\" r=\"6\" fill=\"#ff3838\"/></svg>",
@@ -6868,37 +7278,42 @@ window.GAME_DATA = {
         {
           "name": "분해 광선 & 석화 광선",
           "intent": "attack_debuff",
-          "dmg": 16,
+          "dmg": 21,
           "weak": 2,
           "vuln": 2,
-          "desc": "피해 16 + 약화 2 + 취약 2"
+          "desc": "피해 21 + 약화 2 + 취약 2 + [정신] 2장",
+          "addStatus": "status_dazed",
+          "statusCount": 2
         },
         {
           "name": "반마법 원뿔 결계",
           "intent": "defend_buff",
-          "block": 18,
-          "str": 3,
-          "desc": "방어도 18 + 힘 +3"
+          "block": 23,
+          "str": 4,
+          "desc": "방어도 23 + 힘 +4"
         },
         {
           "name": "10개의 눈 광선 난사",
           "intent": "multi_attack",
-          "dmg": 7,
+          "dmg": 9,
           "hits": 3,
-          "desc": "피해 7 x 3"
+          "desc": "피해 9 x 3"
         },
         {
           "name": "죽음의 광선 (Death Ray)",
           "intent": "attack",
-          "dmg": 24,
-          "desc": "피해 24"
+          "dmg": 32,
+          "desc": "피해 32"
         }
-      ]
+      ],
+      "artifact": 2,
+      "metallicize": 8,
+      "thorns": 2
     },
     "drow_assassin": {
       "id": "drow_assassin",
       "name": "드로우 암살자",
-      "maxHp": 45,
+      "maxHp": 54,
       "type": "normal",
       "expReward": 55,
       "svg": "<svg viewBox=\"0 0 100 100\"><circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#2c2c54\" stroke=\"#a29bfe\" stroke-width=\"3\"/><circle cx=\"38\" cy=\"48\" r=\"5\" fill=\"#ff3838\"/><circle cx=\"62\" cy=\"48\" r=\"5\" fill=\"#ff3838\"/></svg>",
@@ -6906,23 +7321,26 @@ window.GAME_DATA = {
         {
           "name": "드로우 수면독 석궁",
           "intent": "attack_debuff",
-          "dmg": 10,
+          "dmg": 13,
           "weak": 2,
-          "desc": "피해 10 + 약화 2"
+          "desc": "피해 13 + 약화 2 + [점액] 1장",
+          "addStatus": "status_slimed",
+          "statusCount": 1
         },
         {
           "name": "쌍단검 연격",
           "intent": "multi_attack",
-          "dmg": 6,
+          "dmg": 8,
           "hits": 2,
-          "desc": "피해 6 x 2"
+          "desc": "피해 8 x 2"
         }
-      ]
+      ],
+      "curlUp": 7
     },
     "hook_horror": {
       "id": "hook_horror",
       "name": "훅 호러 (갈고리 괴수)",
-      "maxHp": 56,
+      "maxHp": 67,
       "type": "normal",
       "expReward": 60,
       "svg": "<svg viewBox=\"0 0 100 100\"><polygon points=\"50,15 85,45 70,85 30,85 15,45\" fill=\"#2f3640\" stroke=\"#74b9ff\" stroke-width=\"3\"/></svg>",
@@ -6930,23 +7348,24 @@ window.GAME_DATA = {
         {
           "name": "양손 갈고리 찍기",
           "intent": "multi_attack",
-          "dmg": 8,
+          "dmg": 11,
           "hits": 2,
-          "desc": "피해 8 x 2"
+          "desc": "피해 11 x 2"
         },
         {
           "name": "외골격 방어",
           "intent": "defend_buff",
-          "block": 12,
-          "str": 2,
-          "desc": "방어도 12 + 힘 +2"
+          "block": 16,
+          "str": 3,
+          "desc": "방어도 16 + 힘 +3"
         }
-      ]
+      ],
+      "thorns": 2
     },
     "giant_phase_spider": {
       "id": "giant_phase_spider",
       "name": "차원 이동 거대 거미",
-      "maxHp": 48,
+      "maxHp": 58,
       "type": "normal",
       "expReward": 55,
       "svg": "<svg viewBox=\"0 0 100 100\"><circle cx=\"50\" cy=\"52\" r=\"30\" fill=\"#192a56\" stroke=\"#00d2d3\" stroke-width=\"3\"/><circle cx=\"42\" cy=\"45\" r=\"5\" fill=\"#00ff88\"/><circle cx=\"58\" cy=\"45\" r=\"5\" fill=\"#00ff88\"/></svg>",
@@ -6954,23 +7373,26 @@ window.GAME_DATA = {
         {
           "name": "에테르 독니 물어뜯기",
           "intent": "attack_debuff",
-          "dmg": 12,
+          "dmg": 16,
           "vuln": 2,
-          "desc": "피해 12 + 취약 2"
+          "desc": "피해 16 + 취약 2 + [정신] 1장",
+          "addStatus": "status_dazed",
+          "statusCount": 1
         },
         {
           "name": "거미줄 방어",
           "intent": "defend_buff",
-          "block": 10,
-          "str": 2,
-          "desc": "방어도 10 + 힘 +2"
+          "block": 13,
+          "str": 3,
+          "desc": "방어도 13 + 힘 +3"
         }
-      ]
+      ],
+      "metallicize": 4
     },
     "duergar_hammerer": {
       "id": "duergar_hammerer",
       "name": "듀에르가 거대화 전사",
-      "maxHp": 54,
+      "maxHp": 65,
       "type": "normal",
       "expReward": 60,
       "svg": "<svg viewBox=\"0 0 100 100\"><rect x=\"24\" y=\"24\" width=\"52\" height=\"54\" fill=\"#3d3d3d\" stroke=\"#ff7675\" stroke-width=\"3\"/></svg>",
@@ -6978,22 +7400,24 @@ window.GAME_DATA = {
         {
           "name": "전쟁망치 강타",
           "intent": "attack",
-          "dmg": 14,
-          "desc": "피해 14"
+          "dmg": 18,
+          "desc": "피해 18"
         },
         {
           "name": "거대화 (Enlarge)",
           "intent": "defend_buff",
-          "block": 10,
-          "str": 3,
-          "desc": "방어도 10 + 힘 +3"
+          "block": 13,
+          "str": 4,
+          "desc": "방어도 13 + 힘 +4"
         }
-      ]
+      ],
+      "regen": 4,
+      "skillEnrage": 1
     },
     "drider_champion": {
       "id": "drider_champion",
       "name": "🕷️ [엘리트] 롤스의 저주받은 드라이다",
-      "maxHp": 110,
+      "maxHp": 132,
       "type": "elite",
       "expReward": 130,
       "svg": "<svg viewBox=\"0 0 100 100\"><circle cx=\"50\" cy=\"50\" r=\"38\" fill=\"#3b1e54\" stroke=\"#e056fd\" stroke-width=\"4\"/></svg>",
@@ -7001,23 +7425,27 @@ window.GAME_DATA = {
         {
           "name": "요정 불꽃 & 맹독 장궁",
           "intent": "attack_debuff",
-          "dmg": 16,
+          "dmg": 21,
           "vuln": 2,
-          "desc": "피해 16 + 취약 2"
+          "desc": "피해 21 + 취약 2 + 손상 2 + [점액] 1장",
+          "addStatus": "status_slimed",
+          "frail": 2
         },
         {
           "name": "거미 다리 난무",
           "intent": "multi_attack",
-          "dmg": 8,
+          "dmg": 11,
           "hits": 3,
-          "desc": "피해 8 x 3"
+          "desc": "피해 11 x 3"
         }
-      ]
+      ],
+      "artifact": 1,
+      "metallicize": 5
     },
     "umbeR_hulk": {
       "id": "umbeR_hulk",
       "name": "🪲 [엘리트] 땅굴 파괴자 엄버 헐크",
-      "maxHp": 118,
+      "maxHp": 142,
       "type": "elite",
       "expReward": 135,
       "svg": "<svg viewBox=\"0 0 100 100\"><rect x=\"20\" y=\"20\" width=\"60\" height=\"60\" rx=\"12\" fill=\"#4a3500\" stroke=\"#fdcb6e\" stroke-width=\"4\"/></svg>",
@@ -7025,23 +7453,27 @@ window.GAME_DATA = {
         {
           "name": "혼란의 시선 & 집게발",
           "intent": "attack_debuff",
-          "dmg": 18,
+          "dmg": 24,
           "weak": 2,
-          "desc": "피해 18 + 약화 2"
+          "desc": "피해 24 + 약화 2 + [깊은] 1장 + 플레이어 힘 -1",
+          "addStatus": "status_wound",
+          "statusCount": 1,
+          "strDown": 1
         },
         {
           "name": "갑충 껍질 경화",
           "intent": "defend_buff",
-          "block": 16,
-          "str": 3,
-          "desc": "방어도 16 + 힘 +3"
+          "block": 21,
+          "str": 4,
+          "desc": "방어도 21 + 힘 +4"
         }
-      ]
+      ],
+      "metallicize": 8
     },
     "drow_priestess": {
       "id": "drow_priestess",
       "name": "🐍 [2층 중간보스] 드로우 대여사제",
-      "maxHp": 140,
+      "maxHp": 168,
       "type": "elite",
       "expReward": 170,
       "svg": "<svg viewBox=\"0 0 100 100\"><polygon points=\"50,12 86,42 74,88 26,88 14,42\" fill=\"#2c003e\" stroke=\"#e056fd\" stroke-width=\"4\"/></svg>",
@@ -7049,23 +7481,25 @@ window.GAME_DATA = {
         {
           "name": "뱀 채찍 3연타",
           "intent": "multi_attack",
-          "dmg": 8,
+          "dmg": 11,
           "hits": 3,
-          "desc": "피해 8 x 3"
+          "desc": "피해 11 x 3"
         },
         {
           "name": "거미 여왕의 축복",
           "intent": "defend_buff",
-          "block": 18,
-          "str": 4,
-          "desc": "방어도 18 + 힘 +4"
+          "block": 23,
+          "str": 5,
+          "desc": "방어도 23 + 힘 +5"
         }
-      ]
+      ],
+      "artifact": 1,
+      "metallicize": 5
     },
     "arachne_matron": {
       "id": "arachne_matron",
       "name": "👑 [2층 보스] 롤스의 화신 아라크네 대모",
-      "maxHp": 210,
+      "maxHp": 252,
       "type": "boss",
       "expReward": 300,
       "svg": "<svg viewBox=\"0 0 120 120\"><polygon points=\"60,10 105,38 92,98 60,112 28,98 15,38\" fill=\"#2c001e\" stroke=\"#ff0055\" stroke-width=\"4\"/><circle cx=\"45\" cy=\"50\" r=\"7\" fill=\"#00ff88\"/><circle cx=\"75\" cy=\"50\" r=\"7\" fill=\"#00ff88\"/></svg>",
@@ -7073,31 +7507,37 @@ window.GAME_DATA = {
         {
           "name": "심연의 거미줄 구속",
           "intent": "attack_debuff",
-          "dmg": 18,
+          "dmg": 24,
           "weak": 2,
           "vuln": 2,
-          "desc": "피해 18 + 약화 2 + 취약 2"
+          "desc": "피해 24 + 약화 2 + 취약 2 + 손상 2 + [지옥] 2장",
+          "addStatus": "status_burn",
+          "statusCount": 2,
+          "frail": 2
         },
         {
           "name": "여왕의 암흑 결계",
           "intent": "defend_buff",
-          "block": 22,
-          "str": 4,
-          "desc": "방어도 22 + 힘 +4"
+          "block": 29,
+          "str": 5,
+          "desc": "방어도 29 + 힘 +5"
         },
         {
           "name": "맹독 송곳니 난타",
           "intent": "multi_attack",
-          "dmg": 9,
+          "dmg": 12,
           "hits": 3,
-          "desc": "피해 9 x 3"
+          "desc": "피해 12 x 3"
         }
-      ]
+      ],
+      "artifact": 2,
+      "metallicize": 8,
+      "thorns": 2
     },
     "intellect_devourer": {
       "id": "intellect_devourer",
       "name": "지능 포식자 (뇌 괴수)",
-      "maxHp": 52,
+      "maxHp": 62,
       "type": "normal",
       "expReward": 65,
       "svg": "<svg viewBox=\"0 0 100 100\"><ellipse cx=\"50\" cy=\"52\" rx=\"34\" ry=\"24\" fill=\"#b33771\" stroke=\"#fd79a8\" stroke-width=\"3\"/></svg>",
@@ -7105,23 +7545,26 @@ window.GAME_DATA = {
         {
           "name": "정신 파열 (Mind Blast)",
           "intent": "attack_debuff",
-          "dmg": 13,
+          "dmg": 17,
           "vuln": 2,
-          "desc": "피해 13 + 취약 2"
+          "desc": "피해 17 + 취약 2 + [점액] 1장",
+          "addStatus": "status_slimed",
+          "statusCount": 1
         },
         {
           "name": "발톱 2연타",
           "intent": "multi_attack",
-          "dmg": 7,
+          "dmg": 9,
           "hits": 2,
-          "desc": "피해 7 x 2"
+          "desc": "피해 9 x 2"
         }
-      ]
+      ],
+      "curlUp": 7
     },
     "mind_flayer_arcanist": {
       "id": "mind_flayer_arcanist",
       "name": "마인드 플레이어 비전술사",
-      "maxHp": 64,
+      "maxHp": 77,
       "type": "normal",
       "expReward": 75,
       "svg": "<svg viewBox=\"0 0 100 100\"><circle cx=\"50\" cy=\"44\" r=\"26\" fill=\"#6c5ce7\" stroke=\"#a29bfe\" stroke-width=\"3\"/><path d=\"M38 62 L32 88 M46 65 L44 90 M54 65 L56 90 M62 62 L68 88\" stroke=\"#a29bfe\" stroke-width=\"4\"/></svg>",
@@ -7129,23 +7572,24 @@ window.GAME_DATA = {
         {
           "name": "정신 채찍 (Mind Whip)",
           "intent": "attack_debuff",
-          "dmg": 15,
+          "dmg": 20,
           "weak": 2,
-          "desc": "피해 15 + 약화 2"
+          "desc": "피해 20 + 약화 2"
         },
         {
           "name": "염동력 방벽",
           "intent": "defend_buff",
-          "block": 14,
-          "str": 3,
-          "desc": "방어도 14 + 힘 +3"
+          "block": 18,
+          "str": 4,
+          "desc": "방어도 18 + 힘 +4"
         }
-      ]
+      ],
+      "thorns": 2
     },
     "grimlock_brute": {
       "id": "grimlock_brute",
       "name": "맹인 그림록 광전사",
-      "maxHp": 62,
+      "maxHp": 74,
       "type": "normal",
       "expReward": 70,
       "svg": "<svg viewBox=\"0 0 100 100\"><rect x=\"24\" y=\"24\" width=\"52\" height=\"54\" rx=\"10\" fill=\"#636e72\" stroke=\"#dfe6e9\" stroke-width=\"3\"/></svg>",
@@ -7153,22 +7597,24 @@ window.GAME_DATA = {
         {
           "name": "가시 몽둥이 강타",
           "intent": "attack",
-          "dmg": 16,
-          "desc": "피해 16"
+          "dmg": 21,
+          "desc": "피해 21"
         },
         {
           "name": "돌가죽 경화",
           "intent": "defend_buff",
-          "block": 12,
-          "str": 2,
-          "desc": "방어도 12 + 힘 +2"
+          "block": 16,
+          "str": 3,
+          "desc": "방어도 16 + 힘 +3"
         }
-      ]
+      ],
+      "metallicize": 4,
+      "skillEnrage": 1
     },
     "nothics_eye": {
       "id": "nothics_eye",
       "name": "기괴한 외눈 노식(Nothic)",
-      "maxHp": 58,
+      "maxHp": 70,
       "type": "normal",
       "expReward": 70,
       "svg": "<svg viewBox=\"0 0 100 100\"><circle cx=\"50\" cy=\"50\" r=\"32\" fill=\"#1e272e\" stroke=\"#00ff88\" stroke-width=\"3\"/><circle cx=\"50\" cy=\"50\" r=\"14\" fill=\"#00ff88\"/></svg>",
@@ -7176,23 +7622,24 @@ window.GAME_DATA = {
         {
           "name": "부패의 시선",
           "intent": "attack_debuff",
-          "dmg": 14,
+          "dmg": 18,
           "vuln": 2,
-          "desc": "피해 14 + 취약 2"
+          "desc": "피해 18 + 취약 2"
         },
         {
           "name": "발톱 할퀴기",
           "intent": "multi_attack",
-          "dmg": 8,
+          "dmg": 11,
           "hits": 2,
-          "desc": "피해 8 x 2"
+          "desc": "피해 11 x 2"
         }
-      ]
+      ],
+      "regen": 4
     },
     "mind_flayer_inquisitor": {
       "id": "mind_flayer_inquisitor",
       "name": "🐙 [엘리트] 일리시드 심문관",
-      "maxHp": 128,
+      "maxHp": 154,
       "type": "elite",
       "expReward": 150,
       "svg": "<svg viewBox=\"0 0 100 100\"><circle cx=\"50\" cy=\"46\" r=\"32\" fill=\"#4834d4\" stroke=\"#e056fd\" stroke-width=\"4\"/></svg>",
@@ -7200,23 +7647,29 @@ window.GAME_DATA = {
         {
           "name": "뇌 추출 (Extract Brain)",
           "intent": "attack",
-          "dmg": 22,
-          "desc": "피해 22"
+          "dmg": 29,
+          "desc": "피해 29 + [정신] 1장 + 플레이어 힘 -1",
+          "addStatus": "status_dazed",
+          "strDown": 1
         },
         {
           "name": "사이오닉 폭풍",
           "intent": "attack_debuff",
-          "dmg": 16,
+          "dmg": 21,
           "weak": 2,
           "vuln": 2,
-          "desc": "피해 16 + 약화 2 + 취약 2"
+          "desc": "피해 21 + 약화 2 + 취약 2 + 손상 2 + [정신] 1장",
+          "addStatus": "status_dazed",
+          "statusCount": 1,
+          "frail": 2
         }
-      ]
+      ],
+      "artifact": 2
     },
     "githyanki_kithrak": {
       "id": "githyanki_kithrak",
       "name": "⚔️ [엘리트] 기스양키 은검 기사장",
-      "maxHp": 135,
+      "maxHp": 162,
       "type": "elite",
       "expReward": 155,
       "svg": "<svg viewBox=\"0 0 100 100\"><polygon points=\"50,12 85,45 70,88 30,88 15,45\" fill=\"#b71540\" stroke=\"#fad390\" stroke-width=\"4\"/></svg>",
@@ -7224,23 +7677,26 @@ window.GAME_DATA = {
         {
           "name": "아스트랄 은검 3연격",
           "intent": "multi_attack",
-          "dmg": 9,
+          "dmg": 12,
           "hits": 3,
-          "desc": "피해 9 x 3"
+          "desc": "피해 12 x 3"
         },
         {
           "name": "염력 갑주 전개",
           "intent": "defend_buff",
-          "block": 18,
-          "str": 3,
-          "desc": "방어도 18 + 힘 +3"
+          "block": 23,
+          "str": 4,
+          "desc": "방어도 23 + 힘 +4"
         }
-      ]
+      ],
+      "artifact": 1,
+      "metallicize": 5,
+      "skillEnrage": 2
     },
     "ulitharid_lord": {
       "id": "ulitharid_lord",
       "name": "🧠 [3층 중간보스] 고위 마인드 플레이어 울리사리드",
-      "maxHp": 160,
+      "maxHp": 192,
       "type": "elite",
       "expReward": 190,
       "svg": "<svg viewBox=\"0 0 100 100\"><circle cx=\"50\" cy=\"50\" r=\"38\" fill=\"#30336b\" stroke=\"#00d2d3\" stroke-width=\"4\"/></svg>",
@@ -7248,24 +7704,28 @@ window.GAME_DATA = {
         {
           "name": "정신 지배 파동",
           "intent": "attack_debuff",
-          "dmg": 19,
+          "dmg": 25,
           "weak": 2,
           "vuln": 2,
-          "desc": "피해 19 + 약화 2 + 취약 2"
+          "desc": "피해 25 + 약화 2 + 취약 2 + [정신] 1장",
+          "addStatus": "status_dazed",
+          "statusCount": 1
         },
         {
           "name": "6개의 촉수 난타",
           "intent": "multi_attack",
-          "dmg": 9,
+          "dmg": 12,
           "hits": 3,
-          "desc": "피해 9 x 3"
+          "desc": "피해 12 x 3"
         }
-      ]
+      ],
+      "artifact": 1,
+      "metallicize": 5
     },
     "elder_brain_prime": {
       "id": "elder_brain_prime",
       "name": "👑 [3층 보스] 군락의 지배자 엘더 브레인",
-      "maxHp": 245,
+      "maxHp": 294,
       "type": "boss",
       "expReward": 350,
       "svg": "<svg viewBox=\"0 0 120 120\"><ellipse cx=\"60\" cy=\"60\" rx=\"48\" ry=\"38\" fill=\"#686de0\" stroke=\"#ff7979\" stroke-width=\"5\"/></svg>",
@@ -7273,31 +7733,36 @@ window.GAME_DATA = {
         {
           "name": "초월 정신 폭발 (Psychic Blast)",
           "intent": "attack_debuff",
-          "dmg": 21,
+          "dmg": 28,
           "weak": 2,
           "vuln": 2,
-          "desc": "피해 21 + 약화 2 + 취약 2"
+          "desc": "피해 28 + 약화 2 + 취약 2 + [지옥] 2장",
+          "addStatus": "status_burn",
+          "statusCount": 2
         },
         {
           "name": "사이오닉 절대 장벽",
           "intent": "defend_buff",
-          "block": 25,
-          "str": 4,
-          "desc": "방어도 25 + 힘 +4"
+          "block": 33,
+          "str": 5,
+          "desc": "방어도 33 + 힘 +5"
         },
         {
           "name": "영혼 분쇄 촉수",
           "intent": "multi_attack",
-          "dmg": 10,
+          "dmg": 13,
           "hits": 3,
-          "desc": "피해 10 x 3"
+          "desc": "피해 13 x 3"
         }
-      ]
+      ],
+      "artifact": 2,
+      "metallicize": 8,
+      "thorns": 2
     },
     "wight_executioner": {
       "id": "wight_executioner",
       "name": "생명력 흡수자 와이트(Wight)",
-      "maxHp": 68,
+      "maxHp": 82,
       "type": "normal",
       "expReward": 80,
       "svg": "<svg viewBox=\"0 0 100 100\"><circle cx=\"50\" cy=\"50\" r=\"32\" fill=\"#2f3640\" stroke=\"#00cec9\" stroke-width=\"3\"/></svg>",
@@ -7305,23 +7770,28 @@ window.GAME_DATA = {
         {
           "name": "생명력 흡수 대검",
           "intent": "attack_debuff",
-          "dmg": 16,
+          "dmg": 21,
           "weak": 2,
-          "desc": "피해 16 + 약화 2"
+          "desc": "피해 21 + 약화 2 + 손상 2 + [점액] 1장 + 플레이어 힘 -1",
+          "addStatus": "status_slimed",
+          "statusCount": 1,
+          "frail": 2,
+          "strDown": 1
         },
         {
           "name": "사령 갑주",
           "intent": "defend_buff",
-          "block": 14,
-          "str": 3,
-          "desc": "방어도 14 + 힘 +3"
+          "block": 18,
+          "str": 4,
+          "desc": "방어도 18 + 힘 +4"
         }
-      ]
+      ],
+      "curlUp": 7
     },
     "wraith_stalker": {
       "id": "wraith_stalker",
       "name": "심연의 망령 레이스(Wraith)",
-      "maxHp": 64,
+      "maxHp": 77,
       "type": "normal",
       "expReward": 80,
       "svg": "<svg viewBox=\"0 0 100 100\"><polygon points=\"50,12 85,50 70,88 30,88 15,50\" fill=\"#1e272e\" stroke=\"#a29bfe\" stroke-width=\"3\"/></svg>",
@@ -7329,23 +7799,25 @@ window.GAME_DATA = {
         {
           "name": "영혼 부패 손길",
           "intent": "attack_debuff",
-          "dmg": 15,
+          "dmg": 20,
           "vuln": 2,
-          "desc": "피해 15 + 취약 2"
+          "desc": "피해 20 + 취약 2 + 플레이어 힘 -1",
+          "strDown": 1
         },
         {
           "name": "비물질화 방어",
           "intent": "defend_buff",
-          "block": 15,
-          "str": 2,
-          "desc": "방어도 15 + 힘 +2"
+          "block": 20,
+          "str": 3,
+          "desc": "방어도 20 + 힘 +3"
         }
-      ]
+      ],
+      "thorns": 2
     },
     "flesh_golem": {
       "id": "flesh_golem",
       "name": "누더기 살점 골렘",
-      "maxHp": 78,
+      "maxHp": 94,
       "type": "normal",
       "expReward": 85,
       "svg": "<svg viewBox=\"0 0 100 100\"><rect x=\"22\" y=\"22\" width=\"56\" height=\"56\" fill=\"#6d214f\" stroke=\"#55efc4\" stroke-width=\"3\"/></svg>",
@@ -7353,23 +7825,24 @@ window.GAME_DATA = {
         {
           "name": "괴력의 양손 강타",
           "intent": "multi_attack",
-          "dmg": 10,
+          "dmg": 13,
           "hits": 2,
-          "desc": "피해 10 x 2"
+          "desc": "피해 13 x 2"
         },
         {
           "name": "번개 흡수 재생",
           "intent": "defend_buff",
-          "block": 14,
-          "str": 3,
-          "desc": "방어도 14 + 힘 +3"
+          "block": 18,
+          "str": 4,
+          "desc": "방어도 18 + 힘 +4"
         }
-      ]
+      ],
+      "metallicize": 4
     },
     "vampire_spawn": {
       "id": "vampire_spawn",
       "name": "뱀파이어 스폰 혈귀",
-      "maxHp": 72,
+      "maxHp": 86,
       "type": "normal",
       "expReward": 85,
       "svg": "<svg viewBox=\"0 0 100 100\"><circle cx=\"50\" cy=\"50\" r=\"32\" fill=\"#641e16\" stroke=\"#ff4757\" stroke-width=\"3\"/></svg>",
@@ -7377,22 +7850,23 @@ window.GAME_DATA = {
         {
           "name": "흡혈 물어뜯기",
           "intent": "attack",
-          "dmg": 18,
-          "desc": "피해 18"
+          "dmg": 24,
+          "desc": "피해 24"
         },
         {
           "name": "박쥐 안개 회피",
           "intent": "defend_buff",
-          "block": 14,
-          "str": 3,
-          "desc": "방어도 14 + 힘 +3"
+          "block": 18,
+          "str": 4,
+          "desc": "방어도 18 + 힘 +4"
         }
-      ]
+      ],
+      "regen": 4
     },
     "death_knight_general": {
       "id": "death_knight_general",
       "name": "💀 [엘리트] 타락한 데스나이트 사령관",
-      "maxHp": 150,
+      "maxHp": 180,
       "type": "elite",
       "expReward": 175,
       "svg": "<svg viewBox=\"0 0 100 100\"><polygon points=\"50,10 88,42 76,88 24,88 12,42\" fill=\"#1e272e\" stroke=\"#ff4757\" stroke-width=\"4\"/></svg>",
@@ -7400,23 +7874,28 @@ window.GAME_DATA = {
         {
           "name": "지옥불 구체 (Hellfire Orb)",
           "intent": "attack_debuff",
-          "dmg": 22,
+          "dmg": 29,
           "vuln": 2,
-          "desc": "피해 22 + 취약 2"
+          "desc": "피해 29 + 취약 2 + [점액] 1장",
+          "addStatus": "status_slimed",
+          "statusCount": 1
         },
         {
           "name": "파멸의 마검 3연격",
           "intent": "multi_attack",
-          "dmg": 9,
+          "dmg": 12,
           "hits": 3,
-          "desc": "피해 9 x 3"
+          "desc": "피해 12 x 3"
         }
-      ]
+      ],
+      "artifact": 1,
+      "metallicize": 5,
+      "skillEnrage": 2
     },
     "iron_golem_sentinel": {
       "id": "iron_golem_sentinel",
       "name": "🛡️ [엘리트] 무덤 수호자 아이언 골렘",
-      "maxHp": 162,
+      "maxHp": 194,
       "type": "elite",
       "expReward": 180,
       "svg": "<svg viewBox=\"0 0 100 100\"><rect x=\"18\" y=\"18\" width=\"64\" height=\"64\" rx=\"10\" fill=\"#2f3640\" stroke=\"#00d2d3\" stroke-width=\"4\"/></svg>",
@@ -7424,23 +7903,27 @@ window.GAME_DATA = {
         {
           "name": "독가스 브레스",
           "intent": "attack_debuff",
-          "dmg": 19,
+          "dmg": 25,
           "weak": 2,
           "vuln": 2,
-          "desc": "피해 19 + 약화 2 + 취약 2"
+          "desc": "피해 25 + 약화 2 + 취약 2 + [깊은] 1장",
+          "addStatus": "status_wound",
+          "statusCount": 1
         },
         {
           "name": "강철 거인의 철퇴",
           "intent": "attack",
-          "dmg": 25,
-          "desc": "피해 25"
+          "dmg": 33,
+          "desc": "피해 33"
         }
-      ]
+      ],
+      "metallicize": 14,
+      "artifact": 2
     },
     "vampire_lord_strahd": {
       "id": "vampire_lord_strahd",
       "name": "🦇 [4층 중간보스] 바로비아의 백작 스트라드",
-      "maxHp": 185,
+      "maxHp": 222,
       "type": "elite",
       "expReward": 210,
       "svg": "<svg viewBox=\"0 0 100 100\"><circle cx=\"50\" cy=\"50\" r=\"38\" fill=\"#2c001e\" stroke=\"#ff4757\" stroke-width=\"4\"/></svg>",
@@ -7448,23 +7931,26 @@ window.GAME_DATA = {
         {
           "name": "피의 귀족 흡혈격",
           "intent": "multi_attack",
-          "dmg": 10,
+          "dmg": 13,
           "hits": 3,
-          "desc": "피해 10 x 3"
+          "desc": "흡혈 피해 13 x 3 + 플레이어 힘 -1",
+          "lifesteal": true,
+          "strDown": 1
         },
         {
           "name": "레이븐로프트의 안개",
           "intent": "defend_buff",
-          "block": 22,
-          "str": 4,
-          "desc": "방어도 22 + 힘 +4"
+          "block": 29,
+          "str": 5,
+          "desc": "방어도 29 + 힘 +5"
         }
-      ]
+      ],
+      "regen": 14
     },
     "archlich_acererak": {
       "id": "archlich_acererak",
       "name": "👑 [4층 보스] 영원한 아치리치 아세라락",
-      "maxHp": 280,
+      "maxHp": 336,
       "type": "boss",
       "expReward": 400,
       "svg": "<svg viewBox=\"0 0 120 120\"><polygon points=\"60,8 104,38 92,98 60,112 28,98 16,38\" fill=\"#130f40\" stroke=\"#00ff88\" stroke-width=\"4\"/><circle cx=\"44\" cy=\"52\" r=\"8\" fill=\"#00ff88\"/><circle cx=\"76\" cy=\"52\" r=\"8\" fill=\"#00ff88\"/></svg>",
@@ -7472,31 +7958,37 @@ window.GAME_DATA = {
         {
           "name": "권능어: 고통 (Power Word Pain)",
           "intent": "attack_debuff",
-          "dmg": 23,
+          "dmg": 30,
           "weak": 2,
           "vuln": 2,
-          "desc": "피해 23 + 약화 2 + 취약 2"
+          "desc": "피해 30 + 약화 2 + 취약 2 + [지옥] 2장 + 플레이어 힘 -1",
+          "addStatus": "status_burn",
+          "statusCount": 2,
+          "strDown": 1
         },
         {
           "name": "성물함의 불사 결계",
           "intent": "defend_buff",
-          "block": 28,
-          "str": 5,
-          "desc": "방어도 28 + 힘 +5"
+          "block": 36,
+          "str": 7,
+          "desc": "방어도 36 + 힘 +7"
         },
         {
           "name": "영혼 수확의 지팡이",
           "intent": "multi_attack",
-          "dmg": 11,
+          "dmg": 15,
           "hits": 3,
-          "desc": "피해 11 x 3"
+          "desc": "피해 15 x 3"
         }
-      ]
+      ],
+      "artifact": 2,
+      "metallicize": 8,
+      "thorns": 2
     },
     "bearded_devil": {
       "id": "bearded_devil",
       "name": "아베르누스 수염 악마",
-      "maxHp": 78,
+      "maxHp": 94,
       "type": "normal",
       "expReward": 95,
       "svg": "<svg viewBox=\"0 0 100 100\"><circle cx=\"50\" cy=\"50\" r=\"34\" fill=\"#641e16\" stroke=\"#e67e22\" stroke-width=\"3\"/></svg>",
@@ -7504,23 +7996,26 @@ window.GAME_DATA = {
         {
           "name": "지옥불 글레이브",
           "intent": "attack_debuff",
-          "dmg": 18,
+          "dmg": 24,
           "vuln": 2,
-          "desc": "피해 18 + 취약 2"
+          "desc": "피해 24 + 취약 2 + [지옥] 1장",
+          "addStatus": "status_burn",
+          "statusCount": 1
         },
         {
           "name": "악마의 저항",
           "intent": "defend_buff",
-          "block": 16,
-          "str": 3,
-          "desc": "방어도 16 + 힘 +3"
+          "block": 21,
+          "str": 4,
+          "desc": "방어도 21 + 힘 +4"
         }
-      ]
+      ],
+      "curlUp": 7
     },
     "erinyes_valkyrie": {
       "id": "erinyes_valkyrie",
       "name": "타락 천사 에리니에스",
-      "maxHp": 84,
+      "maxHp": 101,
       "type": "normal",
       "expReward": 100,
       "svg": "<svg viewBox=\"0 0 100 100\"><polygon points=\"50,12 88,45 72,88 28,88 12,45\" fill=\"#833471\" stroke=\"#fdcb6e\" stroke-width=\"3\"/></svg>",
@@ -7528,23 +8023,24 @@ window.GAME_DATA = {
         {
           "name": "맹독 화살 3연사",
           "intent": "multi_attack",
-          "dmg": 8,
+          "dmg": 11,
           "hits": 3,
-          "desc": "피해 8 x 3"
+          "desc": "피해 11 x 3"
         },
         {
           "name": "지옥 갑주 패링",
           "intent": "defend_buff",
-          "block": 18,
-          "str": 3,
-          "desc": "방어도 18 + 힘 +3"
+          "block": 23,
+          "str": 4,
+          "desc": "방어도 23 + 힘 +4"
         }
-      ]
+      ],
+      "thorns": 2
     },
     "red_abishai": {
       "id": "red_abishai",
       "name": "티아마트의 적색 아비샤이",
-      "maxHp": 88,
+      "maxHp": 106,
       "type": "normal",
       "expReward": 105,
       "svg": "<svg viewBox=\"0 0 100 100\"><polygon points=\"50,10 88,50 50,90 12,50\" fill=\"#c0392b\" stroke=\"#ffeaa7\" stroke-width=\"3\"/></svg>",
@@ -7552,22 +8048,23 @@ window.GAME_DATA = {
         {
           "name": "화염 용조 강타",
           "intent": "attack",
-          "dmg": 21,
-          "desc": "피해 21"
+          "dmg": 28,
+          "desc": "피해 28"
         },
         {
           "name": "용의 위압감",
           "intent": "defend_buff",
-          "block": 16,
-          "str": 4,
-          "desc": "방어도 16 + 힘 +4"
+          "block": 21,
+          "str": 5,
+          "desc": "방어도 21 + 힘 +5"
         }
-      ]
+      ],
+      "metallicize": 4
     },
     "hellfire_engine": {
       "id": "hellfire_engine",
       "name": "지옥불 공성 병기",
-      "maxHp": 94,
+      "maxHp": 113,
       "type": "normal",
       "expReward": 110,
       "svg": "<svg viewBox=\"0 0 100 100\"><rect x=\"20\" y=\"20\" width=\"60\" height=\"60\" rx=\"8\" fill=\"#2d3436\" stroke=\"#ff4757\" stroke-width=\"4\"/></svg>",
@@ -7575,24 +8072,25 @@ window.GAME_DATA = {
         {
           "name": "지옥불 화염방사기",
           "intent": "attack_debuff",
-          "dmg": 19,
+          "dmg": 25,
           "weak": 2,
           "vuln": 2,
-          "desc": "피해 19 + 약화 2 + 취약 2"
+          "desc": "피해 25 + 약화 2 + 취약 2"
         },
         {
           "name": "지옥철 장갑",
           "intent": "defend_buff",
-          "block": 20,
-          "str": 3,
-          "desc": "방어도 20 + 힘 +3"
+          "block": 26,
+          "str": 4,
+          "desc": "방어도 26 + 힘 +4"
         }
-      ]
+      ],
+      "regen": 4
     },
     "pit_fiend_overlord": {
       "id": "pit_fiend_overlord",
       "name": "😈 [엘리트] 나인 헬 군단장 핏 핀드",
-      "maxHp": 175,
+      "maxHp": 210,
       "type": "elite",
       "expReward": 210,
       "svg": "<svg viewBox=\"0 0 100 100\"><circle cx=\"50\" cy=\"50\" r=\"38\" fill=\"#641e16\" stroke=\"#ff0055\" stroke-width=\"4\"/></svg>",
@@ -7600,23 +8098,26 @@ window.GAME_DATA = {
         {
           "name": "지옥 철퇴 3연타",
           "intent": "multi_attack",
-          "dmg": 11,
+          "dmg": 15,
           "hits": 3,
-          "desc": "피해 11 x 3"
+          "desc": "피해 15 x 3"
         },
         {
           "name": "대악마의 공포 오라",
           "intent": "defend_buff",
-          "block": 24,
-          "str": 5,
-          "desc": "방어도 24 + 힘 +5"
+          "block": 31,
+          "str": 7,
+          "desc": "방어도 31 + 힘 +7"
         }
-      ]
+      ],
+      "artifact": 1,
+      "metallicize": 5,
+      "skillEnrage": 2
     },
     "ancient_red_dragon": {
       "id": "ancient_red_dragon",
       "name": "🐉 [엘리트] 에인션트 레드 드래곤 인페르노",
-      "maxHp": 190,
+      "maxHp": 228,
       "type": "elite",
       "expReward": 230,
       "svg": "<svg viewBox=\"0 0 100 100\"><polygon points=\"50,8 90,42 75,90 25,90 10,42\" fill=\"#900c3f\" stroke=\"#fdcb6e\" stroke-width=\"4\"/></svg>",
@@ -7624,23 +8125,26 @@ window.GAME_DATA = {
         {
           "name": "고룡의 화염 브레스",
           "intent": "attack_debuff",
-          "dmg": 26,
+          "dmg": 34,
           "vuln": 2,
-          "desc": "피해 26 + 취약 2"
+          "desc": "피해 34 + 취약 2 + [지옥] 2장",
+          "addStatus": "status_burn",
+          "statusCount": 2
         },
         {
           "name": "용린 각성",
           "intent": "defend_buff",
-          "block": 24,
-          "str": 5,
-          "desc": "방어도 24 + 힘 +5"
+          "block": 31,
+          "str": 7,
+          "desc": "방어도 31 + 힘 +7"
         }
-      ]
+      ],
+      "thorns": 4
     },
     "zariel_archduke": {
       "id": "zariel_archduke",
       "name": "⚔️ [5층 중간보스] 아베르누스의 대공 자리엘",
-      "maxHp": 220,
+      "maxHp": 264,
       "type": "elite",
       "expReward": 260,
       "svg": "<svg viewBox=\"0 0 100 100\"><circle cx=\"50\" cy=\"50\" r=\"40\" fill=\"#4a1c03\" stroke=\"#ffeaa7\" stroke-width=\"4\"/></svg>",
@@ -7648,23 +8152,25 @@ window.GAME_DATA = {
         {
           "name": "타락 천사의 불꽃검 3연격",
           "intent": "multi_attack",
-          "dmg": 12,
+          "dmg": 16,
           "hits": 3,
-          "desc": "피해 12 x 3"
+          "desc": "피해 16 x 3"
         },
         {
           "name": "대공의 지옥 결계",
           "intent": "defend_buff",
-          "block": 26,
-          "str": 5,
-          "desc": "방어도 26 + 힘 +5"
+          "block": 34,
+          "str": 7,
+          "desc": "방어도 34 + 힘 +7"
         }
-      ]
+      ],
+      "artifact": 1,
+      "metallicize": 5
     },
     "tiamat_dragon_queen": {
       "id": "tiamat_dragon_queen",
       "name": "👑 [5층 보스] 오색룡의 여신 티아마트 (CR 30)",
-      "maxHp": 350,
+      "maxHp": 420,
       "type": "boss",
       "expReward": 1000,
       "svg": "<svg viewBox=\"0 0 120 120\"><polygon points=\"60,6 110,36 95,102 60,115 25,102 10,36\" fill=\"#2c001e\" stroke=\"#fdcb6e\" stroke-width=\"5\"/><circle cx=\"32\" cy=\"42\" r=\"7\" fill=\"#ff3838\"/><circle cx=\"46\" cy=\"32\" r=\"7\" fill=\"#00d2d3\"/><circle cx=\"60\" cy=\"26\" r=\"8\" fill=\"#2ecc71\"/><circle cx=\"74\" cy=\"32\" r=\"7\" fill=\"#dfe6e9\"/><circle cx=\"88\" cy=\"42\" r=\"7\" fill=\"#111\"/></svg>",
@@ -7672,37 +8178,42 @@ window.GAME_DATA = {
         {
           "name": "5대 브레스: 화염·냉기·산성·번개·맹독",
           "intent": "attack_debuff",
-          "dmg": 26,
+          "dmg": 34,
           "weak": 2,
           "vuln": 2,
-          "desc": "피해 26 + 약화 2 + 취약 2"
+          "desc": "피해 34 + 약화 2 + 취약 2 + 손상 2 + [지옥] 2장",
+          "addStatus": "status_burn",
+          "statusCount": 2,
+          "frail": 2
         },
         {
           "name": "신성한 오색 비늘 재생",
           "intent": "defend_buff",
-          "block": 32,
-          "str": 6,
-          "desc": "방어도 32 + 힘 +6"
+          "block": 42,
+          "str": 8,
+          "desc": "방어도 42 + 힘 +8"
         },
         {
           "name": "5개 용머리의 동시 물어뜯기",
           "intent": "multi_attack",
-          "dmg": 10,
+          "dmg": 13,
           "hits": 4,
-          "desc": "피해 10 x 4"
+          "desc": "피해 13 x 4"
         },
         {
           "name": "창세의 종말 브레스",
           "intent": "attack",
-          "dmg": 38,
-          "desc": "피해 38"
+          "dmg": 50,
+          "desc": "피해 50"
         }
-      ]
+      ],
+      "artifact": 3,
+      "regen": 16
     },
     "young_green_dragon": {
       "id": "young_green_dragon",
       "name": "🐉 [1층 보스] 영 그린 드래곤 베놈팽",
-      "maxHp": 180,
+      "maxHp": 216,
       "type": "boss",
       "expReward": 250,
       "svg": "<svg viewBox=\"0 0 120 120\"><polygon points=\"60,10 105,40 90,100 60,112 30,100 15,40\" fill=\"#0b3b24\" stroke=\"#00ff88\" stroke-width=\"4\"/><circle cx=\"44\" cy=\"50\" r=\"8\" fill=\"#ffeaa7\"/><circle cx=\"76\" cy=\"50\" r=\"8\" fill=\"#ffeaa7\"/><path d=\"M40 78 Q60 92 80 78\" stroke=\"#00ff88\" stroke-width=\"4\" fill=\"none\"/></svg>",
@@ -7710,37 +8221,42 @@ window.GAME_DATA = {
         {
           "name": "맹독 가스 브레스 (Poison Breath)",
           "intent": "attack_debuff",
-          "dmg": 15,
+          "dmg": 20,
           "weak": 2,
           "vuln": 2,
-          "desc": "피해 15 + 약화 2 + 취약 2"
+          "desc": "피해 20 + 약화 2 + 취약 2 + [지옥] 2장",
+          "addStatus": "status_burn",
+          "statusCount": 2
         },
         {
           "name": "교활한 비행 & 비늘 경화",
           "intent": "defend_buff",
-          "block": 18,
-          "str": 3,
-          "desc": "방어도 18 + 힘 +3"
+          "block": 23,
+          "str": 4,
+          "desc": "방어도 23 + 힘 +4"
         },
         {
           "name": "물기 & 양발톱 3연타",
           "intent": "multi_attack",
-          "dmg": 7,
+          "dmg": 9,
           "hits": 3,
-          "desc": "피해 7 x 3"
+          "desc": "피해 9 x 3"
         },
         {
           "name": "꼬리 후려치기",
           "intent": "attack",
-          "dmg": 22,
-          "desc": "피해 22"
+          "dmg": 29,
+          "desc": "피해 29"
         }
-      ]
+      ],
+      "artifact": 2,
+      "metallicize": 8,
+      "thorns": 2
     },
     "ettin_king_gror": {
       "id": "ettin_king_gror",
       "name": "🪓 [1층 보스] 쌍두 거인 왕 에틴 그로르",
-      "maxHp": 192,
+      "maxHp": 230,
       "type": "boss",
       "expReward": 250,
       "svg": "<svg viewBox=\"0 0 120 120\"><rect x=\"20\" y=\"25\" width=\"80\" height=\"75\" rx=\"18\" fill=\"#5c3c10\" stroke=\"#e67e22\" stroke-width=\"4\"/><circle cx=\"42\" cy=\"48\" r=\"14\" fill=\"#d35400\"/><circle cx=\"78\" cy=\"48\" r=\"14\" fill=\"#d35400\"/><circle cx=\"38\" cy=\"46\" r=\"4\" fill=\"#ff0\"/><circle cx=\"82\" cy=\"46\" r=\"4\" fill=\"#ff0\"/></svg>",
@@ -7748,30 +8264,35 @@ window.GAME_DATA = {
         {
           "name": "양손 배틀액스 & 모닝스타 쌍타",
           "intent": "multi_attack",
-          "dmg": 10,
+          "dmg": 13,
           "hits": 2,
-          "desc": "피해 10 x 2"
+          "desc": "피해 13 x 2"
         },
         {
           "name": "두 머리의 각성 포효",
           "intent": "defend_buff",
-          "block": 16,
-          "str": 4,
-          "desc": "방어도 16 + 힘 +4"
+          "block": 21,
+          "str": 5,
+          "desc": "방어도 21 + 힘 +5"
         },
         {
           "name": "대지 분쇄 내려찍기",
           "intent": "attack_debuff",
-          "dmg": 19,
+          "dmg": 25,
           "vuln": 2,
-          "desc": "피해 19 + 취약 2"
+          "desc": "피해 25 + 취약 2 + [지옥] 2장",
+          "addStatus": "status_burn",
+          "statusCount": 2
         }
-      ]
+      ],
+      "artifact": 2,
+      "metallicize": 8,
+      "thorns": 2
     },
     "goblin_shaman_king": {
       "id": "goblin_shaman_king",
       "name": "👺 [1층 보스] 홉고블린 대장군 마그도르",
-      "maxHp": 170,
+      "maxHp": 204,
       "type": "boss",
       "expReward": 250,
       "svg": "<svg viewBox=\"0 0 120 120\"><polygon points=\"60,12 100,38 88,98 32,98 20,38\" fill=\"#641e16\" stroke=\"#ff4757\" stroke-width=\"4\"/><rect x=\"38\" y=\"46\" width=\"44\" height=\"10\" fill=\"#fdcb6e\"/></svg>",
@@ -7779,31 +8300,36 @@ window.GAME_DATA = {
         {
           "name": "군단 전술: 철벽 방진",
           "intent": "defend_buff",
-          "block": 20,
-          "str": 3,
-          "desc": "방어도 20 + 힘 +3"
+          "block": 26,
+          "str": 4,
+          "desc": "방어도 26 + 힘 +4"
         },
         {
           "name": "마글루비예트의 피의 창",
           "intent": "attack_debuff",
-          "dmg": 17,
+          "dmg": 22,
           "weak": 2,
           "vuln": 2,
-          "desc": "피해 17 + 약화 2 + 취약 2"
+          "desc": "피해 22 + 약화 2 + 취약 2 + [지옥] 2장",
+          "addStatus": "status_burn",
+          "statusCount": 2
         },
         {
           "name": "대장군의 롱소드 3연격",
           "intent": "multi_attack",
-          "dmg": 7,
+          "dmg": 9,
           "hits": 3,
-          "desc": "피해 7 x 3"
+          "desc": "피해 9 x 3"
         }
-      ]
+      ],
+      "artifact": 2,
+      "metallicize": 8,
+      "thorns": 2
     },
     "aboleth_leviathan": {
       "id": "aboleth_leviathan",
       "name": "🦑 [2층 보스] 태고의 심해 괴수 아볼레스",
-      "maxHp": 215,
+      "maxHp": 258,
       "type": "boss",
       "expReward": 300,
       "svg": "<svg viewBox=\"0 0 120 120\"><ellipse cx=\"60\" cy=\"60\" rx=\"46\" ry=\"34\" fill=\"#0c2461\" stroke=\"#00d2d3\" stroke-width=\"4\"/><circle cx=\"60\" cy=\"45\" r=\"7\" fill=\"#ff3838\"/><circle cx=\"60\" cy=\"60\" r=\"7\" fill=\"#ff3838\"/><circle cx=\"60\" cy=\"75\" r=\"7\" fill=\"#ff3838\"/></svg>",
@@ -7811,31 +8337,36 @@ window.GAME_DATA = {
         {
           "name": "정신 노예화 & 점액 질병",
           "intent": "attack_debuff",
-          "dmg": 18,
+          "dmg": 24,
           "weak": 2,
           "vuln": 2,
-          "desc": "피해 18 + 약화 2 + 취약 2"
+          "desc": "피해 24 + 약화 2 + 취약 2 + [지옥] 2장",
+          "addStatus": "status_burn",
+          "statusCount": 2
         },
         {
           "name": "촉수 3연속 후려치기",
           "intent": "multi_attack",
-          "dmg": 9,
+          "dmg": 12,
           "hits": 3,
-          "desc": "피해 9 x 3"
+          "desc": "피해 12 x 3"
         },
         {
           "name": "심연의 점액 장막",
           "intent": "defend_buff",
-          "block": 22,
-          "str": 4,
-          "desc": "방어도 22 + 힘 +4"
+          "block": 29,
+          "str": 5,
+          "desc": "방어도 29 + 힘 +5"
         }
-      ]
+      ],
+      "artifact": 2,
+      "metallicize": 8,
+      "thorns": 2
     },
     "purple_worm_titan": {
       "id": "purple_worm_titan",
       "name": "🪱 [2층 보스] 언더다크 대지포식자 퍼플 웜",
-      "maxHp": 235,
+      "maxHp": 282,
       "type": "boss",
       "expReward": 300,
       "svg": "<svg viewBox=\"0 0 120 120\"><circle cx=\"60\" cy=\"60\" r=\"44\" fill=\"#5f27cd\" stroke=\"#e056fd\" stroke-width=\"5\"/><circle cx=\"60\" cy=\"60\" r=\"22\" fill=\"#222\" stroke=\"#fff\" stroke-width=\"4\" stroke-dasharray=\"6,4\"/></svg>",
@@ -7843,29 +8374,35 @@ window.GAME_DATA = {
         {
           "name": "통째로 집어삼키기 (Bite & Swallow)",
           "intent": "attack",
-          "dmg": 26,
-          "desc": "피해 26"
+          "dmg": 34,
+          "desc": "피해 34"
         },
         {
           "name": "꼬리 독침 찌르기",
           "intent": "attack_debuff",
-          "dmg": 19,
+          "dmg": 25,
           "vuln": 3,
-          "desc": "피해 19 + 취약 3"
+          "desc": "피해 25 + 취약 3 + 손상 2 + [깊은] 2장",
+          "addStatus": "status_wound",
+          "statusCount": 2,
+          "frail": 2
         },
         {
           "name": "암반 갑피 재생",
           "intent": "defend_buff",
-          "block": 22,
-          "str": 4,
-          "desc": "방어도 22 + 힘 +4"
+          "block": 29,
+          "str": 5,
+          "desc": "방어도 29 + 힘 +5"
         }
-      ]
+      ],
+      "artifact": 2,
+      "metallicize": 8,
+      "thorns": 2
     },
     "duergar_despot": {
       "id": "duergar_despot",
       "name": "🔨 [2층 보스] 듀에르가 기계폭군 스틸비어드",
-      "maxHp": 205,
+      "maxHp": 246,
       "type": "boss",
       "expReward": 300,
       "svg": "<svg viewBox=\"0 0 120 120\"><rect x=\"22\" y=\"22\" width=\"76\" height=\"76\" rx=\"12\" fill=\"#2f3640\" stroke=\"#ff7675\" stroke-width=\"4\"/><circle cx=\"45\" cy=\"52\" r=\"7\" fill=\"#ff3838\"/><circle cx=\"75\" cy=\"52\" r=\"7\" fill=\"#ff3838\"/></svg>",
@@ -7873,30 +8410,35 @@ window.GAME_DATA = {
         {
           "name": "사이오닉 초거대화 & 중장갑",
           "intent": "defend_buff",
-          "block": 24,
-          "str": 4,
-          "desc": "방어도 24 + 힘 +4"
+          "block": 31,
+          "str": 5,
+          "desc": "방어도 31 + 힘 +5"
         },
         {
           "name": "화염 방사 & 철권 연타",
           "intent": "multi_attack",
-          "dmg": 9,
+          "dmg": 12,
           "hits": 3,
-          "desc": "피해 9 x 3"
+          "desc": "피해 12 x 3"
         },
         {
           "name": "공성 망치 대지 분쇄",
           "intent": "attack_debuff",
-          "dmg": 21,
+          "dmg": 28,
           "weak": 2,
-          "desc": "피해 21 + 약화 2"
+          "desc": "피해 28 + 약화 2 + [지옥] 2장",
+          "addStatus": "status_burn",
+          "statusCount": 2
         }
-      ]
+      ],
+      "artifact": 2,
+      "metallicize": 8,
+      "thorns": 2
     },
     "beholder_hive_mother": {
       "id": "beholder_hive_mother",
       "name": "👁️‍🗨️ [3층 보스] 비홀더 군체 어미 하이브 마더",
-      "maxHp": 250,
+      "maxHp": 300,
       "type": "boss",
       "expReward": 350,
       "svg": "<svg viewBox=\"0 0 120 120\"><circle cx=\"60\" cy=\"62\" r=\"42\" fill=\"#2c003e\" stroke=\"#ff0055\" stroke-width=\"5\"/><circle cx=\"60\" cy=\"58\" r=\"18\" fill=\"#00ff88\"/><circle cx=\"60\" cy=\"58\" r=\"8\" fill=\"#111\"/></svg>",
@@ -7904,31 +8446,36 @@ window.GAME_DATA = {
         {
           "name": "궁극 분해 광선 & 지배 광선",
           "intent": "attack_debuff",
-          "dmg": 22,
+          "dmg": 29,
           "weak": 2,
           "vuln": 2,
-          "desc": "피해 22 + 약화 2 + 취약 2"
+          "desc": "피해 29 + 약화 2 + 취약 2 + [정신] 2장",
+          "addStatus": "status_dazed",
+          "statusCount": 2
         },
         {
           "name": "군체 눈알 일제 사격",
           "intent": "multi_attack",
-          "dmg": 10,
+          "dmg": 13,
           "hits": 3,
-          "desc": "피해 10 x 3"
+          "desc": "피해 13 x 3"
         },
         {
           "name": "절대 반마법 역장",
           "intent": "defend_buff",
-          "block": 25,
-          "str": 4,
-          "desc": "방어도 25 + 힘 +4"
+          "block": 33,
+          "str": 5,
+          "desc": "방어도 33 + 힘 +5"
         }
-      ]
+      ],
+      "artifact": 2,
+      "metallicize": 8,
+      "thorns": 2
     },
     "githyanki_supreme": {
       "id": "githyanki_supreme",
       "name": "⚔️ [3층 보스] 기스양키 최고 사령관 크스락",
-      "maxHp": 240,
+      "maxHp": 288,
       "type": "boss",
       "expReward": 350,
       "svg": "<svg viewBox=\"0 0 120 120\"><polygon points=\"60,10 102,42 88,100 32,100 18,42\" fill=\"#b71540\" stroke=\"#ffeaa7\" stroke-width=\"4\"/><circle cx=\"46\" cy=\"52\" r=\"6\" fill=\"#ffeaa7\"/><circle cx=\"74\" cy=\"52\" r=\"6\" fill=\"#ffeaa7\"/></svg>",
@@ -7936,30 +8483,35 @@ window.GAME_DATA = {
         {
           "name": "전설의 아스트랄 은검 4연격",
           "intent": "multi_attack",
-          "dmg": 8,
+          "dmg": 11,
           "hits": 4,
-          "desc": "피해 8 x 4"
+          "desc": "피해 11 x 4"
         },
         {
           "name": "블라키스의 염력 장벽",
           "intent": "defend_buff",
-          "block": 24,
-          "str": 5,
-          "desc": "방어도 24 + 힘 +5"
+          "block": 31,
+          "str": 7,
+          "desc": "방어도 31 + 힘 +7"
         },
         {
           "name": "차원 절단 일격",
           "intent": "attack_debuff",
-          "dmg": 24,
+          "dmg": 32,
           "vuln": 2,
-          "desc": "피해 24 + 취약 2"
+          "desc": "피해 32 + 취약 2 + [깊은] 2장",
+          "addStatus": "status_wound",
+          "statusCount": 2
         }
-      ]
+      ],
+      "artifact": 2,
+      "metallicize": 8,
+      "thorns": 2
     },
     "neothelid_leviathan": {
       "id": "neothelid_leviathan",
       "name": "🐙 [3층 보스] 심연의 촉수 거수 네오텔리드",
-      "maxHp": 260,
+      "maxHp": 312,
       "type": "boss",
       "expReward": 350,
       "svg": "<svg viewBox=\"0 0 120 120\"><circle cx=\"60\" cy=\"60\" r=\"44\" fill=\"#4a154b\" stroke=\"#00cec9\" stroke-width=\"5\"/><path d=\"M35 35 L85 85 M85 35 L35 85\" stroke=\"#e056fd\" stroke-width=\"5\"/></svg>",
@@ -7967,31 +8519,37 @@ window.GAME_DATA = {
         {
           "name": "뇌 용해 산성 브레스",
           "intent": "attack_debuff",
-          "dmg": 21,
+          "dmg": 28,
           "weak": 3,
           "vuln": 2,
-          "desc": "피해 21 + 약화 3 + 취약 2"
+          "desc": "피해 28 + 약화 3 + 취약 2 + 손상 2 + [점액] 2장",
+          "addStatus": "status_slimed",
+          "statusCount": 2,
+          "frail": 2
         },
         {
           "name": "거대 촉수 3연속 압살",
           "intent": "multi_attack",
-          "dmg": 10,
+          "dmg": 13,
           "hits": 3,
-          "desc": "피해 10 x 3"
+          "desc": "피해 13 x 3"
         },
         {
           "name": "외계 재생 갑피",
           "intent": "defend_buff",
-          "block": 24,
-          "str": 4,
-          "desc": "방어도 24 + 힘 +4"
+          "block": 31,
+          "str": 5,
+          "desc": "방어도 31 + 힘 +5"
         }
-      ]
+      ],
+      "artifact": 2,
+      "metallicize": 8,
+      "thorns": 2
     },
     "dracolich_aurinax": {
       "id": "dracolich_aurinax",
       "name": "🦴 [4층 보스] 고대 드라코리치 에본데스",
-      "maxHp": 290,
+      "maxHp": 348,
       "type": "boss",
       "expReward": 400,
       "svg": "<svg viewBox=\"0 0 120 120\"><polygon points=\"60,8 106,38 92,100 60,112 28,100 14,38\" fill=\"#1e272e\" stroke=\"#00cec9\" stroke-width=\"4\"/><circle cx=\"44\" cy=\"50\" r=\"8\" fill=\"#00cec9\"/><circle cx=\"76\" cy=\"50\" r=\"8\" fill=\"#00cec9\"/></svg>",
@@ -7999,31 +8557,36 @@ window.GAME_DATA = {
         {
           "name": "죽음의 괴사 브레스",
           "intent": "attack_debuff",
-          "dmg": 24,
+          "dmg": 32,
           "weak": 2,
           "vuln": 2,
-          "desc": "피해 24 + 약화 2 + 취약 2"
+          "desc": "피해 32 + 약화 2 + 취약 2 + [깊은] 2장",
+          "addStatus": "status_wound",
+          "statusCount": 2
         },
         {
           "name": "불사의 용골 재생",
           "intent": "defend_buff",
-          "block": 28,
-          "str": 5,
-          "desc": "방어도 28 + 힘 +5"
+          "block": 36,
+          "str": 7,
+          "desc": "방어도 36 + 힘 +7"
         },
         {
           "name": "뼈 발톱 & 꼬리 3연격",
           "intent": "multi_attack",
-          "dmg": 11,
+          "dmg": 15,
           "hits": 3,
-          "desc": "피해 11 x 3"
+          "desc": "피해 15 x 3"
         }
-      ]
+      ],
+      "artifact": 2,
+      "metallicize": 8,
+      "thorns": 2
     },
     "death_tyrant_beholder": {
       "id": "death_tyrant_beholder",
       "name": "☠️ [4층 보스] 언데드 비홀더 데스 타이런트",
-      "maxHp": 275,
+      "maxHp": 330,
       "type": "boss",
       "expReward": 400,
       "svg": "<svg viewBox=\"0 0 120 120\"><circle cx=\"60\" cy=\"60\" r=\"42\" fill=\"#111\" stroke=\"#ff4757\" stroke-width=\"4\"/><circle cx=\"60\" cy=\"58\" r=\"16\" fill=\"#ff4757\"/></svg>",
@@ -8031,31 +8594,36 @@ window.GAME_DATA = {
         {
           "name": "부정의 적색 눈길 & 죽음의 광선",
           "intent": "attack_debuff",
-          "dmg": 23,
+          "dmg": 30,
           "weak": 2,
           "vuln": 3,
-          "desc": "피해 23 + 약화 2 + 취약 3"
+          "desc": "피해 30 + 약화 2 + 취약 3 + [정신] 2장",
+          "addStatus": "status_dazed",
+          "statusCount": 2
         },
         {
           "name": "해골 눈알 광선 3연사",
           "intent": "multi_attack",
-          "dmg": 11,
+          "dmg": 15,
           "hits": 3,
-          "desc": "피해 11 x 3"
+          "desc": "피해 15 x 3"
         },
         {
           "name": "사령의 보호막",
           "intent": "defend_buff",
-          "block": 26,
-          "str": 5,
-          "desc": "방어도 26 + 힘 +5"
+          "block": 34,
+          "str": 7,
+          "desc": "방어도 34 + 힘 +7"
         }
-      ]
+      ],
+      "artifact": 2,
+      "metallicize": 8,
+      "thorns": 2
     },
     "lord_soth_deathknight": {
       "id": "lord_soth_deathknight",
       "name": "🖤 [4층 보스] 흑장미의 데스나이트 군주 소쓰",
-      "maxHp": 285,
+      "maxHp": 342,
       "type": "boss",
       "expReward": 400,
       "svg": "<svg viewBox=\"0 0 120 120\"><polygon points=\"60,8 102,40 90,100 30,100 18,40\" fill=\"#1e272e\" stroke=\"#ff3838\" stroke-width=\"4\"/><circle cx=\"46\" cy=\"52\" r=\"7\" fill=\"#ff3838\"/><circle cx=\"74\" cy=\"52\" r=\"7\" fill=\"#ff3838\"/></svg>",
@@ -8063,30 +8631,36 @@ window.GAME_DATA = {
         {
           "name": "심연의 지옥불 구체 (Hellfire Orb)",
           "intent": "attack_debuff",
-          "dmg": 25,
+          "dmg": 33,
           "vuln": 2,
-          "desc": "피해 25 + 취약 2"
+          "desc": "피해 33 + 취약 2 + 손상 2 + [지옥] 2장",
+          "addStatus": "status_burn",
+          "statusCount": 2,
+          "frail": 2
         },
         {
           "name": "불경한 성검 3연격",
           "intent": "multi_attack",
-          "dmg": 11,
+          "dmg": 15,
           "hits": 3,
-          "desc": "피해 11 x 3"
+          "desc": "피해 15 x 3"
         },
         {
           "name": "죽음의 군주 갑주",
           "intent": "defend_buff",
-          "block": 28,
-          "str": 5,
-          "desc": "방어도 28 + 힘 +5"
+          "block": 36,
+          "str": 7,
+          "desc": "방어도 36 + 힘 +7"
         }
-      ]
+      ],
+      "artifact": 2,
+      "metallicize": 8,
+      "thorns": 2
     },
     "asmodeus_lord_of_ninth": {
       "id": "asmodeus_lord_of_ninth",
       "name": "😈 [5층 보스] 나인 헬의 절대신 아스모데우스 (CR 30)",
-      "maxHp": 360,
+      "maxHp": 432,
       "type": "boss",
       "expReward": 1000,
       "svg": "<svg viewBox=\"0 0 120 120\"><polygon points=\"60,6 108,38 94,102 60,115 26,102 12,38\" fill=\"#3b0000\" stroke=\"#ff3838\" stroke-width=\"5\"/><polygon points=\"22,8 48,34 32,40\" fill=\"#fdcb6e\"/><polygon points=\"98,8 72,34 88,40\" fill=\"#fdcb6e\"/><circle cx=\"45\" cy=\"54\" r=\"8\" fill=\"#ff0055\"/><circle cx=\"75\" cy=\"54\" r=\"8\" fill=\"#ff0055\"/></svg>",
@@ -8094,37 +8668,42 @@ window.GAME_DATA = {
         {
           "name": "네수스의 루비 지팡이 심판",
           "intent": "attack_debuff",
-          "dmg": 27,
+          "dmg": 36,
           "weak": 2,
           "vuln": 2,
-          "desc": "피해 27 + 약화 2 + 취약 2"
+          "desc": "피해 36 + 약화 2 + 취약 2 + [점액] 2장",
+          "addStatus": "status_slimed",
+          "statusCount": 2
         },
         {
           "name": "지옥 제9계층의 절대 군주 권능",
           "intent": "defend_buff",
-          "block": 34,
-          "str": 6,
-          "desc": "방어도 34 + 힘 +6"
+          "block": 44,
+          "str": 8,
+          "desc": "방어도 44 + 힘 +8"
         },
         {
           "name": "지옥불 유성우 4연타",
           "intent": "multi_attack",
-          "dmg": 10,
+          "dmg": 13,
           "hits": 4,
-          "desc": "피해 10 x 4"
+          "desc": "피해 13 x 4"
         },
         {
           "name": "영혼 말살의 계약",
           "intent": "attack",
-          "dmg": 36,
-          "desc": "피해 36"
+          "dmg": 48,
+          "desc": "피해 48"
         }
-      ]
+      ],
+      "artifact": 2,
+      "metallicize": 8,
+      "thorns": 2
     },
     "demogorgon_prince": {
       "id": "demogorgon_prince",
       "name": "👹 [5층 보스] 심연의 데몬 프린스 데모고르곤",
-      "maxHp": 355,
+      "maxHp": 426,
       "type": "boss",
       "expReward": 1000,
       "svg": "<svg viewBox=\"0 0 120 120\"><circle cx=\"60\" cy=\"60\" r=\"46\" fill=\"#2c003e\" stroke=\"#00ff88\" stroke-width=\"5\"/><circle cx=\"42\" cy=\"48\" r=\"14\" fill=\"#641e16\" stroke=\"#ff3838\" stroke-width=\"3\"/><circle cx=\"78\" cy=\"48\" r=\"14\" fill=\"#641e16\" stroke=\"#ff3838\" stroke-width=\"3\"/></svg>",
@@ -8132,31 +8711,36 @@ window.GAME_DATA = {
         {
           "name": "광기와 최면의 이중 시선",
           "intent": "attack_debuff",
-          "dmg": 25,
+          "dmg": 33,
           "weak": 3,
           "vuln": 3,
-          "desc": "피해 25 + 약화 3 + 취약 3"
+          "desc": "피해 33 + 약화 3 + 취약 3 + [깊은] 2장",
+          "addStatus": "status_wound",
+          "statusCount": 2
         },
         {
           "name": "부패의 거대 촉수 4연타",
           "intent": "multi_attack",
-          "dmg": 10,
+          "dmg": 13,
           "hits": 4,
-          "desc": "피해 10 x 4"
+          "desc": "피해 13 x 4"
         },
         {
           "name": "어비스의 군주 포효",
           "intent": "defend_buff",
-          "block": 30,
-          "str": 6,
-          "desc": "방어도 30 + 힘 +6"
+          "block": 39,
+          "str": 8,
+          "desc": "방어도 39 + 힘 +8"
         }
-      ]
+      ],
+      "artifact": 2,
+      "metallicize": 8,
+      "thorns": 2
     },
     "halaster_mad_mage": {
       "id": "halaster_mad_mage",
       "name": "🧙‍♂️ [5층 보스] 언더마운틴의 주인 매드 메이지 할라스터",
-      "maxHp": 340,
+      "maxHp": 408,
       "type": "boss",
       "expReward": 1000,
       "svg": "<svg viewBox=\"0 0 120 120\"><circle cx=\"60\" cy=\"60\" r=\"46\" fill=\"#0c2461\" stroke=\"#00d2d3\" stroke-width=\"5\"/><polygon points=\"60,8 90,46 30,46\" fill=\"#192a56\" stroke=\"#ffeaa7\" stroke-width=\"3\"/><circle cx=\"48\" cy=\"62\" r=\"7\" fill=\"#00ff88\"/><circle cx=\"72\" cy=\"62\" r=\"7\" fill=\"#e056fd\"/></svg>",
@@ -8164,72 +8748,1047 @@ window.GAME_DATA = {
         {
           "name": "9레벨 주문: 메테오 스웜 & 정신 파열",
           "intent": "attack_debuff",
-          "dmg": 26,
+          "dmg": 34,
           "weak": 2,
           "vuln": 2,
-          "desc": "피해 26 + 약화 2 + 취약 2"
+          "desc": "피해 34 + 약화 2 + 취약 2 + 손상 2 + [정신] 2장",
+          "addStatus": "status_dazed",
+          "statusCount": 2,
+          "frail": 2
         },
         {
           "name": "시간 정지 & 무적의 구체 결계",
           "intent": "defend_buff",
-          "block": 34,
-          "str": 6,
-          "desc": "방어도 34 + 힘 +6"
+          "block": 44,
+          "str": 8,
+          "desc": "방어도 44 + 힘 +8"
         },
         {
           "name": "비전 빅비의 손 & 연쇄 번개 4연타",
           "intent": "multi_attack",
-          "dmg": 10,
+          "dmg": 13,
           "hits": 4,
-          "desc": "피해 10 x 4"
+          "desc": "피해 13 x 4"
         },
         {
           "name": "9레벨 주문: 소원(Wish) 말살 광선",
           "intent": "attack",
-          "dmg": 38,
-          "desc": "피해 38"
+          "dmg": 50,
+          "desc": "피해 50"
+        }
+      ],
+      "artifact": 2,
+      "metallicize": 8,
+      "thorns": 2
+    },
+    "gelatinous_cube": {
+      "id": "gelatinous_cube",
+      "name": "🟩 젤라티너스 큐브 (산성 점액)",
+      "maxHp": 53,
+      "type": "normal",
+      "expReward": 48,
+      "curlUp": 11,
+      "svg": "<svg viewBox=\"0 0 100 100\"><rect x=\"18\" y=\"18\" width=\"64\" height=\"64\" rx=\"10\" fill=\"rgba(46, 204, 113, 0.45)\" stroke=\"#00ff88\" stroke-width=\"3\"/><circle cx=\"42\" cy=\"45\" r=\"7\" fill=\"#fff\" opacity=\"0.7\"/><polygon points=\"55,60 70,52 65,72\" fill=\"#ffeaa7\" opacity=\"0.8\"/></svg>",
+      "moves": [
+        {
+          "name": "산성 점액 삼키기",
+          "intent": "attack_debuff",
+          "dmg": 11,
+          "addStatus": "status_slimed",
+          "statusCount": 1,
+          "desc": "피해 11 + [점액] 1장"
+        },
+        {
+          "name": "투명 큐브 응집",
+          "intent": "defend_buff",
+          "block": 12,
+          "str": 3,
+          "desc": "방어도 12 + 힘 +3"
+        },
+        {
+          "name": "소화액 분출",
+          "intent": "attack_debuff",
+          "dmg": 13,
+          "vuln": 1,
+          "desc": "피해 13 + 취약 1 + 손상 2",
+          "frail": 2
         }
       ]
+    },
+    "gnoll_pack_lord": {
+      "id": "gnoll_pack_lord",
+      "name": "🐺 놀 하이에나 무리우두머리",
+      "maxHp": 48,
+      "type": "normal",
+      "expReward": 46,
+      "svg": "<svg viewBox=\"0 0 100 100\"><polygon points=\"22,35 38,14 62,14 78,35 72,82 28,82\" fill=\"#784212\" stroke=\"#f39c12\" stroke-width=\"3\"/><circle cx=\"38\" cy=\"45\" r=\"6\" fill=\"#ff3838\"/><circle cx=\"62\" cy=\"45\" r=\"6\" fill=\"#ff3838\"/></svg>",
+      "moves": [
+        {
+          "name": "피의 광란 물어뜯기 2연타",
+          "intent": "multi_attack",
+          "dmg": 7,
+          "hits": 2,
+          "desc": "피해 7 x 2"
+        },
+        {
+          "name": "예노구우의 피의 포효",
+          "intent": "defend_buff",
+          "block": 8,
+          "str": 4,
+          "desc": "방어도 8 + 힘 +4"
+        },
+        {
+          "name": "톱니 창 찌르기",
+          "intent": "attack_debuff",
+          "dmg": 12,
+          "addStatus": "status_wound",
+          "statusCount": 1,
+          "desc": "피해 12 + [깊은] 1장"
+        }
+      ],
+      "curlUp": 7,
+      "skillEnrage": 1
+    },
+    "rust_monster": {
+      "id": "rust_monster",
+      "name": "🦗 부식 괴수 러스트 몬스터",
+      "maxHp": 43,
+      "type": "normal",
+      "expReward": 45,
+      "curlUp": 14,
+      "thorns": 3,
+      "svg": "<svg viewBox=\"0 0 100 100\"><ellipse cx=\"50\" cy=\"54\" rx=\"34\" ry=\"24\" fill=\"#a04000\" stroke=\"#e67e22\" stroke-width=\"3\"/><path d=\"M30,36 Q15,15 28,12\" stroke=\"#f39c12\" stroke-width=\"3\" fill=\"none\"/><path d=\"M70,36 Q85,15 72,12\" stroke=\"#f39c12\" stroke-width=\"3\" fill=\"none\"/></svg>",
+      "moves": [
+        {
+          "name": "갑주 부식 더듬이",
+          "intent": "attack_debuff",
+          "dmg": 9,
+          "vuln": 2,
+          "desc": "피해 9 + 취약 2 + 손상 2",
+          "frail": 2
+        },
+        {
+          "name": "철갑 껍질 웅크리기",
+          "intent": "defend_buff",
+          "block": 13,
+          "str": 3,
+          "desc": "방어도 13 + 힘 +3"
+        },
+        {
+          "name": "꼬리 프로펠러 타격",
+          "intent": "attack",
+          "dmg": 15,
+          "desc": "피해 15"
+        }
+      ]
+    },
+    "carrion_crawler": {
+      "id": "carrion_crawler",
+      "name": "🐛 시체 포식자 캐리언 크롤러",
+      "maxHp": 50,
+      "type": "normal",
+      "expReward": 48,
+      "svg": "<svg viewBox=\"0 0 100 100\"><circle cx=\"50\" cy=\"50\" r=\"32\" fill=\"#145a32\" stroke=\"#58d68d\" stroke-width=\"3\"/><circle cx=\"40\" cy=\"40\" r=\"5\" fill=\"#ff0055\"/><circle cx=\"60\" cy=\"40\" r=\"5\" fill=\"#ff0055\"/></svg>",
+      "moves": [
+        {
+          "name": "마비 독 촉수 3연타",
+          "intent": "multi_attack",
+          "dmg": 4,
+          "hits": 3,
+          "desc": "피해 4 x 3"
+        },
+        {
+          "name": "신경독 점액 분사",
+          "intent": "attack_debuff",
+          "dmg": 9,
+          "weak": 2,
+          "addStatus": "status_slimed",
+          "statusCount": 1,
+          "desc": "피해 9 + 약화 2 + [점액] 1장"
+        }
+      ],
+      "metallicize": 4
+    },
+    "mimic_hunter": {
+      "id": "mimic_hunter",
+      "name": "📦 [엘리트] 탐욕의 보물상자 미믹",
+      "maxHp": 110,
+      "type": "elite",
+      "expReward": 115,
+      "curlUp": 19,
+      "thorns": 3,
+      "svg": "<svg viewBox=\"0 0 100 100\"><rect x=\"18\" y=\"28\" width=\"64\" height=\"50\" rx=\"6\" fill=\"#5d4037\" stroke=\"#f1c40f\" stroke-width=\"4\"/><polygon points=\"24,52 32,64 40,52 48,64 56,52 64,64 72,52\" fill=\"#fff\"/><circle cx=\"42\" cy=\"40\" r=\"5\" fill=\"#ff0055\"/><circle cx=\"62\" cy=\"40\" r=\"5\" fill=\"#ff0055\"/></svg>",
+      "moves": [
+        {
+          "name": "접착 위족 휘감기",
+          "intent": "attack_debuff",
+          "dmg": 17,
+          "weak": 1,
+          "addStatus": "status_slimed",
+          "statusCount": 1,
+          "desc": "피해 17 + 약화 1 + [점액] 1장"
+        },
+        {
+          "name": "보물상자 송곳니 깨물기",
+          "intent": "attack",
+          "dmg": 24,
+          "lifesteal": true,
+          "desc": "흡혈 피해 24"
+        },
+        {
+          "name": "강철 자물쇠 경화",
+          "intent": "defend_buff",
+          "block": 18,
+          "str": 4,
+          "desc": "방어도 18 + 힘 +4"
+        }
+      ]
+    },
+    "manticore_ravager": {
+      "id": "manticore_ravager",
+      "name": "🦁 [1층 중간보스] 가시꼬리 만티코어",
+      "maxHp": 146,
+      "type": "elite",
+      "expReward": 150,
+      "thorns": 4,
+      "svg": "<svg viewBox=\"0 0 100 100\"><polygon points=\"50,12 88,38 74,86 26,86 12,38\" fill=\"#6e2c00\" stroke=\"#e74c3c\" stroke-width=\"4\"/><circle cx=\"38\" cy=\"46\" r=\"6\" fill=\"#f1c40f\"/><circle cx=\"62\" cy=\"46\" r=\"6\" fill=\"#f1c40f\"/></svg>",
+      "moves": [
+        {
+          "name": "강철 꼬리 가시 3연사",
+          "intent": "multi_attack",
+          "dmg": 8,
+          "hits": 3,
+          "addStatus": "status_wound",
+          "statusCount": 1,
+          "desc": "피해 8 x 3 + [깊은] 1장"
+        },
+        {
+          "name": "날개 돌풍 & 가시 방어",
+          "intent": "defend_buff",
+          "block": 20,
+          "str": 4,
+          "desc": "방어도 20 + 힘 +4"
+        },
+        {
+          "name": "맹수 급강하 덮치기",
+          "intent": "attack_debuff",
+          "dmg": 22,
+          "vuln": 2,
+          "desc": "피해 22 + 취약 2 + [정신] 1장",
+          "addStatus": "status_dazed",
+          "statusCount": 1
+        }
+      ]
+    },
+    "displacer_beast": {
+      "id": "displacer_beast",
+      "name": "🐆 환영 흑표범 디스플레이서 비스트",
+      "maxHp": 62,
+      "type": "normal",
+      "expReward": 58,
+      "artifact": 1,
+      "curlUp": 14,
+      "svg": "<svg viewBox=\"0 0 100 100\"><polygon points=\"20,30 50,14 80,30 72,82 28,82\" fill=\"#1b1464\" stroke=\"#00d2d3\" stroke-width=\"3\"/><circle cx=\"38\" cy=\"46\" r=\"6\" fill=\"#00ff88\"/><circle cx=\"62\" cy=\"46\" r=\"6\" fill=\"#00ff88\"/></svg>",
+      "moves": [
+        {
+          "name": "가시 촉수 채찍 2연타",
+          "intent": "multi_attack",
+          "dmg": 9,
+          "hits": 2,
+          "desc": "피해 9 x 2"
+        },
+        {
+          "name": "환영 왜곡 (Displacement)",
+          "intent": "defend_buff",
+          "block": 17,
+          "str": 3,
+          "desc": "방어도 17 + 힘 +3"
+        },
+        {
+          "name": "착란의 기습",
+          "intent": "attack_debuff",
+          "dmg": 15,
+          "addStatus": "status_dazed",
+          "statusCount": 1,
+          "desc": "피해 15 + 손상 2 + [정신] 1장",
+          "frail": 2
+        }
+      ]
+    },
+    "basilisk_gazer": {
+      "id": "basilisk_gazer",
+      "name": "🦎 석화의 마수 바실리스크",
+      "maxHp": 70,
+      "type": "normal",
+      "expReward": 62,
+      "metallicize": 7,
+      "svg": "<svg viewBox=\"0 0 100 100\"><rect x=\"18\" y=\"24\" width=\"64\" height=\"52\" rx=\"14\" fill=\"#1e8449\" stroke=\"#a3e4d7\" stroke-width=\"3\"/><circle cx=\"38\" cy=\"48\" r=\"7\" fill=\"#f1c40f\"/><circle cx=\"62\" cy=\"48\" r=\"7\" fill=\"#f1c40f\"/></svg>",
+      "moves": [
+        {
+          "name": "석화의 응시 (Petrifying Gaze)",
+          "intent": "attack_debuff",
+          "dmg": 13,
+          "weak": 2,
+          "addStatus": "status_dazed",
+          "statusCount": 1,
+          "desc": "피해 13 + 약화 2 + [정신] 1장"
+        },
+        {
+          "name": "맹독 송곳니 깨물기",
+          "intent": "attack_debuff",
+          "dmg": 18,
+          "vuln": 1,
+          "desc": "피해 18 + 취약 1 + 손상 2",
+          "frail": 2
+        },
+        {
+          "name": "바위 비늘 경화",
+          "intent": "defend_buff",
+          "block": 16,
+          "str": 4,
+          "desc": "방어도 16 + 힘 +4"
+        }
+      ]
+    },
+    "ochre_jelly": {
+      "id": "ochre_jelly",
+      "name": "🟨 분열하는 황토 슬라임 (오커 젤리)",
+      "maxHp": 72,
+      "type": "normal",
+      "expReward": 60,
+      "regen": 7,
+      "svg": "<svg viewBox=\"0 0 100 100\"><circle cx=\"50\" cy=\"54\" r=\"32\" fill=\"#d68910\" stroke=\"#f9e79f\" stroke-width=\"3\"/><circle cx=\"38\" cy=\"48\" r=\"6\" fill=\"#4a235a\"/><circle cx=\"62\" cy=\"48\" r=\"6\" fill=\"#4a235a\"/></svg>",
+      "moves": [
+        {
+          "name": "끈적한 산성 위족",
+          "intent": "attack_debuff",
+          "dmg": 15,
+          "addStatus": "status_slimed",
+          "statusCount": 2,
+          "desc": "피해 15 + 손상 2 + [점액] 2장",
+          "frail": 2
+        },
+        {
+          "name": "세포 분열 증식",
+          "intent": "defend_buff",
+          "block": 14,
+          "str": 4,
+          "desc": "방어도 14 + 힘 +4"
+        }
+      ]
+    },
+    "myconid_sovereign": {
+      "id": "myconid_sovereign",
+      "name": "🍄 언더다크 맹독 포자 군주 (마이코니드)",
+      "maxHp": 65,
+      "type": "normal",
+      "expReward": 58,
+      "thorns": 3,
+      "svg": "<svg viewBox=\"0 0 100 100\"><path d=\"M18,50 Q50,10 82,50 Z\" fill=\"#8e44ad\" stroke=\"#e056fd\" stroke-width=\"3\"/><rect x=\"38\" y=\"50\" width=\"24\" height=\"34\" fill=\"#d2b4de\"/><circle cx=\"44\" cy=\"62\" r=\"4\" fill=\"#00ff88\"/><circle cx=\"56\" cy=\"62\" r=\"4\" fill=\"#00ff88\"/></svg>",
+      "moves": [
+        {
+          "name": "환각 포자 구름",
+          "intent": "attack_debuff",
+          "dmg": 12,
+          "weak": 2,
+          "addStatus": "status_dazed",
+          "statusCount": 1,
+          "desc": "피해 12 + 약화 2 + [정신] 1장"
+        },
+        {
+          "name": "균사체 재생 방벽",
+          "intent": "defend_buff",
+          "block": 16,
+          "str": 3,
+          "desc": "방어도 16 + 힘 +3"
+        },
+        {
+          "name": "부패 포자 폭발",
+          "intent": "attack",
+          "dmg": 20,
+          "desc": "피해 20"
+        }
+      ]
+    },
+    "roper_ambusher": {
+      "id": "roper_ambusher",
+      "name": "🪨 [엘리트] 종유석 괴수 로퍼(Roper)",
+      "maxHp": 149,
+      "type": "elite",
+      "expReward": 138,
+      "metallicize": 11,
+      "thorns": 4,
+      "svg": "<svg viewBox=\"0 0 100 100\"><polygon points=\"50,10 82,85 18,85\" fill=\"#566573\" stroke=\"#abb2b9\" stroke-width=\"4\"/><circle cx=\"50\" cy=\"42\" r=\"10\" fill=\"#ff3838\"/><polygon points=\"35,66 65,66 50,76\" fill=\"#fff\"/></svg>",
+      "moves": [
+        {
+          "name": "접착 촉수 4연속 포박",
+          "intent": "multi_attack",
+          "dmg": 7,
+          "hits": 4,
+          "addStatus": "status_slimed",
+          "statusCount": 1,
+          "desc": "피해 7 x 4 + [점액] 1장"
+        },
+        {
+          "name": "암석 외피 & 끌어당기기",
+          "intent": "defend_buff",
+          "block": 23,
+          "str": 4,
+          "desc": "방어도 23 + 힘 +4"
+        },
+        {
+          "name": "분쇄의 아가리",
+          "intent": "attack_debuff",
+          "dmg": 28,
+          "vuln": 2,
+          "desc": "피해 28 + 취약 2 + [지옥] 1장",
+          "addStatus": "status_burn",
+          "statusCount": 1
+        }
+      ]
+    },
+    "cloaker_shadow": {
+      "id": "cloaker_shadow",
+      "name": "🦇 [2층 중간보스] 심연의 그림자 클로커",
+      "maxHp": 174,
+      "type": "elite",
+      "expReward": 175,
+      "artifact": 1,
+      "svg": "<svg viewBox=\"0 0 100 100\"><polygon points=\"10,25 50,15 90,25 75,88 50,72 25,88\" fill=\"#1c2833\" stroke=\"#9b59b6\" stroke-width=\"4\"/><circle cx=\"40\" cy=\"42\" r=\"6\" fill=\"#ff0055\"/><circle cx=\"60\" cy=\"42\" r=\"6\" fill=\"#ff0055\"/></svg>",
+      "moves": [
+        {
+          "name": "공포의 초음파 비명",
+          "intent": "attack_debuff",
+          "dmg": 18,
+          "weak": 2,
+          "vuln": 2,
+          "addStatus": "status_dazed",
+          "statusCount": 1,
+          "desc": "피해 18 + 약화 2 + 취약 2 + 손상 2 + [정신] 1장",
+          "frail": 2
+        },
+        {
+          "name": "거울 환영 분신",
+          "intent": "defend_buff",
+          "block": 23,
+          "str": 5,
+          "desc": "방어도 23 + 힘 +5"
+        },
+        {
+          "name": "질식의 망토 휘감기",
+          "intent": "attack",
+          "dmg": 29,
+          "lifesteal": true,
+          "desc": "흡혈 피해 29"
+        }
+      ]
+    },
+    "chuul_pincer": {
+      "id": "chuul_pincer",
+      "name": "🦞 고대 일리시드 갑각괴수 추울(Chuul)",
+      "maxHp": 82,
+      "type": "normal",
+      "expReward": 74,
+      "metallicize": 8,
+      "svg": "<svg viewBox=\"0 0 100 100\"><rect x=\"20\" y=\"22\" width=\"60\" height=\"56\" rx=\"12\" fill=\"#117864\" stroke=\"#48c9b0\" stroke-width=\"3\"/><circle cx=\"38\" cy=\"44\" r=\"6\" fill=\"#f1c40f\"/><circle cx=\"62\" cy=\"44\" r=\"6\" fill=\"#f1c40f\"/></svg>",
+      "moves": [
+        {
+          "name": "거대 집게발 2연타",
+          "intent": "multi_attack",
+          "dmg": 12,
+          "hits": 2,
+          "desc": "피해 12 x 2"
+        },
+        {
+          "name": "마비 촉수 주입",
+          "intent": "attack_debuff",
+          "dmg": 17,
+          "weak": 2,
+          "addStatus": "status_dazed",
+          "statusCount": 1,
+          "desc": "피해 17 + 약화 2 + [정신] 1장"
+        },
+        {
+          "name": "키틴질 갑각 방어",
+          "intent": "defend_buff",
+          "block": 20,
+          "str": 4,
+          "desc": "방어도 20 + 힘 +4"
+        }
+      ]
+    },
+    "grell_strangler": {
+      "id": "grell_strangler",
+      "name": "🧠 공중 부유 뇌괴수 그렐(Grell)",
+      "maxHp": 72,
+      "type": "normal",
+      "expReward": 70,
+      "artifact": 1,
+      "svg": "<svg viewBox=\"0 0 100 100\"><circle cx=\"50\" cy=\"42\" r=\"26\" fill=\"#ad1457\" stroke=\"#f48fb1\" stroke-width=\"3\"/><path d=\"M35,68 L30,90 M50,68 L50,92 M65,68 L70,90\" stroke=\"#f48fb1\" stroke-width=\"4\"/></svg>",
+      "moves": [
+        {
+          "name": "전격 촉수 3연타",
+          "intent": "multi_attack",
+          "dmg": 8,
+          "hits": 3,
+          "desc": "피해 8 x 3"
+        },
+        {
+          "name": "신경 마비 부리",
+          "intent": "attack_debuff",
+          "dmg": 18,
+          "vuln": 2,
+          "addStatus": "status_wound",
+          "statusCount": 1,
+          "desc": "피해 18 + 취약 2 + 손상 2 + [깊은] 1장",
+          "frail": 2
+        }
+      ]
+    },
+    "otyugh_filth": {
+      "id": "otyugh_filth",
+      "name": "Tentacle 오물 포식자 오티우그(Otyugh)",
+      "maxHp": 86,
+      "type": "normal",
+      "expReward": 75,
+      "regen": 8,
+      "svg": "<svg viewBox=\"0 0 100 100\"><circle cx=\"50\" cy=\"54\" r=\"32\" fill=\"#4d5656\" stroke=\"#a3e4d7\" stroke-width=\"3\"/><circle cx=\"50\" cy=\"34\" r=\"7\" fill=\"#ff3838\"/><circle cx=\"36\" cy=\"52\" r=\"5\" fill=\"#ff3838\"/><circle cx=\"64\" cy=\"52\" r=\"5\" fill=\"#ff3838\"/></svg>",
+      "moves": [
+        {
+          "name": "역병 촉수 강타",
+          "intent": "attack_debuff",
+          "dmg": 18,
+          "addStatus": "status_slimed",
+          "statusCount": 2,
+          "desc": "피해 18 + 손상 2 + [점액] 2장",
+          "frail": 2
+        },
+        {
+          "name": "오물 구덩이 재생",
+          "intent": "defend_buff",
+          "block": 18,
+          "str": 4,
+          "desc": "방어도 18 + 힘 +4"
+        },
+        {
+          "name": "세균 아가리 물어뜯기",
+          "intent": "attack_debuff",
+          "dmg": 22,
+          "weak": 2,
+          "desc": "피해 22 + 약화 2"
+        }
+      ]
+    },
+    "slaad_death": {
+      "id": "slaad_death",
+      "name": "🐸 혼돈의 차원 괴수 데스 슬라드",
+      "maxHp": 79,
+      "type": "normal",
+      "expReward": 76,
+      "regen": 9,
+      "artifact": 1,
+      "svg": "<svg viewBox=\"0 0 100 100\"><polygon points=\"20,40 35,18 65,18 80,40 72,84 28,84\" fill=\"#4a235a\" stroke=\"#00ff88\" stroke-width=\"3\"/><circle cx=\"36\" cy=\"42\" r=\"7\" fill=\"#00ff88\"/><circle cx=\"64\" cy=\"42\" r=\"7\" fill=\"#00ff88\"/></svg>",
+      "moves": [
+        {
+          "name": "혼돈의 발톱 2연타",
+          "intent": "multi_attack",
+          "dmg": 12,
+          "hits": 2,
+          "desc": "피해 12 x 2"
+        },
+        {
+          "name": "림보의 혼돈 파동",
+          "intent": "attack_debuff",
+          "dmg": 20,
+          "addStatus": "status_dazed",
+          "statusCount": 2,
+          "desc": "피해 20 + [정신] 2장"
+        },
+        {
+          "name": "제어석 재생 각성",
+          "intent": "defend_buff",
+          "block": 18,
+          "str": 5,
+          "desc": "방어도 18 + 힘 +5"
+        }
+      ]
+    },
+    "beholder_zombie_elite": {
+      "id": "beholder_zombie_elite",
+      "name": "👁️ [엘리트] 부패한 비홀더 좀비",
+      "maxHp": 166,
+      "type": "elite",
+      "expReward": 158,
+      "artifact": 2,
+      "svg": "<svg viewBox=\"0 0 100 100\"><circle cx=\"50\" cy=\"52\" r=\"34\" fill=\"#1e8449\" stroke=\"#a9dfbf\" stroke-width=\"4\"/><circle cx=\"50\" cy=\"52\" r=\"14\" fill=\"#f9e79f\"/><circle cx=\"50\" cy=\"52\" r=\"6\" fill=\"#c0392b\"/></svg>",
+      "moves": [
+        {
+          "name": "분해 광선 (Disintegration Ray)",
+          "intent": "attack_debuff",
+          "dmg": 29,
+          "vuln": 2,
+          "addStatus": "status_wound",
+          "statusCount": 1,
+          "desc": "피해 29 + 취약 2 + [깊은] 1장"
+        },
+        {
+          "name": "마비 & 공포 광선 난사",
+          "intent": "multi_attack",
+          "dmg": 11,
+          "hits": 3,
+          "addStatus": "status_dazed",
+          "statusCount": 1,
+          "desc": "피해 11 x 3 + [정신] 1장"
+        },
+        {
+          "name": "언데드 반마법 역장",
+          "intent": "defend_buff",
+          "block": 23,
+          "str": 5,
+          "desc": "방어도 23 + 힘 +5"
+        }
+      ]
+    },
+    "mindwitness_overseer": {
+      "id": "mindwitness_overseer",
+      "name": "🐙 [3층 중간보스] 일리시드 변이 비홀더 마인드위트니스",
+      "maxHp": 202,
+      "type": "elite",
+      "expReward": 195,
+      "artifact": 2,
+      "metallicize": 8,
+      "svg": "<svg viewBox=\"0 0 100 100\"><circle cx=\"50\" cy=\"50\" r=\"36\" fill=\"#2c003e\" stroke=\"#00d2d3\" stroke-width=\"4\"/><circle cx=\"50\" cy=\"46\" r=\"14\" fill=\"#00ff88\"/><path d=\"M35,72 L30,94 M50,74 L50,96 M65,72 L70,94\" stroke=\"#e056fd\" stroke-width=\"4\"/></svg>",
+      "moves": [
+        {
+          "name": "사이오닉 정신 파열 광선",
+          "intent": "attack_debuff",
+          "dmg": 25,
+          "weak": 2,
+          "addStatus": "status_dazed",
+          "statusCount": 2,
+          "desc": "피해 25 + 약화 2 + 손상 2 + [정신] 2장",
+          "frail": 2
+        },
+        {
+          "name": "촉수 광선 4연사",
+          "intent": "multi_attack",
+          "dmg": 9,
+          "hits": 4,
+          "desc": "피해 9 x 4"
+        },
+        {
+          "name": "텔레파시 방벽 증폭",
+          "intent": "defend_buff",
+          "block": 26,
+          "str": 5,
+          "desc": "방어도 26 + 힘 +5"
+        }
+      ]
+    },
+    "banshee_wailer": {
+      "id": "banshee_wailer",
+      "name": "👻 통곡의 원령 밴시(Banshee)",
+      "maxHp": 82,
+      "type": "normal",
+      "expReward": 82,
+      "artifact": 1,
+      "svg": "<svg viewBox=\"0 0 100 100\"><path d=\"M22,84 Q20,20 50,16 Q80,20 78,84 Z\" fill=\"#1b2631\" stroke=\"#00d2d3\" stroke-width=\"3\"/><circle cx=\"38\" cy=\"46\" r=\"6\" fill=\"#00ff88\"/><circle cx=\"62\" cy=\"46\" r=\"6\" fill=\"#00ff88\"/></svg>",
+      "moves": [
+        {
+          "name": "죽음의 통곡 (Wail of Death)",
+          "intent": "attack_debuff",
+          "dmg": 21,
+          "weak": 2,
+          "vuln": 2,
+          "addStatus": "curse_pain",
+          "statusCount": 1,
+          "desc": "피해 21 + 약화 2 + 취약 2 + [심연의] 1장 + 플레이어 힘 -1",
+          "strDown": 1
+        },
+        {
+          "name": "영체화 (Incorporeal)",
+          "intent": "defend_buff",
+          "block": 23,
+          "str": 4,
+          "desc": "방어도 23 + 힘 +4"
+        },
+        {
+          "name": "영혼 동결 손길",
+          "intent": "attack",
+          "dmg": 25,
+          "desc": "피해 25"
+        }
+      ]
+    },
+    "bone_naga": {
+      "id": "bone_naga",
+      "name": "🐍 고대 해골 뱀 본 나가(Bone Naga)",
+      "maxHp": 89,
+      "type": "normal",
+      "expReward": 84,
+      "thorns": 4,
+      "svg": "<svg viewBox=\"0 0 100 100\"><path d=\"M25,80 Q15,40 50,20 Q85,40 75,80\" fill=\"none\" stroke=\"#dfe6e9\" stroke-width=\"10\"/><circle cx=\"44\" cy=\"30\" r=\"5\" fill=\"#ff3838\"/><circle cx=\"56\" cy=\"30\" r=\"5\" fill=\"#ff3838\"/></svg>",
+      "moves": [
+        {
+          "name": "사령 번개 & 독니 2연타",
+          "intent": "multi_attack",
+          "dmg": 13,
+          "hits": 2,
+          "desc": "피해 13 x 2"
+        },
+        {
+          "name": "저주의 비전 주문",
+          "intent": "attack_debuff",
+          "dmg": 20,
+          "addStatus": "status_burn",
+          "statusCount": 1,
+          "desc": "피해 20 + 손상 2 + [지옥] 1장",
+          "frail": 2
+        },
+        {
+          "name": "해골 가시 진형",
+          "intent": "defend_buff",
+          "block": 21,
+          "str": 5,
+          "desc": "방어도 21 + 힘 +5"
+        }
+      ]
+    },
+    "mummy_guardian": {
+      "id": "mummy_guardian",
+      "name": " bandages 고대 무덤 수호 미라",
+      "maxHp": 96,
+      "type": "normal",
+      "expReward": 86,
+      "metallicize": 8,
+      "svg": "<svg viewBox=\"0 0 100 100\"><rect x=\"24\" y=\"18\" width=\"52\" height=\"66\" rx=\"10\" fill=\"#7e5109\" stroke=\"#f7dc6f\" stroke-width=\"3\"/><circle cx=\"40\" cy=\"44\" r=\"6\" fill=\"#ff3838\"/><circle cx=\"60\" cy=\"44\" r=\"6\" fill=\"#ff3838\"/></svg>",
+      "moves": [
+        {
+          "name": "썩어가는 주먹 (Mummy Rot)",
+          "intent": "attack_debuff",
+          "dmg": 22,
+          "vuln": 2,
+          "addStatus": "curse_pain",
+          "statusCount": 1,
+          "desc": "피해 22 + 취약 2 + 손상 2 + [심연의] 1장",
+          "frail": 2
+        },
+        {
+          "name": "공포의 눈빛 (Dreadful Glare)",
+          "intent": "defend_buff",
+          "block": 21,
+          "str": 5,
+          "desc": "방어도 21 + 힘 +5"
+        },
+        {
+          "name": "붕대 연타",
+          "intent": "multi_attack",
+          "dmg": 15,
+          "hits": 2,
+          "desc": "피해 15 x 2"
+        }
+      ]
+    },
+    "shadow_demon": {
+      "id": "shadow_demon",
+      "name": "🌑 심연의 그림자 악마 (섀도우 데몬)",
+      "maxHp": 86,
+      "type": "normal",
+      "expReward": 84,
+      "svg": "<svg viewBox=\"0 0 100 100\"><polygon points=\"50,12 86,38 72,86 28,86 14,38\" fill=\"#17202a\" stroke=\"#e056fd\" stroke-width=\"3\"/><circle cx=\"38\" cy=\"48\" r=\"6\" fill=\"#e056fd\"/><circle cx=\"62\" cy=\"48\" r=\"6\" fill=\"#e056fd\"/></svg>",
+      "moves": [
+        {
+          "name": "정신 암흑 발톱 3연타",
+          "intent": "multi_attack",
+          "dmg": 9,
+          "hits": 3,
+          "desc": "피해 9 x 3"
+        },
+        {
+          "name": "그림자 잠복 & 기습",
+          "intent": "defend_buff",
+          "block": 22,
+          "str": 5,
+          "desc": "방어도 22 + 힘 +5"
+        },
+        {
+          "name": "악몽의 침식",
+          "intent": "attack_debuff",
+          "dmg": 21,
+          "addStatus": "status_dazed",
+          "statusCount": 2,
+          "desc": "피해 21 + 손상 2 + [정신] 2장",
+          "frail": 2
+        }
+      ],
+      "curlUp": 7
+    },
+    "skull_lord_elite": {
+      "id": "skull_lord_elite",
+      "name": "💀💀💀 [엘리트] 삼두 해골 군주 스컬 로드",
+      "maxHp": 190,
+      "type": "elite",
+      "expReward": 180,
+      "regen": 11,
+      "artifact": 2,
+      "svg": "<svg viewBox=\"0 0 100 100\"><circle cx=\"30\" cy=\"44\" r=\"16\" fill=\"#2c3e50\" stroke=\"#00ff88\" stroke-width=\"3\"/><circle cx=\"70\" cy=\"44\" r=\"16\" fill=\"#2c3e50\" stroke=\"#00ff88\" stroke-width=\"3\"/><circle cx=\"50\" cy=\"36\" r=\"18\" fill=\"#1a252f\" stroke=\"#ff3838\" stroke-width=\"4\"/></svg>",
+      "moves": [
+        {
+          "name": "뼈 지팡이 & 사령 광선 3연타",
+          "intent": "multi_attack",
+          "dmg": 12,
+          "hits": 3,
+          "addStatus": "status_wound",
+          "statusCount": 1,
+          "desc": "피해 12 x 3 + [깊은] 1장"
+        },
+        {
+          "name": "언데드 군단 소환 결계",
+          "intent": "defend_buff",
+          "block": 29,
+          "str": 7,
+          "desc": "방어도 29 + 힘 +7"
+        },
+        {
+          "name": "죽음의 손가락 (Finger of Death)",
+          "intent": "attack_debuff",
+          "dmg": 33,
+          "lifesteal": true,
+          "addStatus": "curse_pain",
+          "statusCount": 1,
+          "desc": "흡혈 피해 33 + [심연의] 1장"
+        }
+      ]
+    },
+    "nightwalker_titan": {
+      "id": "nightwalker_titan",
+      "name": "🌌 [4층 중간보스] 네거티브 차원의 거신 나이트워커",
+      "maxHp": 234,
+      "type": "elite",
+      "expReward": 215,
+      "thorns": 5,
+      "metallicize": 11,
+      "svg": "<svg viewBox=\"0 0 100 100\"><polygon points=\"50,8 88,36 76,90 24,90 12,36\" fill=\"#0b0d14\" stroke=\"#00d2d3\" stroke-width=\"4\"/><circle cx=\"38\" cy=\"44\" r=\"7\" fill=\"#00d2d3\"/><circle cx=\"62\" cy=\"44\" r=\"7\" fill=\"#00d2d3\"/></svg>",
+      "moves": [
+        {
+          "name": "소멸의 오라 & 파멸의 주먹",
+          "intent": "attack_debuff",
+          "dmg": 30,
+          "vuln": 2,
+          "addStatus": "curse_pain",
+          "statusCount": 1,
+          "desc": "피해 30 + 취약 2 + 손상 2 + [심연의] 1장 + 플레이어 힘 -1",
+          "frail": 2,
+          "strDown": 1
+        },
+        {
+          "name": "생명력 말살 광선 2연타",
+          "intent": "multi_attack",
+          "dmg": 17,
+          "hits": 2,
+          "lifesteal": true,
+          "desc": "흡혈 피해 17 x 2"
+        },
+        {
+          "name": "공허의 장막",
+          "intent": "defend_buff",
+          "block": 31,
+          "str": 7,
+          "desc": "방어도 31 + 힘 +7"
+        }
+      ]
+    },
+    "chain_devil_kyton": {
+      "id": "chain_devil_kyton",
+      "name": "⛓️ 나인 헬 사슬 악마 (체인 데블)",
+      "maxHp": 103,
+      "type": "normal",
+      "expReward": 100,
+      "thorns": 5,
+      "metallicize": 9,
+      "svg": "<svg viewBox=\"0 0 100 100\"><rect x=\"20\" y=\"20\" width=\"60\" height=\"60\" rx=\"10\" fill=\"#2c3e50\" stroke=\"#e74c3c\" stroke-width=\"3\"/><line x1=\"15\" y1=\"30\" x2=\"85\" y2=\"70\" stroke=\"#bdc3c7\" stroke-width=\"4\"/><line x1=\"85\" y1=\"30\" x2=\"15\" y2=\"70\" stroke=\"#bdc3c7\" stroke-width=\"4\"/></svg>",
+      "moves": [
+        {
+          "name": "살아있는 가시 사슬 3연타",
+          "intent": "multi_attack",
+          "dmg": 11,
+          "hits": 3,
+          "addStatus": "status_wound",
+          "statusCount": 1,
+          "desc": "피해 11 x 3 + [깊은] 1장"
+        },
+        {
+          "name": "지옥 사슬 갑주",
+          "intent": "defend_buff",
+          "block": 23,
+          "str": 5,
+          "desc": "방어도 23 + 힘 +5"
+        },
+        {
+          "name": "고통의 결박",
+          "intent": "attack_debuff",
+          "dmg": 25,
+          "weak": 2,
+          "vuln": 2,
+          "desc": "피해 25 + 약화 2 + 취약 2 + 손상 2",
+          "frail": 2
+        }
+      ]
+    },
+    "horned_devil_malebranche": {
+      "id": "horned_devil_malebranche",
+      "name": "🔱 뿔 달린 상급 악마 (혼드 데블)",
+      "maxHp": 110,
+      "type": "normal",
+      "expReward": 105,
+      "regen": 9,
+      "svg": "<svg viewBox=\"0 0 100 100\"><polygon points=\"50,14 86,40 72,86 28,86 14,40\" fill=\"#78281f\" stroke=\"#f39c12\" stroke-width=\"3\"/><circle cx=\"38\" cy=\"48\" r=\"6\" fill=\"#f1c40f\"/><circle cx=\"62\" cy=\"48\" r=\"6\" fill=\"#f1c40f\"/></svg>",
+      "moves": [
+        {
+          "name": "지옥 삼지창 & 꼬리 2연타",
+          "intent": "multi_attack",
+          "dmg": 16,
+          "hits": 2,
+          "addStatus": "status_burn",
+          "statusCount": 1,
+          "desc": "피해 16 x 2 + [지옥] 1장"
+        },
+        {
+          "name": "지옥불 투척 (Hurl Flame)",
+          "intent": "attack_debuff",
+          "dmg": 26,
+          "addStatus": "status_burn",
+          "statusCount": 2,
+          "desc": "피해 26 + 손상 2 + [지옥] 2장",
+          "frail": 2
+        },
+        {
+          "name": "아베르누스의 날개 방어",
+          "intent": "defend_buff",
+          "block": 26,
+          "str": 7,
+          "desc": "방어도 26 + 힘 +7"
+        }
+      ]
+    },
+    "balor_abyssal_lord": {
+      "id": "balor_abyssal_lord",
+      "name": "🔥 [엘리트] 심연의 화염 군주 발로르(Balor)",
+      "maxHp": 222,
+      "type": "elite",
+      "expReward": 225,
+      "thorns": 6,
+      "artifact": 2,
+      "svg": "<svg viewBox=\"0 0 100 100\"><polygon points=\"50,8 92,38 78,90 22,90 8,38\" fill=\"#641e16\" stroke=\"#ff3838\" stroke-width=\"4\"/><circle cx=\"38\" cy=\"46\" r=\"7\" fill=\"#ffeaa7\"/><circle cx=\"62\" cy=\"46\" r=\"7\" fill=\"#ffeaa7\"/></svg>",
+      "moves": [
+        {
+          "name": "번개 대검 & 화염 채찍 2연타",
+          "intent": "multi_attack",
+          "dmg": 18,
+          "hits": 2,
+          "addStatus": "status_burn",
+          "statusCount": 2,
+          "desc": "피해 18 x 2 + [지옥] 2장"
+        },
+        {
+          "name": "심연의 화염 폭풍 오라",
+          "intent": "defend_buff",
+          "block": 31,
+          "str": 7,
+          "desc": "방어도 31 + 힘 +7"
+        },
+        {
+          "name": "참수의 일격 (Vorpal Blade)",
+          "intent": "attack_debuff",
+          "dmg": 37,
+          "vuln": 2,
+          "addStatus": "status_wound",
+          "statusCount": 1,
+          "desc": "피해 37 + 취약 2 + [깊은] 1장"
+        }
+      ],
+      "skillEnrage": 2
     }
   },
   "events": [
     {
       "id": "mystra_shrine",
-      "title": "🎲 [D20 비전 판정] 미스트라와 오그마의 고대 제단",
-      "desc": "언더마운틴의 비밀 방에서 마법 여신 미스트라의 성소를 발견했습니다. D20 주사위를 굴리거나 원하는 축복을 선택하세요!",
+      "title": "🎲 [D20 비전 판정] 미스트라의 균열된 마법 제단",
+      "desc": "언더마운틴의 비밀 방에서 불안정한 비전 에너지를 내뿜는 미스트라의 성소를 발견했습니다. 대가를 치르고 권능을 취하거나 안전하게 기도할 수 있습니다.",
       "choices": [
         {
-          "label": "🎲 [D20 비전(Arcana) 판정: DC 10] 성공 시 카드 2장 강화(+)+룬 각인 & 경험치 +120 EXP!",
+          "label": "🎲 [D20 비전(Arcana) 판정: DC 12] 성공 시 카드 1장 강화(+)+룬 각인 | 실패 시 폭발 피해 -14 HP & [화상] 카드 1장 추가",
           "effect": "d20_arcana"
         },
         {
-          "label": "🙏 [여신의 치유 기도] 체력을 전부 회복하고 최대 체력 +12 증가",
-          "effect": "full_heal_maxhp"
+          "label": "🩸 [피의 봉헌] 현재 체력 -12 소모 ➔ 최대 체력 +8 영구 증가 & 카드 1장 무료 강화(+)",
+          "effect": "blood_sacrifice_maxhp"
         },
         {
-          "label": "🗝️ [제단 보물함 해체] 골드 +120G 및 희귀 마법 물품(유물) 1개 획득 (함정 체력 -8)",
+          "label": "🗝️ [금단의 보물함 강제 개방] 골드 +95 GP & 무작위 유물 1개 획득 (대가: 체력 -15 & 덱에 [☠️심연의 저주] 카드 1장 추가!)",
           "effect": "scrap_and_relic"
         }
       ]
     },
     {
       "id": "deck_of_many_things",
-      "title": "🃏 [D20 운명 판정] 매드 메이지 할라스터와 만물의 카드 덱",
-      "desc": "\"크하하하! 내 지하미궁에 온 걸 환영한다 모험가여! 만물의 카드(Deck of Many Things)에서 한 장 뽑아보겠느냐?\"",
+      "title": "🃏 [슬더스식 거래] 매드 메이지 할라스터와 만물의 카드",
+      "desc": "\"크하하하! 내 미궁에서는 공짜 점심이란 없지! 대가를 지불하고 만물의 카드(Deck of Many Things)를 뽑아보겠느냐?\"",
       "choices": [
         {
-          "label": "🎲 [태양(Sun) 카드 뽑기] 즉시 레벨업(EXP +150) & 스탯 포인트(SP) +2 및 차원 마석 +250개 획득!",
+          "label": "🔥 [화염(Flames)의 계약] 최대 체력 -8 영구 감소 ➔ 즉시 경험치 +95 EXP & 등반 마석 +120개 획득",
           "effect": "gain_exp_sp_gems"
         },
         {
-          "label": "⚔️ [기사(Knight) 카드 뽑기] 기본 카드 1장을 제거하고 클래스 희귀(Rare) 카드를 1장 획득",
+          "label": "⚔️ [기사(Knight)의 단련] 체력 -12 소모 ➔ 덱의 일반 카드 1장을 무작위 제거하고 희귀(Rare) 등급 이상 카드 1장 획득",
           "effect": "remove_and_rare"
         },
         {
-          "label": "👑 [왕좌(Throne) 카드 뽑기] 영구 마법 유물 1개 무료 획득 및 체력 +20 회복",
-          "effect": "free_relic"
+          "label": "👑 [공허(Void)의 유물] 덱에 [☠️심연의 저주] 카드 1장 추가 ➔ 마법 유물 1개 획득",
+          "effect": "cursed_relic"
         }
       ]
+    },
+    {
+      "id": "illithid_surgical_table",
+      "title": "🐙 [생체 개조] 버려진 일리시드 연금술 실험실",
+      "desc": "마인드 플레이어들이 사용하던 기괴한 수술대와 변이 물약들이 놓여 있습니다.",
+      "choices": [
+        {
+          "label": "🧪 [변이 영약 섭취] 체력 -10 소모 ➔ 무작위 물약 1개 획득 및 경험치 +60 EXP",
+          "effect": "potion_and_exp"
+        },
+        {
+          "label": "🗑️ [정신 세척 장치] 50 GP 지불 ➔ 덱에서 원하는 카드 1장 영구 제거",
+          "effect": "event_paid_remove"
+        },
+        {
+          "label": "🚶 [무시하고 지나간다] 아무 일도 일어나지 않고 체력을 +6 소량 회복합니다",
+          "effect": "safe_leave"
+        }
+      ]
+    }
+  ],
+  "neowBlessings": [
+    {
+      "id": "neow_maxhp",
+      "label": "🐋 [니오우의 축복: 생명력] 최대 체력 +10 증가 및 체력 완전 회복",
+      "desc": "안정적으로 첨탑 등반을 시작합니다."
+    },
+    {
+      "id": "neow_first3_1hp",
+      "label": "🗡️ [니오우의 애가 (Neow's Lament)] 처음 3번의 전투에서 모든 적의 체력이 1이 됩니다!",
+      "desc": "슬레이 더 스파이어 1의 명물! 초반 3번의 교전을 즉시 돌파합니다."
+    },
+    {
+      "id": "neow_upgrade_random",
+      "label": "⚒️ [고대인의 지혜] 시작 덱의 카드 2장을 무작위로 강화(+)하고 골드 +50 GP 획득",
+      "desc": "초반 공방 효율이 크게 상승합니다."
+    },
+    {
+      "id": "neow_curse_for_boss_relic",
+      "label": "👑 [하이리스크 거래] 덱에 [☠️심연의 저주] 1장을 얻는 대신 무작위 [보스 유물(+1 AP 등)] 1개 즉시 획득!",
+      "desc": "위험을 감수하고 1층부터 강력한 보스 유물로 시작합니다."
     }
   ]
 };

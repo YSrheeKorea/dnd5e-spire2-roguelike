@@ -86,8 +86,271 @@ const Game = {
 
   init() {
     this.loadMeta();
+    this.bindKeyboardControls();
     this.updateTopHud();
     this.renderHub();
+  },
+
+  // --------------------------------------------------------------------------
+  // FULL KEYBOARD CONTROLS (Slay the Spire 1 Style Hotkeys!)
+  // --------------------------------------------------------------------------
+  bindKeyboardControls() {
+    if (this._keyboardBound) return;
+    this._keyboardBound = true;
+    window.addEventListener('keydown', e => this.handleKeyDown(e));
+  },
+
+  handleKeyDown(e) {
+    // Ignore when typing inside an input/textarea or with Ctrl/Alt/Meta combos
+    if (e.ctrlKey || e.altKey || e.metaKey) return;
+    const tag = e.target && e.target.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+    const key = e.key;
+    const lower = key.toLowerCase();
+
+    const isVisible = id => {
+      const el = document.getElementById(id);
+      return el && !el.classList.contains('hidden');
+    };
+    const isActiveScreen = id => {
+      const el = document.getElementById(id);
+      return el && el.classList.contains('active');
+    };
+
+    // 1. Top-priority Modals
+    if (isVisible('modal-gameover')) {
+      if (key === 'Enter' || key === ' ' || key === 'Escape') {
+        e.preventDefault();
+        this.closeGameOverAndHub();
+      }
+      return;
+    }
+
+    if (isVisible('modal-reward')) {
+      const cards = document.querySelectorAll('#reward-cards-row .game-card');
+      if (key >= '1' && key <= '3') {
+        const idx = parseInt(key, 10) - 1;
+        if (cards[idx]) {
+          e.preventDefault();
+          cards[idx].click();
+        }
+      } else if (key === 'Enter' || key === ' ' || key === 'Escape' || lower === 's') {
+        e.preventDefault();
+        const skipBtn = document.querySelector('#modal-reward .reward-footer button');
+        if (skipBtn) skipBtn.click();
+      }
+      return;
+    }
+
+    if (isVisible('modal-run-stats')) {
+      const keys = ['str', 'dex', 'vit', 'mana'];
+      if (key >= '1' && key <= '4') {
+        e.preventDefault();
+        this.allocateStatPoint(keys[parseInt(key, 10) - 1]);
+      } else if (key === 'Escape' || lower === 'c') {
+        e.preventDefault();
+        this.closeRunStatModal();
+      }
+      return;
+    }
+
+    if (isVisible('modal-deck')) {
+      if (key === 'Escape' || lower === 'd' || lower === 'a' || lower === 's') {
+        e.preventDefault();
+        this.closeDeckModal();
+      } else if (key >= '1' && key <= '9') {
+        const idx = parseInt(key, 10) - 1;
+        const cards = document.querySelectorAll('#deck-modal-grid .game-card');
+        if (cards[idx]) {
+          e.preventDefault();
+          cards[idx].click();
+        }
+      }
+      return;
+    }
+
+    if (isVisible('modal-gear')) {
+      if (key === 'Escape') {
+        e.preventDefault();
+        this.closeGearModal();
+      }
+      return;
+    }
+
+    if (isVisible('modal-mastery')) {
+      if (key === 'Escape') {
+        e.preventDefault();
+        this.closeMasteryModal();
+      }
+      return;
+    }
+
+    // 2. Global Run Hotkeys (Deck, SP Allocation)
+    if (this.run && !isActiveScreen('screen-hub')) {
+      if (lower === 'd') {
+        e.preventDefault();
+        this.openDeckModal('all');
+        return;
+      }
+      if (lower === 'c') {
+        e.preventDefault();
+        this.openRunStatModal();
+        return;
+      }
+    }
+
+    // 3. Screen-Specific Controls
+    // --- HUB SCREEN ---
+    if (isActiveScreen('screen-hub')) {
+      const charIds = Object.keys(GAME_DATA.characters);
+      const curIdx = charIds.indexOf(this.meta.selectedCharId);
+      if (key === 'ArrowRight') {
+        e.preventDefault();
+        this.meta.selectedCharId = charIds[(curIdx + 1) % charIds.length];
+        this.renderHub();
+      } else if (key === 'ArrowLeft') {
+        e.preventDefault();
+        this.meta.selectedCharId = charIds[(curIdx - 1 + charIds.length) % charIds.length];
+        this.renderHub();
+      } else if (key >= '1' && key <= '8') {
+        e.preventDefault();
+        this.meta.selectedCharId = charIds[parseInt(key, 10) - 1];
+        this.renderHub();
+      } else if (key === 'Enter' || key === ' ') {
+        e.preventDefault();
+        this.startNewRun(this.meta.selectedCharId);
+      } else if (lower === 'g') {
+        e.preventDefault();
+        this.openGearModal();
+      } else if (lower === 'f') {
+        e.preventDefault();
+        this.openMasteryModal();
+      }
+      return;
+    }
+
+    // --- MAP SCREEN ---
+    if (isActiveScreen('screen-map')) {
+      if (key === 'Enter' || key === ' ' || key === '1') {
+        const curBtn = document.querySelector('#current-stage-row .map-node-btn.available');
+        if (curBtn) {
+          e.preventDefault();
+          curBtn.click();
+        }
+      }
+      return;
+    }
+
+    // --- COMBAT SCREEN (Slay the Spire 1 Hotkeys!) ---
+    if (isActiveScreen('screen-combat') && this.combat) {
+      // 1~9, 0 -> Play Card 1~10 from hand
+      if ((key >= '1' && key <= '9') || key === '0') {
+        const idx = key === '0' ? 9 : parseInt(key, 10) - 1;
+        if (idx < this.combat.hand.length) {
+          e.preventDefault();
+          this.playCardFromHand(idx);
+        }
+        return;
+      }
+      // Tab / Left / Right -> Cycle Target Enemy
+      if (key === 'Tab' || key === 'ArrowRight' || key === 'ArrowLeft') {
+        e.preventDefault();
+        const aliveIndices = this.combat.enemies
+          .map((en, i) => (en.hp > 0 ? i : -1))
+          .filter(i => i >= 0);
+        if (aliveIndices.length > 1) {
+          const pos = aliveIndices.indexOf(this.combat.targetIndex);
+          const dir = key === 'ArrowLeft' ? -1 : 1;
+          const nextPos = (pos + dir + aliveIndices.length) % aliveIndices.length;
+          this.combat.targetIndex = aliveIndices[nextPos];
+          this.renderCombat();
+        }
+        return;
+      }
+      // E / Space / Enter -> End Turn
+      if (lower === 'e' || key === ' ' || key === 'Enter') {
+        e.preventDefault();
+        this.endPlayerTurn();
+        return;
+      }
+      // Q -> Trigger Class Secondary Burst
+      if (lower === 'q') {
+        e.preventDefault();
+        this.triggerSecondaryBurst();
+        return;
+      }
+      // A -> View Draw Pile, S -> View Discard Pile
+      if (lower === 'a') {
+        e.preventDefault();
+        this.openDeckModal('draw');
+        return;
+      }
+      if (lower === 's') {
+        e.preventDefault();
+        this.openDeckModal('discard');
+        return;
+      }
+      // Z / X / V -> Use Potion Slot 1 / 2 / 3
+      if (lower === 'z' || lower === 'x' || lower === 'v') {
+        const pIdx = lower === 'z' ? 0 : lower === 'x' ? 1 : 2;
+        if (this.run && this.run.potions[pIdx]) {
+          e.preventDefault();
+          this.usePotion(pIdx);
+        }
+        return;
+      }
+      return;
+    }
+
+    // --- REST SCREEN ---
+    if (isActiveScreen('screen-rest')) {
+      if (key === '1') {
+        e.preventDefault();
+        this.doRestHeal();
+      } else if (key === '2') {
+        e.preventDefault();
+        this.openUpgradeModal(false);
+      } else if (key === '3') {
+        e.preventDefault();
+        this.openUpgradeModal(true);
+      }
+      return;
+    }
+
+    // --- EVENT / NEOW SCREEN ---
+    if (isActiveScreen('screen-event')) {
+      if (key >= '1' && key <= '4') {
+        const btns = document.querySelectorAll('#event-choices .event-choice-btn');
+        const idx = parseInt(key, 10) - 1;
+        if (btns[idx]) {
+          e.preventDefault();
+          btns[idx].click();
+        }
+      }
+      return;
+    }
+
+    // --- SHOP SCREEN ---
+    if (isActiveScreen('screen-shop')) {
+      if (key >= '1' && key <= '4') {
+        const btns = document.querySelectorAll('#shop-cards-row .shop-buy-btn');
+        const idx = parseInt(key, 10) - 1;
+        if (btns[idx] && !btns[idx].disabled) {
+          e.preventDefault();
+          btns[idx].click();
+        }
+      } else if (lower === 'r') {
+        e.preventDefault();
+        this.openRemoveCardModal();
+      } else if (lower === 'm') {
+        e.preventDefault();
+        this.shopMutateService();
+      } else if (key === 'Escape' || key === 'Enter' || key === ' ') {
+        e.preventDefault();
+        this.leaveNodeToMap();
+      }
+    }
   },
 
   loadMeta() {
@@ -136,20 +399,21 @@ const Game = {
     const rankBonus = GAME_DATA.rankBonuses[currentRank] || GAME_DATA.rankBonuses.C;
     const hunterLv = this.meta.levels[charId] || 1;
 
-    let bonusHp = rankBonus.hp + (hunterLv - 1) * 3;
-    let bonusStr = rankBonus.str + Math.floor(hunterLv / 5);
-    let bonusDex = rankBonus.dex + Math.floor(hunterLv / 6);
-    let bonusResourceStart = rankBonus.resourceStart;
+    let bonusHp = rankBonus.hp + (hunterLv - 1) * 2;
+    let bonusStr = Math.floor((rankBonus.str || 0) * 0.5) + Math.floor(hunterLv / 8);
+    let bonusDex = Math.floor((rankBonus.dex || 0) * 0.5) + Math.floor(hunterLv / 9);
+    let bonusResourceStart = rankBonus.resourceStart || 0;
     let firstTurnBlock = 0;
     let healAfterCombat = 0;
     let summonBoost = 0;
 
-    // Equipped Magic Gear
+    // Equipped Magic Gear (Balanced so C-rank starter gear doesn't inflate base stats)
     const wId = this.meta.equipped.weapon;
     if (wId && GAME_DATA.equipment[wId]) {
       const w = GAME_DATA.equipment[wId];
       const lv = this.meta.gearLevels[wId] || 0;
-      bonusStr += Math.round(w.baseStr + lv * w.strPerLv);
+      const rawStr = (w.id === 'c_dagger' ? 0 : w.baseStr) + lv * w.strPerLv;
+      bonusStr += Math.floor(rawStr * 0.55);
       if (w.resourceBonus) bonusResourceStart += w.resourceBonus;
     }
 
@@ -157,17 +421,19 @@ const Game = {
     if (aId && GAME_DATA.equipment[aId]) {
       const a = GAME_DATA.equipment[aId];
       const lv = this.meta.gearLevels[aId] || 0;
-      bonusHp += Math.round(a.baseHp + lv * a.hpPerLv);
-      bonusDex += a.baseDex || 0;
+      const rawHp = (a.id === 'c_vest' ? 0 : a.baseHp) + lv * a.hpPerLv;
+      bonusHp += Math.round(rawHp * 0.55);
+      bonusDex += Math.floor((a.baseDex || 0) * 0.5);
     }
 
     const accId = this.meta.equipped.accessory;
     if (accId && GAME_DATA.equipment[accId]) {
       const acc = GAME_DATA.equipment[accId];
       const lv = this.meta.gearLevels[accId] || 0;
-      firstTurnBlock += Math.round(acc.baseBlock + lv * acc.blockPerLv);
-      healAfterCombat += acc.healAfterCombat || 0;
-      summonBoost += acc.summonBoost || 0;
+      const rawBlk = (acc.id === 'c_ring' ? 2 : acc.baseBlock) + lv * acc.blockPerLv;
+      firstTurnBlock += Math.round(rawBlk * 0.55);
+      healAfterCombat += Math.min(2, acc.healAfterCombat || 0);
+      summonBoost += Math.floor((acc.summonBoost || 0) * 0.5);
     }
 
     // Feats / Masteries
@@ -176,12 +442,31 @@ const Game = {
     bonusStr += m.mana_circulation || 0;
     bonusResourceStart += m.mana_circulation || 0;
     const bonusDrawFirstTurn = m.tactical_intel || 0;
-    const bonusGoldStart = (m.guild_funding || 0) * 45;
-    const expMultPct = (m.exp_accelerator || 0) * 25;
+    let bonusGoldStart = (m.guild_funding || 0) * 45;
+    let expMultPct = (m.exp_accelerator || 0) * 25;
     const bonusMaxEnergy = m.core_overdrive || 0;
+
+    // Class Level Milestones (Clear tangible differences when training Class Level!)
+    const startUpgradedCards = hunterLv >= 10 ? 2 : hunterLv >= 3 ? 1 : 0;
+    const startBonusPotions = hunterLv >= 5 ? 1 : 0;
+    const startBonusSp = hunterLv >= 7 ? 1 : 0;
+    if (hunterLv >= 2) bonusGoldStart += 35;
+    if (hunterLv >= 10) expMultPct += 15;
+
+    // Rank Card Pool Unlocks & Class-Unique Rank Relics
+    const rankOrder = { C: 0, B: 1, A: 2, S: 3 };
+    const rLevel = rankOrder[currentRank] || 0;
+    const unlockedRarities =
+      rLevel >= 2 ? ['common', 'uncommon', 'rare', 'legendary'] : rLevel >= 1 ? ['common', 'uncommon', 'rare'] : ['common', 'uncommon'];
+    const unlockedRankRelics = [];
+    if (ch.rankRelics) {
+      if (rLevel >= 1 && ch.rankRelics.B) unlockedRankRelics.push(ch.rankRelics.B);
+      if (rLevel >= 3 && ch.rankRelics.S) unlockedRankRelics.push(ch.rankRelics.S);
+    }
 
     return {
       currentRank,
+      rankLevel: rLevel,
       hunterLv,
       totalMaxHp: ch.maxHp + bonusHp,
       bonusHp,
@@ -194,7 +479,12 @@ const Game = {
       bonusDrawFirstTurn,
       bonusGoldStart,
       expMultPct,
-      bonusMaxEnergy
+      bonusMaxEnergy,
+      startUpgradedCards,
+      startBonusPotions,
+      startBonusSp,
+      unlockedRarities,
+      unlockedRankRelics
     };
   },
 
@@ -228,11 +518,12 @@ const Game = {
         <div class="char-avatar-wrap">${ch.avatarSvg}</div>
         <h3>${ch.name.split(' ')[0]}</h3>
         <div class="char-archetype">${ch.secondaryResourceIcon} 44종 카드 풀</div>
-        <div style="font-size:0.7rem; color:#dfe6e9;">
-          ❤️${stats.totalMaxHp} | ⚔️+${stats.bonusStr}
+        <div class="char-roster-stats">
+          <span>❤️ ${stats.totalMaxHp}</span>
+          <span>⚔️ +${stats.bonusStr}</span>
         </div>
-        <div style="font-size:0.68rem; color:#55efc4; margin-top:2px;">
-          🏔️ 최고: ${bestFloor}
+        <div class="char-roster-best">
+          🏔️ ${bestFloor}
         </div>
       `;
       grid.appendChild(card);
@@ -273,6 +564,36 @@ const Game = {
       })
       .join('');
 
+    const lvMilestones = [
+      { lv: 2, label: 'Lv.2: 시작 +35 GP' },
+      { lv: 3, label: 'Lv.3: 시작 카드 1장 강화(+)' },
+      { lv: 5, label: 'Lv.5: 전투 물약 +1개 지참' },
+      { lv: 7, label: 'Lv.7: 시작 SP +1 지급' },
+      { lv: 10, label: 'Lv.10: 시작 카드 2장(+) & EXP +15%' }
+    ];
+    const lvPerkSummary = lvMilestones
+      .map(m => {
+        const done = stats.hunterLv >= m.lv;
+        return `<span style="color:${done ? '#2ed573' : '#636e72'}; font-weight:${done ? '800' : '600'};">${done ? '✔' : '🔒'} ${m.label}</span>`;
+      })
+      .join(' · ');
+
+    const rankBRelic = ch.rankRelics && GAME_DATA.relics[ch.rankRelics.B];
+    const rankSRelic = ch.rankRelics && GAME_DATA.relics[ch.rankRelics.S];
+    const rankUnlockSummary = `
+      <div style="font-size:0.71rem; line-height:1.45; background:rgba(0,0,0,0.32); padding:7px 9px; border-radius:8px; border:1px solid rgba(255,255,255,0.06);">
+        <div style="color:${stats.rankLevel >= 1 ? '#74b9ff' : '#7f8fa6'};">
+          ${stats.rankLevel >= 1 ? '✔' : '🔒'} <strong>[B급 해금]</strong> 희귀(Rare) 카드 풀 해금 + ${rankBRelic ? rankBRelic.name : 'B급 고유 유물'}
+        </div>
+        <div style="color:${stats.rankLevel >= 2 ? '#c56cf0' : '#7f8fa6'};">
+          ${stats.rankLevel >= 2 ? '✔' : '🔒'} <strong>[A급 해금]</strong> 전설(Legendary) 카드 풀 해금 + 각성 카드 시작 덱 추가
+        </div>
+        <div style="color:${stats.rankLevel >= 3 ? '#f6c967' : '#7f8fa6'};">
+          ${stats.rankLevel >= 3 ? '✔' : '🔒'} <strong>[S급 해금]</strong> 각성 카드(+) 강화 시작 + ${rankSRelic ? rankSRelic.name : 'S급 신화 유물'}
+        </div>
+      </div>
+    `;
+
     panel.innerHTML = `
       <div class="selected-info-left">
         <h2>
@@ -280,11 +601,11 @@ const Game = {
           <span style="color:${ch.accent}">${ch.name}</span>
           <span style="font-size:0.86rem; color:#dfe6e9;">— ${ch.heroName}</span>
           <button class="hud-btn" style="font-size:0.74rem; padding:4px 9px; border-color:#fdcb6e; color:#ffeaa7;" onclick="Game.openClassCompendium('${ch.id}', 'all')">
-            📖 전체 44종 카드 도감 (공용 4 + 하위직업 4×10)
+            📖 전체 44종 카드 도감 (해금: ${stats.unlockedRarities.join('/')})
           </button>
         </h2>
         <div class="subclass-picker-title">
-          🎴 <strong>${ch.name.split(' ')[0]}의 4대 하위 직업 카드 계통 (총 44종 카드 풀)</strong> — 첨탑을 오르며 44종 카드를 수집해 원하는 하위 직업 루트나 혼합 빌드를 자유롭게 맞춰가세요!
+          🎴 <strong>${ch.name.split(' ')[0]}의 4대 하위 직업 카드 계통</strong> — 랭크 승급(C→B→A→S)으로 희귀/전설 카드와 클래스 고유 유물을 해금하세요!
         </div>
         <div class="subclass-grid">
           ${subCardsHtml}
@@ -297,17 +618,19 @@ const Game = {
           <span>⚔️ 시작 힘: <strong style="color:#fdcb6e">+${stats.bonusStr}</strong></span>
           <span>🛡️ 민첩: <strong style="color:#55efc4">+${stats.bonusDex}</strong></span>
         </div>
-        <div style="font-size:0.74rem; color:#dfe6e9; background:rgba(0,0,0,0.3); padding:6px 8px; border-radius:8px;">
-          ${ch.secondaryResourceIcon} <strong>${ch.secondaryResourceName}:</strong> ${ch.secondaryResourceDesc}
+        ${rankUnlockSummary}
+        <div style="font-size:0.69rem; line-height:1.45; color:#a4b0be; background:rgba(0,0,0,0.22); padding:6px 8px; border-radius:8px;">
+          <strong style="color:#dfe6e9;">📈 클래스 레벨 특전 (현재 Lv.${stats.hunterLv}):</strong><br/>
+          ${lvPerkSummary}
         </div>
-        <div class="growth-stat-row" style="color:#a4b0be; font-size:0.74rem;">
+        <div class="growth-stat-row" style="color:#a4b0be; font-size:0.72rem;">
           <span>무구: ${wObj.icon}+${this.meta.gearLevels[wObj.id] || 0} | ${aObj.icon}+${this.meta.gearLevels[aObj.id] || 0} | ${accObj.icon}+${this.meta.gearLevels[accObj.id] || 0}</span>
-          <span>🏔️ 최고 등반: <strong style="color:#55efc4">${(this.meta.classBestFloor && this.meta.classBestFloor[ch.id]) || '1층 1F'}</strong></span>
+          <span>🏔️ 최고: <strong style="color:#55efc4">${(this.meta.classBestFloor && this.meta.classBestFloor[ch.id]) || '1층 1F'}</strong></span>
         </div>
         <div class="growth-btn-row">
           <button class="btn-growth-action" onclick="Game.levelUpHunter('${ch.id}')">
             ⬆️ 클래스 훈련 (Lv.${stats.hunterLv}→${stats.hunterLv + 1})<br/>
-            <span style="color:#00d2d3">💎 ${lvCost} 등반 마석</span>
+            <span style="color:#18dcff">💎 ${lvCost} 등반 마석</span>
           </button>
           ${nextRank
         ? `<button class="btn-growth-action reawaken" onclick="Game.promoteHunterRank('${ch.id}')">
@@ -322,7 +645,7 @@ const Game = {
       <div>
         <button class="btn-start-run" onclick="Game.startNewRun('${ch.id}')">
           🏔️ 첨탑 등반 시작 ➔<br/>
-          <span style="font-size:0.75rem; font-weight:600; color:#ffeaa7;">[1층 ~ 5층 · 150 스테이지]</span>
+          <span style="font-size:0.75rem; font-weight:600; color:#ffeaa7;">[${stats.currentRank}급 · Lv.${stats.hunterLv} 출격]</span>
         </button>
       </div>
     `;
@@ -581,13 +904,32 @@ const Game = {
     // Starter deck uses ONLY the Class's Shared Cards (4x Strike, 4x Defend, 1x Shared Uncommon)
     const deck = ch.starterDeck.map((cardId, idx) => this.createCardInstance(cardId, idx));
 
-    // Rank A / S adds the 4th Shared Rare Card to the starter deck
+    // Class Level Milestone: Upgrade starter cards (+1 card at Lv.3+, +2 cards at Lv.10+)
+    if (stats.startUpgradedCards > 0) {
+      // Upgrade the signature shared uncommon card first, then 1 starter strike
+      const sigCard = deck[deck.length - 1];
+      if (sigCard) sigCard.upgraded = true;
+      if (stats.startUpgradedCards >= 2 && deck[0]) {
+        deck[0].upgraded = true;
+      }
+    }
+
+    // Rank A / S adds the 4th Shared Awakening Card to the starter deck (S-Rank starts upgraded!)
     if (stats.currentRank === 'A' || stats.currentRank === 'S') {
       const awkCard = this.createCardInstance(ch.awakeningCard, 99);
       if (stats.currentRank === 'S') awkCard.upgraded = true;
-      if (stats.currentRank === 'S') awkCard.upgraded = true;
       deck.push(awkCard);
     }
+
+    // Starting Relics: Base Class Relic + Unlocked B-Rank / S-Rank Class-Unique Relics!
+    const startRelics = [ch.startRelic, ...(stats.unlockedRankRelics || [])];
+    const startPotions = ['rad_heal'];
+    if (stats.startBonusPotions > 0) {
+      startPotions.push('fury_stim');
+    }
+
+    // Extra Max HP if S-rank Barbarian relic is equipped
+    const extraSRelicHp = startRelics.includes('bar_rank_s') ? 12 : 0;
 
     // Randomly roll 1 of the 4 Bosses & 1 of the Mid-Bosses for each of the 5 Acts!
     const selectedBosses = {};
@@ -606,8 +948,9 @@ const Game = {
       rank: stats.currentRank,
       runLv: 1,
       runExp: 0,
-      runNextExp: 120,
-      sp: 0, // Earn SP by leveling up in combat (D&D Lv.1 -> Lv.20 cap)
+      runNextExp: 75,
+      sp: stats.startBonusSp || 0, // Lv.7+ Class Milestone grants +1 starting SP!
+      pendingCardDrafts: 0, // Card rewards are earned upon Level-Up (plus Boss/Midboss kills)!
       allocatedStats: {
         str: 0,
         dex: 0,
@@ -615,27 +958,82 @@ const Game = {
         mana: 0
       },
       permStats: stats,
-      maxHp: stats.totalMaxHp,
-      hp: stats.totalMaxHp,
-      gold: 99 + stats.bonusGoldStart,
+      maxHp: stats.totalMaxHp + extraSRelicHp,
+      hp: stats.totalMaxHp + extraSRelicHp,
+      gold: 80 + stats.bonusGoldStart,
       act: 1, // Act 1 ~ 5 (총 5개 층)
       maxActs: 5,
       stage: 1, // Stage 1 ~ 30 per Act (1개 층당 30개 스테이지)
       stagesPerAct: 30,
+      currentLane: null,
+      neowLamentCharges: 0, // Neow's Lament: First 3 combats have 1 HP enemies
+      penNibCounter: 0, // Pen Nib relic counter (every 7th attack deals double damage)
       selectedBosses,
       selectedMidBosses,
       deck,
-      relics: [ch.startRelic],
-      potions: ['rad_heal'],
+      relics: startRelics,
+      potions: startPotions,
+      maxPotions: 3,
+      shopRemoveCount: 0,
+      shopMutateCount: 0,
+      currentShopState: null,
       actMap: null
     };
     this.run.actMap = this.generate30StageActMap(1);
 
     this.switchScreen('screen-map');
     this.renderMap();
+    this.openNeowBlessingScreen();
   },
 
-  // Generates 30 Stages of encounters/choices for the given Act (1..5)
+  // Slay the Spire 1: Neow's Blessing at the start of Act 1 Floor 1
+  openNeowBlessingScreen() {
+    if (!this.run || !GAME_DATA.neowBlessings) return;
+    this.switchScreen('screen-event');
+    document.getElementById('event-title').textContent = '🐋 태고의 고래 니오우(Neow)의 축복 — 첨탑 입구';
+    document.getElementById('event-desc').textContent =
+      '"다시 첨탑의 밑바닥에서 눈을 떴구나, 모험가여... 언더마운틴을 오르기 전 내가 내리는 4가지 축복 중 하나를 선택하여라." (슬레이 더 스파이어 1 시작 보너스)';
+
+    const choicesBox = document.getElementById('event-choices');
+    choicesBox.innerHTML = '';
+
+    GAME_DATA.neowBlessings.forEach((b, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'event-choice-btn';
+      btn.innerHTML = `<div><span class="kbd-hint">${idx + 1}</span> <strong>${b.label}</strong></div><div style="font-size:0.76rem; color:#95a5a6; margin-top:3px;">${b.desc}</div>`;
+      btn.onclick = () => this.resolveNeowBlessing(b.id);
+      choicesBox.appendChild(btn);
+    });
+  },
+
+  resolveNeowBlessing(blessingId) {
+    if (!this.run) return;
+    if (blessingId === 'neow_maxhp') {
+      this.run.maxHp += 10;
+      this.run.hp = this.run.maxHp;
+    } else if (blessingId === 'neow_first3_1hp') {
+      this.run.neowLamentCharges = 3;
+    } else if (blessingId === 'neow_upgrade_random') {
+      this.run.gold += 50;
+      const unupg = this.run.deck.filter(c => !c.upgraded);
+      this.shuffleArray(unupg);
+      unupg.slice(0, 2).forEach(c => {
+        c.upgraded = true;
+      });
+    } else if (blessingId === 'neow_curse_for_boss_relic') {
+      this.run.deck.push(this.createCardInstance('curse_pain'));
+      const bossRelics = Object.values(GAME_DATA.relics).filter(r => r.isBossRelic && !this.run.relics.includes(r.id));
+      if (bossRelics.length > 0) {
+        const picked = bossRelics[Math.floor(Math.random() * bossRelics.length)];
+        this.run.relics.push(picked.id);
+      }
+    }
+    this.switchScreen('screen-map');
+    this.renderMap();
+  },
+
+  // Generates 30 Stages where each stage is a single randomly-assigned encounter!
+  // No meaningless 3-way choice clutter: each stage rolls 1 clear event/encounter (Combat, Elite, Event, Shop, Rest, Treasure, Midboss, Boss).
   generate30StageActMap(actNum) {
     const stages = [];
     const bossId = this.run && this.run.selectedBosses ? this.run.selectedBosses[actNum] : GAME_DATA.acts[actNum - 1].bossPool[0];
@@ -644,66 +1042,73 @@ const Game = {
     const bossObj = GAME_DATA.enemies[bossId];
     const midObj = GAME_DATA.enemies[midBossId];
 
+    // Pick 1 random rest spot in first half (4..12) and 1 in second half (17..26), plus guaranteed pre-boss rest (14, 29)
+    // Pick 2 random shop spots (1 in first half, 1 in second half)
+    const firstHalfShop = 5 + Math.floor(Math.random() * 6); // 5..10
+    const secondHalfShop = 18 + Math.floor(Math.random() * 8); // 18..25
+    let firstHalfRest = 6 + Math.floor(Math.random() * 6); // 6..11
+    if (firstHalfRest === firstHalfShop || firstHalfRest === 9) firstHalfRest = 7;
+    let secondHalfRest = 19 + Math.floor(Math.random() * 7); // 19..25
+    if (secondHalfRest === secondHalfShop || secondHalfRest === 23) secondHalfRest = 21;
+
+    const makeNode = (s, type) => {
+      if (type === 'boss') {
+        return { id: `a${actNum}_s${s}_boss`, type, label: `👑 [계층 보스] ${bossObj ? bossObj.name : '계층 지배자'}` };
+      }
+      if (type === 'midboss') {
+        return { id: `a${actNum}_s${s}_midboss`, type, label: `🩸 [중간 보스] ${midObj ? midObj.name : '계층 수문장'}` };
+      }
+      if (type === 'treasure') {
+        return { id: `a${actNum}_s${s}_treasure`, type, label: `🎁 [고대 보물상자] 마법 유물 & 금화 획득` };
+      }
+      if (type === 'rest') {
+        return { id: `a${actNum}_s${s}_rest`, type, label: `🔥 [모닥불 휴식처] 긴 휴식(30% 회복) 또는 카드 단련(+)` };
+      }
+      if (type === 'shop') {
+        return { id: `a${actNum}_s${s}_shop`, type, label: `💰 [방랑 마법 상점] 주문서 · 유물 · 물약 · 카드 제거` };
+      }
+      if (type === 'elite') {
+        return { id: `a${actNum}_s${s}_elite`, type, label: `👹 [엘리트 강적] 위험 전투 — 처치 시 마법 유물 & 대량 EXP` };
+      }
+      if (type === 'event') {
+        return { id: `a${actNum}_s${s}_event`, type, label: `❓ [미지의 방] D20 운명 판정 & 하이리스크 거래 이벤트` };
+      }
+      return { id: `a${actNum}_s${s}_combat`, type: 'combat', label: `⚔️ [몬스터 교전] 미궁 수호 몬스터와 전투` };
+    };
+
+    let lastType = null;
     for (let s = 1; s <= 30; s++) {
-      let nodes = [];
+      let type = 'combat';
+
       if (s === 30) {
-        nodes = [
-          {
-            id: `a${actNum}_s30_boss`,
-            type: 'boss',
-            label: `👑 [Stage 30 계층 보스] ${bossObj ? bossObj.name : '계층 지배자'}`
-          }
-        ];
+        type = 'boss';
       } else if (s === 15) {
-        nodes = [
-          {
-            id: `a${actNum}_s15_midboss`,
-            type: 'midboss',
-            label: `🩸 [Stage 15 중간보스] ${midObj ? midObj.name : '수문장'}`
-          },
-          {
-            id: `a${actNum}_s15_rest`,
-            type: 'rest',
-            label: `🏕️ 비밀 우회로 야영지 (긴 휴식 & 룬 각인)`
-          }
-        ];
-      } else if (s === 29 || s === 14) {
-        nodes = [
-          { id: `a${actNum}_s${s}_rest`, type: 'rest', label: `🏕️ 보스전 직전 야영지 (긴 휴식 & 카드 단련)` },
-          { id: `a${actNum}_s${s}_shop`, type: 'shop', label: `💰 방랑 마법 상점 (주문서 & 물약 보급)` }
-        ];
-      } else if (s % 5 === 0) {
-        nodes = [
-          { id: `a${actNum}_s${s}_shop`, type: 'shop', label: `💰 워터딥 방랑 마법 상점` },
-          { id: `a${actNum}_s${s}_rest`, type: 'rest', label: `🏕️ 안전한 야영지 (긴 휴식 & 룬 각인)` },
-          { id: `a${actNum}_s${s}_event`, type: 'event', label: `🎲 D20 주사위 판정 성소` }
-        ];
-      } else if (s % 4 === 0) {
-        nodes = [
-          { id: `a${actNum}_s${s}_elite`, type: 'elite', label: `🔥 엘리트 몬스터 토벌 (유물 & 대량 EXP)` },
-          { id: `a${actNum}_s${s}_event`, type: 'event', label: `🎲 D20 운명 판정 이벤트` },
-          { id: `a${actNum}_s${s}_combat`, type: 'combat', label: `⚔️ 일반 몬스터 순찰대` }
-        ];
+        type = 'midboss';
+      } else if (s === 9 || s === 23) {
+        type = 'treasure';
+      } else if (s === 14 || s === 29 || s === firstHalfRest || s === secondHalfRest) {
+        type = 'rest';
+      } else if (s === firstHalfShop || s === secondHalfShop) {
+        type = 'shop';
+      } else if (s <= 2) {
+        type = 'combat';
       } else {
-        nodes = [
-          { id: `a${actNum}_s${s}_c1`, type: 'combat', label: `⚔️ 미궁 몬스터 교전 (전투)` },
-          {
-            id: `a${actNum}_s${s}_c2`,
-            type: s % 2 === 0 ? 'event' : 'combat',
-            label: s % 2 === 0 ? `🎲 D20 기이한 조우 (선택지)` : `⚔️ 몬스터 매복 돌파 (전투)`
-          },
-          {
-            id: `a${actNum}_s${s}_c3`,
-            type: s % 3 === 0 ? 'rest' : 'elite',
-            label: s % 3 === 0 ? `🏕️ 짧은 야영지 & 마법부여` : `🔥 위험 구역: 엘리트 강적`
-          }
-        ];
+        // Randomly roll 1 encounter type for this stage (avoid back-to-back elites or events)
+        const r = Math.random();
+        if (s >= 5 && lastType !== 'elite' && r < 0.22) {
+          type = 'elite';
+        } else if (lastType !== 'event' && r < 0.44) {
+          type = 'event';
+        } else {
+          type = 'combat';
+        }
       }
 
+      lastType = type;
       stages.push({
         stage: s,
         completed: false,
-        nodes
+        nodes: [makeNode(s, type)]
       });
     }
     return stages;
@@ -716,8 +1121,8 @@ const Game = {
     const currentBossObj = GAME_DATA.enemies[currentBossId];
 
     document.getElementById('map-act-title').textContent = `🏰 ${actInfo.name} (Stage ${this.run.stage} / 30)`;
-    document.getElementById('map-act-subtitle').innerHTML = `${actInfo.subtitle} — <strong style="color:#ff7675">이번 층의 30스테이지 보스 예고: ${currentBossObj ? currentBossObj.name : ''
-      }</strong> (4종 중 무작위 배정됨)`;
+    document.getElementById('map-act-subtitle').innerHTML = `${actInfo.subtitle} — <strong style="color:#ff7675">30층 보스 예고: ${currentBossObj ? currentBossObj.name : ''
+      }</strong> | <span style="color:#f6c967">🎲 각 층의 조우(전투/엘리트/이벤트/상점/휴식처)가 무작위로 배정됩니다!</span>`;
 
     const spCountEl = document.getElementById('map-sp-count');
     if (spCountEl) spCountEl.textContent = this.run.sp;
@@ -748,7 +1153,7 @@ const Game = {
         .map(n => {
           const stateClass = isCurrent ? 'available' : row.completed ? 'completed' : '';
           return `
-            <button class="map-node-btn ${stateClass}" ${isCurrent ? `onclick="Game.enterMapNode('${n.id}', '${n.type}')"` : ''
+            <button class="map-node-btn ${stateClass}" style="flex:1; justify-content:center;" ${isCurrent ? `onclick="Game.enterMapNode('${n.id}', '${n.type}')"` : ''
             }>
               ${n.label}
             </button>
@@ -781,7 +1186,25 @@ const Game = {
       this.openShopScreen();
     } else if (type === 'event') {
       this.openEventScreen();
+    } else if (type === 'treasure') {
+      this.openTreasureRoom();
     }
+  },
+
+  openTreasureRoom() {
+    if (!this.run) return;
+    const relic = this.grantRandomRelic();
+    let goldBonus = 45;
+    if (this.run.relics.includes('ectoplasm_slime')) goldBonus = 0;
+    this.run.gold += goldBonus;
+
+    let msg = `🎁 [고대 보물상자 개방!]\n${relic ? `마법 유물 [${relic.icon} ${relic.name}] 획득!` : '유물 도감을 모두 수집했습니다!'}${goldBonus > 0 ? ` 및 금화 +${goldBonus} GP 획득!` : ''}`;
+    if (this.run.relics.includes('cursed_key')) {
+      this.run.deck.push(this.createCardInstance('curse_pain'));
+      msg += `\n⚠️ [🗝️ 저주받은 열쇠] 페널티 발동! 보물상자를 열어 덱에 [☠️ 심연의 저주] 카드가 1장 추가되었습니다!`;
+    }
+    alert(msg);
+    this.leaveNodeToMap();
   },
 
   // Record highest tower floor/stage reached
@@ -808,51 +1231,137 @@ const Game = {
       this.recordTowerProgress();
       this.switchScreen('screen-map');
       this.renderMap();
-    } else {
-      // Completed Stage 30 Boss of current Act! Advance to next Act (1..5)
-      if (this.run.act < this.run.maxActs) {
-        this.run.act += 1;
-        this.run.stage = 1;
-        this.recordTowerProgress();
-        // Slay the Spire style: Heal 60% of missing HP between Acts (instead of 100% free full heal)
-        const missingHp = this.run.maxHp - this.run.hp;
-        this.run.hp = Math.min(this.run.maxHp, this.run.hp + Math.round(missingHp * 0.6));
-        this.run.actMap = this.generate30StageActMap(this.run.act);
-        alert(
-          `🎉 제${this.run.act - 1}층(30 스테이지) 보스를 토벌했습니다!\n잃은 체력의 60%를 회복하며 다음 층 [${GAME_DATA.acts[this.run.act - 1].name
-          }] (Stage 1/30) 등반을 시작합니다!`
-        );
-        this.switchScreen('screen-map');
-        this.renderMap();
       } else {
-        this.recordTowerProgress();
-        this.showGameOverModal(true);
+        // Completed Stage 30 Boss of current Act! Advance to next Act (1..5)
+        if (this.run.act < this.run.maxActs) {
+          this.run.act += 1;
+          this.run.stage = 1;
+          this.recordTowerProgress();
+          // Hardcore Spire Climb: Heal only 40% of missing HP between Acts
+          const missingHp = this.run.maxHp - this.run.hp;
+          this.run.hp = Math.min(this.run.maxHp, this.run.hp + Math.round(missingHp * 0.4));
+          this.run.actMap = this.generate30StageActMap(this.run.act);
+          alert(
+            `🎉 제${this.run.act - 1}층(30 스테이지) 보스를 토벌했습니다!\n잃은 체력의 40%를 회복하며 다음 층 [${GAME_DATA.acts[this.run.act - 1].name
+            }] (Stage 1/30) 등반을 시작합니다!`
+          );
+          this.switchScreen('screen-map');
+          this.renderMap();
+        } else {
+          this.recordTowerProgress();
+          this.showGameOverModal(true);
+        }
       }
-    }
-  },
+    },
 
-  // --------------------------------------------------------------------------
-  // IN-RUN EXP & D&D ABILITY SCORE IMPROVEMENT (SP - Capped at D&D Lv.20)
-  // --------------------------------------------------------------------------
-  gainRunExp(rawExp) {
-    if (!this.run) return { gained: 0, leveledUp: 0 };
-    const mult = 1 + (this.run.permStats.expMultPct || 0) / 100;
-    const gained = Math.round(rawExp * mult);
-    this.run.runExp += gained;
+    // --------------------------------------------------------------------------
+    // IN-RUN EXP, LEVEL-UP CARD REWARD & D&D ABILITY SCORE IMPROVEMENT (Lv.1 -> Lv.20)
+    // --------------------------------------------------------------------------
+    gainRunExp(rawExp) {
+      if (!this.run) return { gained: 0, leveledUp: 0 };
+      const mult = 1 + (this.run.permStats.expMultPct || 0) / 100;
+      const gained = Math.round(rawExp * mult);
+      this.run.runExp += gained;
 
-    let leveledUp = 0;
-    while (this.run.runExp >= this.run.runNextExp && this.run.runLv < 20) {
-      this.run.runExp -= this.run.runNextExp;
-      this.run.runLv += 1;
-      this.run.sp += 1; // +1 SP per Level (D&D 5e Lv.1 -> Lv.20 curve across 150 stages)
-      this.run.maxHp += 3;
-      this.run.hp = Math.min(this.run.maxHp, this.run.hp + 5);
-      this.run.runNextExp = Math.round(this.run.runNextExp * 1.28 + 30);
-      leveledUp += 1;
-    }
-    this.updateTopHud();
-    return { gained, leveledUp };
-  },
+      let leveledUp = 0;
+      while (this.run.runExp >= this.run.runNextExp && this.run.runLv < 20) {
+        this.run.runExp -= this.run.runNextExp;
+        this.run.runLv += 1;
+        this.run.sp += 1; // +1 SP per Level
+        this.run.pendingCardDrafts = (this.run.pendingCardDrafts || 0) + 1; // +1 Card Draft per Level-Up!
+        this.run.maxHp += 2;
+        this.run.hp = Math.min(this.run.maxHp, this.run.hp + 2);
+        this.run.runNextExp = Math.round(this.run.runNextExp * 1.2 + 25);
+        leveledUp += 1;
+      }
+      this.updateTopHud();
+      return { gained, leveledUp };
+    },
+
+    // Roll card rarity with strict weighted probabilities based on player level / act / context
+    // Normal Level-Up: Common ~66%, Uncommon ~25%, Rare ~7.5%, Legendary ~1.5% (scales gently with level/act)
+    // Midboss Bonus: Common ~38%, Uncommon ~42%, Rare ~16%, Legendary ~4%
+    // Act Boss Bonus: Common 0%, Uncommon ~48%, Rare ~40%, Legendary ~12%
+    rollWeightedCardChoices(count = 3, sourceType = 'levelup') {
+      const ch = GAME_DATA.characters[this.run.charId];
+      const basicIds = new Set([ch.sharedCards[0], ch.sharedCards[1]]);
+      const poolByRarity = { common: [], uncommon: [], rare: [], legendary: [] };
+
+      ch.cardPool.forEach(cid => {
+        if (basicIds.has(cid)) return;
+        const tpl = GAME_DATA.cards[cid];
+        const r = tpl && poolByRarity[tpl.rarity] ? tpl.rarity : 'common';
+        poolByRarity[r].push(cid);
+      });
+
+      const lvFactor = Math.max(0, (this.run.runLv || 1) - 1);
+      const actFactor = Math.max(0, (this.run.act || 1) - 1);
+      const allowedRarities = new Set((this.run.permStats && this.run.permStats.unlockedRarities) || ['common', 'uncommon']);
+
+      let weights;
+      if (sourceType === 'boss') {
+        weights = {
+          common: 0,
+          uncommon: Math.max(25, 48 - actFactor * 4),
+          rare: 40 + actFactor * 2,
+          legendary: Math.min(22, 12 + actFactor * 2)
+        };
+      } else if (sourceType === 'midboss') {
+        weights = {
+          common: Math.max(20, 38 - actFactor * 3),
+          uncommon: 42,
+          rare: 16 + actFactor * 2,
+          legendary: Math.min(10, 4 + actFactor * 1.5)
+        };
+      } else if (sourceType === 'shop') {
+        weights = {
+          common: Math.max(35, 55 - actFactor * 4),
+          uncommon: 30,
+          rare: 12 + actFactor * 2,
+          legendary: Math.min(8, 3 + actFactor * 1)
+        };
+      } else {
+        weights = {
+          common: Math.max(38, 66 - lvFactor * 1.4 - actFactor * 2),
+          uncommon: Math.min(38, 25 + lvFactor * 0.7),
+          rare: Math.min(20, 7.5 + lvFactor * 0.55 + actFactor * 1),
+          legendary: Math.min(7, 1.5 + lvFactor * 0.2 + actFactor * 0.5)
+        };
+      }
+
+      // Rank-based Card Pool Unlock Gate!
+      // C-Rank: Common & Uncommon only (Rare unlocks at B-Rank, Legendary unlocks at A-Rank)
+      // (Exception: Act Boss kill can still reward Rare cards even at C-Rank as a special boss reward)
+      if (!allowedRarities.has('rare') && sourceType !== 'boss') weights.rare = 0;
+      if (!allowedRarities.has('legendary')) weights.legendary = 0;
+
+      const pickedIds = [];
+      const totalWeight = weights.common + weights.uncommon + weights.rare + weights.legendary;
+
+      for (let i = 0; i < count; i++) {
+        let roll = Math.random() * totalWeight;
+        let chosenRarity = 'common';
+        if (roll < weights.legendary) chosenRarity = 'legendary';
+        else if ((roll -= weights.legendary) < weights.rare) chosenRarity = 'rare';
+        else if ((roll -= weights.rare) < weights.uncommon) chosenRarity = 'uncommon';
+        else chosenRarity = 'common';
+
+        let candidates = poolByRarity[chosenRarity].filter(id => !pickedIds.includes(id));
+        if (candidates.length === 0) {
+          candidates = ch.cardPool.filter(id => {
+            if (basicIds.has(id) || pickedIds.includes(id)) return false;
+            const r = GAME_DATA.cards[id].rarity || 'common';
+            return allowedRarities.has(r) || (sourceType === 'boss' && r === 'rare');
+          });
+        }
+        if (candidates.length > 0) {
+          const cid = candidates[Math.floor(Math.random() * candidates.length)];
+          pickedIds.push(cid);
+        }
+      }
+
+      return pickedIds.map(cid => this.createCardInstance(cid));
+    },
 
   openRunStatModal() {
     if (!this.run) return;
@@ -1040,8 +1549,9 @@ const Game = {
     const actInfo = GAME_DATA.acts[this.run.act - 1];
     const pStats = this.run.permStats;
     const rStats = this.run.allocatedStats;
+    const bossEnergyRelics = this.run.relics.filter(rid => GAME_DATA.relics[rid] && GAME_DATA.relics[rid].bonusEnergy).length;
     const hasFusionCell = this.run.relics.includes('fusion_cell');
-    const maxEnergy = ch.startEnergy + (hasFusionCell ? 1 : 0) + (pStats.bonusMaxEnergy || 0);
+    const maxEnergy = ch.startEnergy + (hasFusionCell ? 1 : 0) + bossEnergyRelics + (pStats.bonusMaxEnergy || 0);
 
     let enemyTemplates = [];
     if (encounterType === 'boss') {
@@ -1053,36 +1563,48 @@ const Game = {
     } else if (encounterType === 'elite') {
       const eId = actInfo.elitePool[this.run.stage % actInfo.elitePool.length];
       const guardId = actInfo.normalPool[this.run.stage % actInfo.normalPool.length];
-      // From Act 2+, Elites can appear with a minion guard for STS2 tactical pressure!
-      enemyTemplates = this.run.act >= 2 && this.run.stage >= 12 ? [GAME_DATA.enemies[eId], GAME_DATA.enemies[guardId]] : [GAME_DATA.enemies[eId]];
+      // Elites appear with a minion guard from Act 1 Stage 8+ or Act 2+ for real tactical pressure!
+      enemyTemplates = (this.run.act >= 2 || this.run.stage >= 8) ? [GAME_DATA.enemies[eId], GAME_DATA.enemies[guardId]] : [GAME_DATA.enemies[eId]];
     } else {
       const pool = actInfo.normalPool;
       const e1 = GAME_DATA.enemies[pool[this.run.stage % pool.length]];
       const e2 = GAME_DATA.enemies[pool[(this.run.stage + 1) % pool.length]];
       const e3 = GAME_DATA.enemies[pool[(this.run.stage + 2) % pool.length]];
-      if (this.run.stage <= 2 && this.run.act === 1) {
-        enemyTemplates = [e1]; // Easy first 2 stages of Act 1
-      } else if (this.run.stage >= 20 && this.run.stage % 4 === 2) {
-        enemyTemplates = [e1, e2, e3]; // 3-enemy encounter late in the floor!
+      // Slay the Spire 1 "Easy Pool" (First 3 floors of Act 1 are single-monster warm-up encounters, then full Hard Pool!)
+      if (this.run.stage <= 3 && this.run.act === 1) {
+        enemyTemplates = [e1];
+      } else if (this.run.stage >= 10 && this.run.stage % 3 === 1) {
+        enemyTemplates = [e1, e2, e3];
       } else {
         enemyTemplates = [e1, e2];
       }
     }
 
-    // Slay the Spire 2 Difficulty Scaling across 5 Acts x 30 Stages:
-    // Both Enemy HP AND Enemy Damage/Block scale progressively with Act & Stage!
-    const hpScale = 1 + (this.run.act - 1) * 0.42 + (this.run.stage - 1) * 0.024;
-    const dmgScale = 1 + (this.run.act - 1) * 0.28 + (this.run.stage - 1) * 0.016;
-    const enragePerTurn = encounterType === 'boss' ? Math.max(1, Math.floor(this.run.act * 0.8)) : encounterType === 'elite' || encounterType === 'midboss' ? 1 : 0;
+    // Slay the Spire 2 Hardcore Difficulty Scaling across 5 Acts x 30 Stages:
+    // Enemies hit harder, have sturdier HP/Armor, and scale aggressively as you climb!
+    const hpScale = 1.22 + (this.run.act - 1) * 0.65 + (this.run.stage - 1) * 0.038;
+    const dmgScale = 1.25 + (this.run.act - 1) * 0.45 + (this.run.stage - 1) * 0.026;
+    const enragePerTurn =
+      encounterType === 'boss'
+        ? Math.max(2, Math.floor(this.run.act * 1.2))
+        : encounterType === 'elite' || encounterType === 'midboss'
+          ? Math.max(1, Math.floor(this.run.act * 0.8))
+          : this.run.stage >= 16
+            ? 1
+            : 0;
 
     const enemies = enemyTemplates.map((t, i) => {
       const scaledMoves = t.moves.map(m => {
         const sm = { ...m };
         if (sm.dmg) sm.dmg = Math.round(sm.dmg * dmgScale);
         if (sm.block) sm.block = Math.round(sm.block * dmgScale);
-        if (sm.str) sm.str = Math.max(1, Math.round(sm.str * (1 + (this.run.act - 1) * 0.2)));
+        if (sm.str) sm.str = Math.max(1, Math.round(sm.str * (1.15 + (this.run.act - 1) * 0.35)));
         return sm;
       });
+
+      const hasPhiloStone = this.run.relics.includes('philosophers_stone');
+      const useNeowLament = (this.run.neowLamentCharges || 0) > 0;
+      const calcMaxHp = Math.round(t.maxHp * hpScale);
 
       return {
         uid: `en_${i}`,
@@ -1091,11 +1613,17 @@ const Game = {
         isBoss: encounterType === 'boss',
         isElite: encounterType === 'elite' || encounterType === 'midboss',
         enragePerTurn,
-        maxHp: Math.round(t.maxHp * hpScale),
-        hp: Math.round(t.maxHp * hpScale),
+        skillEnrage: t.skillEnrage || 0,
+        maxHp: calcMaxHp,
+        hp: useNeowLament ? 1 : calcMaxHp,
         expReward: t.expReward || 50,
-        block: encounterType === 'boss' ? this.run.act * 6 : 0,
-        strength: 0,
+        block: useNeowLament ? 0 : encounterType === 'boss' ? this.run.act * 10 : encounterType === 'elite' || encounterType === 'midboss' ? this.run.act * 5 : 0,
+        strength: (encounterType === 'boss' ? this.run.act : 0) + (hasPhiloStone ? 1 : 0),
+        thorns: t.thorns ? t.thorns + Math.floor((this.run.act - 1) * 0.8) : 0,
+        regen: t.regen ? Math.round(t.regen * (1 + (this.run.act - 1) * 0.35)) : 0,
+        artifact: t.artifact || (encounterType === 'boss' ? Math.min(3, Math.ceil(this.run.act * 0.6)) : 0),
+        metallicize: t.metallicize ? Math.round(t.metallicize * dmgScale) : 0,
+        curlUp: t.curlUp ? Math.round(t.curlUp * dmgScale) : 0,
         weak: 0,
         vuln: 0,
         poison: 0,
@@ -1104,6 +1632,10 @@ const Game = {
         moveIndex: i % scaledMoves.length
       };
     });
+
+    if ((this.run.neowLamentCharges || 0) > 0) {
+      this.run.neowLamentCharges -= 1;
+    }
 
     const drawPile = this.run.deck.map(c => ({ ...c }));
     this.shuffleArray(drawPile);
@@ -1136,7 +1668,8 @@ const Game = {
         dexterity: pStats.bonusDex + rStats.dex,
         metallicize: 0,
         weak: 0,
-        vuln: 0
+        vuln: 0,
+        frail: 0
       },
       summon: {
         active: false,
@@ -1168,36 +1701,31 @@ const Game = {
     const pStats = this.run.permStats;
     const rStats = this.run.allocatedStats;
 
-    // Class base passives
-    if (cid === 'fighter') this.combat.secondaryResource += 2;
+    // Class base passives (modest Slay the Spire starter relic effects)
+    if (cid === 'fighter') this.combat.secondaryResource += 1;
     if (cid === 'barbarian') {
-      this.combat.player.strength += 2;
       this.combat.secondaryResource += 2;
     }
     if (cid === 'rogue') {
       this.combat.enemies.forEach(en => {
-        en.poison += 3;
-        en.vuln += 1;
+        this.applyDebuffToEnemy(en, 'poison', 2);
       });
     }
     if (cid === 'ranger') {
-      this.combat.secondaryResource += 3;
-      this.combat.player.dexterity += 2;
+      this.combat.secondaryResource += 2;
     }
     if (cid === 'wizard') {
       this.combat.drones += 1;
-      this.combat.secondaryResource += 3;
     }
     if (cid === 'cleric') {
       this.combat.drones += 1;
-      this.combat.secondaryResource += 2;
     }
     if (cid === 'paladin') {
-      this.combat.player.metallicize += 4;
-      this.combat.secondaryResource += 3;
+      this.combat.player.block += 4;
+      this.combat.secondaryResource += 1;
     }
     if (cid === 'warlock') {
-      this.summonOrBuffCompanion(18 + pStats.summonBoost, 7 + pStats.summonBoost + rStats.mana * 3);
+      this.summonOrBuffCompanion(10 + pStats.summonBoost, 4 + pStats.summonBoost + rStats.mana);
     }
 
     // Dynamic Archetype Synergy: Count how many cards of each subclass archetype are in the player's current deck!
@@ -1224,12 +1752,61 @@ const Game = {
       name: ch.name
     };
 
-    // Relics
+    // Relics (Slay the Spire 1 Classic Relics)
     if (relics.includes('Geiger_counter')) this.combat.player.strength += 2;
+    if (relics.includes('vajra_relic')) this.combat.player.strength += 1;
+    if (relics.includes('oddly_smooth_stone')) this.combat.player.dexterity += 1;
     if (relics.includes('mutant_adrenal')) this.combat.player.block += 8;
+    if (relics.includes('anchor_relic')) this.combat.player.block += 10;
+    if (relics.includes('lantern_relic')) this.combat.energy += 1;
     if (relics.includes('titanium_ribs')) {
       this.combat.player.dexterity += 2;
       this.combat.player.metallicize += 4;
+    }
+
+    // Class-Unique B-Rank & S-Rank Relics (Start-of-Combat Triggers!)
+    if (relics.includes('ftr_rank_b')) {
+      this.combat.player.block += 6;
+      this.combat.secondaryResource += 1;
+    }
+    if (relics.includes('bar_rank_s')) {
+      this.combat.player.strength += 2;
+    }
+    if (relics.includes('rog_rank_b')) {
+      this.combat.enemies.forEach(en => this.applyDebuffToEnemy(en, 'poison', 3));
+    }
+    if (relics.includes('rng_rank_b')) {
+      this.combat.player.dexterity += 1;
+      this.combat.energy += 1;
+    }
+    if (relics.includes('rng_rank_s')) {
+      this.summonOrBuffCompanion(16, 7);
+    }
+    if (relics.includes('wiz_rank_b')) {
+      this.combat.drones = Math.min(this.combat.maxDrones || 4, this.combat.drones + 1);
+      this.combat.secondaryResource += 1;
+    }
+    if (relics.includes('wiz_rank_s')) {
+      this.combat.energy += 1;
+    }
+    if (relics.includes('clr_rank_b')) {
+      this.combat.drones = Math.min(this.combat.maxDrones || 4, this.combat.drones + 1);
+    }
+    if (relics.includes('clr_rank_s')) {
+      this.combat.player.block += 10;
+    }
+    if (relics.includes('pal_rank_b')) {
+      this.combat.player.metallicize += 3;
+    }
+    if (relics.includes('pal_rank_s')) {
+      this.combat.player.strength += 2;
+      this.combat.player.block += 8;
+      this.combat.secondaryResource += 2;
+    }
+    if (relics.includes('wlk_rank_b') && this.combat.summon.active) {
+      this.combat.summon.maxHp += 10;
+      this.combat.summon.hp += 10;
+      this.combat.summon.atk += 3;
     }
   },
 
@@ -1254,6 +1831,7 @@ const Game = {
     const subId = this.run.subclassId;
     this.combat.firstAttackUsedThisTurn = false;
     this.combat.burstUsedThisTurn = false;
+    this.combat.cardsPlayedThisTurn = 0;
 
     if (!isFirstTurn) {
       this.combat.turn += 1;
@@ -1269,6 +1847,14 @@ const Game = {
       if (this.run.relics.includes('rod_of_pact_keeper') && this.combat.summon.active) {
         this.combat.summon.hp = Math.min(this.combat.summon.maxHp, this.combat.summon.hp + 3);
       }
+      // Class Rank Relic Per-Turn Triggers
+      if (this.run.relics.includes('bar_rank_b') && this.run.hp <= this.run.maxHp * 0.6) {
+        this.combat.player.strength += 1;
+      }
+      if (this.run.relics.includes('wlk_rank_s') && this.combat.summon.active) {
+        this.combat.summon.hp = Math.min(this.combat.summon.maxHp, this.combat.summon.hp + 5);
+        this.combat.summon.atk += 1;
+      }
     } else {
       if (subId === 'totem_warrior') this.combat.player.block += 4;
       if (subId === 'thief' || subId === 'gloom_stalker' || subId === 'wild_magic' || subId === 'divination') {
@@ -1279,17 +1865,21 @@ const Game = {
     let drawCount = 5;
     if (isFirstTurn) {
       if (this.run.charId === 'rogue') drawCount += 1;
+      if (this.run.relics.includes('rog_rank_b')) drawCount += 1;
       if (subId === 'thief' || subId === 'gloom_stalker' || subId === 'wild_magic') drawCount += 1;
+      if (this.run.relics.includes('bag_of_prep')) drawCount += 2;
       drawCount += this.run.permStats.bonusDrawFirstTurn || 0;
     }
     if (subId === 'divination' || subId === 'archfey_chain') drawCount += 1;
     if (this.run.relics.includes('mutant_adrenal')) drawCount += 1;
+    if (this.run.relics.includes('snecko_eye')) drawCount += 2;
 
     this.drawCards(drawCount);
     this.renderCombat();
   },
 
   drawCards(count) {
+    const hasSnecko = this.run && this.run.relics.includes('snecko_eye');
     for (let i = 0; i < count; i++) {
       if (this.combat.hand.length >= 10) break;
       if (this.combat.drawPile.length === 0) {
@@ -1298,7 +1888,12 @@ const Game = {
         this.shuffleArray(this.combat.drawPile);
       }
       const card = this.combat.drawPile.pop();
-      if (card) this.combat.hand.push(card);
+      if (card) {
+        if (hasSnecko) {
+          card.tempCost = Math.floor(Math.random() * 4); // Snecko Eye Confusion: randomizes card cost between 0 and 3!
+        }
+        this.combat.hand.push(card);
+      }
     }
   },
 
@@ -1332,6 +1927,8 @@ const Game = {
       if (baseBlock > 0) {
         baseBlock += this.combat.player.dexterity;
         if (tpl.blockPerDrone) baseBlock += this.combat.drones * tpl.blockPerDrone;
+        // Slay the Spire Frail (손상) Debuff: 25% less block gained from cards!
+        if (this.combat.player.frail > 0) baseBlock = Math.floor(baseBlock * 0.75);
       }
     }
 
@@ -1371,7 +1968,14 @@ const Game = {
     if (!cardInst) return;
     const tpl = GAME_DATA.cards[cardInst.id];
 
-    if (this.combat.energy < tpl.cost) {
+    if (this.run.relics.includes('velvet_choker') && (this.combat.cardsPlayedThisTurn || 0) >= 6) {
+      this.logCombat('📿 [벨벳 초커] 페널티! 한 턴에 카드를 최대 6장까지만 사용할 수 있습니다!');
+      this.renderCombat();
+      return;
+    }
+
+    const effectiveCost = cardInst.tempCost !== undefined ? cardInst.tempCost : tpl.cost;
+    if (this.combat.energy < effectiveCost) {
       this.logCombat('⚠️ 행동력(AP)이 부족합니다!');
       return;
     }
@@ -1383,8 +1987,28 @@ const Game = {
     }
     if (!target) return;
 
-    this.combat.energy -= tpl.cost;
+    this.combat.energy -= effectiveCost;
+    this.combat.cardsPlayedThisTurn = (this.combat.cardsPlayedThisTurn || 0) + 1;
+
+    // Slay the Spire 1 Gremlin Nob Skill Enrage: Playing a Skill card enrages enemies with skillEnrage!
+    if (tpl.type === 'skill') {
+      this.combat.enemies.forEach(en => {
+        if (en.hp > 0 && en.skillEnrage > 0) {
+          en.strength += en.skillEnrage;
+          this.logCombat(`💢 [${en.name}]의 스킬 격노(Nob Enrage)! 전술/방어 카드를 사용해 적의 힘이 +${en.skillEnrage} 상승했습니다!`);
+        }
+      });
+    }
+
     const stats = this.computeCardStats(cardInst);
+    if (tpl.type === 'attack' && this.run.relics.includes('pen_nib_relic')) {
+      this.run.penNibCounter = (this.run.penNibCounter || 0) + 1;
+      if (this.run.penNibCounter >= 7) {
+        this.run.penNibCounter = 0;
+        stats.damage *= 2;
+        this.logCombat('✒️ [만년필 촉] 7번째 공격 발동! 피해량이 2배로 증폭됩니다!');
+      }
+    }
     const subId = this.run.subclassId;
 
     if (tpl.selfDamage) this.run.hp = Math.max(1, this.run.hp - tpl.selfDamage);
@@ -1408,17 +2032,28 @@ const Game = {
     const hits = tpl.hits || 1;
 
     if (stats.damage > 0 || tpl.damagePerPoison) {
+      // First-attack-per-turn triggers (Subclass + S-Rank Class Relics!)
+      if (!this.combat.firstAttackUsedThisTurn) {
+        this.combat.firstAttackUsedThisTurn = true;
+        if (subId === 'battlemaster') {
+          this.applyDebuffToEnemy(target, 'vuln', 1);
+          this.applyDebuffToEnemy(target, 'weak', 1);
+        }
+        if (this.run.relics.includes('ftr_rank_s')) {
+          this.combat.player.block += 5;
+          this.combat.secondaryResource += 1;
+        }
+        if (this.run.relics.includes('rog_rank_s')) {
+          this.applyDebuffToEnemy(target, 'vuln', 1);
+          this.applyDebuffToEnemy(target, 'poison', 2);
+        }
+      }
       // Subclass Per-Attack Triggers
       if (subId === 'champion') {
         this.run.hp = Math.min(this.run.maxHp, this.run.hp + 1);
       }
-      if (subId === 'battlemaster' && !this.combat.firstAttackUsedThisTurn) {
-        this.combat.firstAttackUsedThisTurn = true;
-        target.vuln += 1;
-        target.weak += 1;
-      }
       if (subId === 'hexblade' || subId === 'oathbreaker' || subId === 'phantom') {
-        target.poison += 3;
+        this.applyDebuffToEnemy(target, 'poison', 3);
       }
 
       for (let h = 0; h < hits; h++) {
@@ -1428,6 +2063,10 @@ const Game = {
             if (tpl.damagePerPoison) dmg += en.poison;
             if (subId === 'gloom_stalker' && this.combat.turn === 1) dmg = Math.round(dmg * 1.4);
             this.dealDamageToEnemy(en, dmg);
+            // Slay the Spire Thorns: Attacking an enemy with Thorns deals counter-damage back per hit!
+            if (en.thorns > 0) {
+              this.applyEnemyDamageToPlayerOrSummon(en.thorns, false);
+            }
           }
         });
       }
@@ -1435,9 +2074,9 @@ const Game = {
 
     targets.forEach(en => {
       if (en.hp <= 0) return;
-      if (stats.poison > 0) en.poison += stats.poison;
-      if (stats.vuln > 0) en.vuln += stats.vuln;
-      if (stats.weak > 0) en.weak += stats.weak;
+      if (stats.poison > 0) this.applyDebuffToEnemy(en, 'poison', stats.poison);
+      if (stats.vuln > 0) this.applyDebuffToEnemy(en, 'vuln', stats.vuln);
+      if (stats.weak > 0) this.applyDebuffToEnemy(en, 'weak', stats.weak);
       if (tpl.doublePoison) en.poison *= 2;
       if (tpl.triggerPoisonNow && en.poison > 0) {
         this.dealDamageToEnemy(en, en.poison, true);
@@ -1474,14 +2113,11 @@ const Game = {
 
   applyCardMutationEffect(mutId, target) {
     if (mutId === 'rad_infused' && target && target.hp > 0) {
-      target.poison += 4;
+      this.applyDebuffToEnemy(target, 'poison', 2);
     } else if (mutId === 'adrenaline_gene') {
-      this.drawCards(1);
-      this.gainSecondaryResource(2);
+      this.gainSecondaryResource(1);
     } else if (mutId === 'chitin_coat') {
-      this.combat.player.block += 6;
-    } else if (mutId === 'vampiric_cell') {
-      this.run.hp = Math.min(this.run.maxHp, this.run.hp + 3);
+      this.combat.player.block += 3;
     }
   },
 
@@ -1588,14 +2224,28 @@ const Game = {
     const alive = this.combat.enemies.filter(e => e.hp > 0);
     if (alive.length === 0) return;
 
-    const dmgPerDrone = 5 + Math.max(0, this.combat.player.strength) + (this.run.permStats.summonBoost || 0);
-    const blockPerDrone = 3;
+    const dmgPerDrone =
+      4 +
+      Math.floor(Math.max(0, this.combat.player.strength) * 0.5) +
+      (this.run.permStats.summonBoost || 0) +
+      (this.run.relics.includes('wiz_rank_s') ? 3 : 0);
+    const blockPerDrone = 2;
 
     for (let i = 0; i < this.combat.drones; i++) {
       const t = alive[i % alive.length];
       this.dealDamageToEnemy(t, dmgPerDrone, true);
       this.combat.player.block += blockPerDrone;
     }
+  },
+
+  applyDebuffToEnemy(enemy, debuffKey, amount) {
+    if (!enemy || enemy.hp <= 0 || amount <= 0) return;
+    if (enemy.artifact > 0) {
+      enemy.artifact -= 1;
+      this.logCombat(`🛡️ [${enemy.name}]의 마법 저항(Artifact)이 디버프를 무효화했습니다!`);
+      return;
+    }
+    enemy[debuffKey] = (enemy[debuffKey] || 0) + amount;
   },
 
   dealDamageToEnemy(enemy, rawDmg, ignoreWeak = false) {
@@ -1608,18 +2258,44 @@ const Game = {
       dmg -= absorbed;
     }
     enemy.hp = Math.max(0, enemy.hp - dmg);
+    // Slay the Spire Curl-Up mechanic (Louse / Cube / Rust Monster): first time taking HP damage, gains immediate block!
+    if (dmg > 0 && enemy.hp > 0 && enemy.curlUp > 0) {
+      enemy.block += enemy.curlUp;
+      enemy.curlUp = 0;
+    }
   },
 
   endPlayerTurn() {
     if (!this.combat) return;
     const subId = this.run.subclassId;
 
+    // Slay the Spire End-of-Turn Hand Resolution:
+    // - Burn / Curse cards remaining in hand deal unblocked fire/shadow damage!
+    // - Ethereal cards (Dazed) exhaust instead of going to discard pile!
     while (this.combat.hand.length > 0) {
-      this.combat.discardPile.push(this.combat.hand.pop());
+      const cInst = this.combat.hand.pop();
+      const tpl = GAME_DATA.cards[cInst.id];
+      if (tpl && tpl.endTurnBurn) {
+        this.applyEnemyDamageToPlayerOrSummon(tpl.endTurnBurn, false);
+        this.logCombat(`🔥 손에 남은 [${tpl.name}] 때문에 피해를 ${tpl.endTurnBurn} 입었습니다!`);
+      }
+      if (tpl && tpl.ethereal) {
+        this.combat.exhaustPile.push(cInst);
+      } else {
+        this.combat.discardPile.push(cInst);
+      }
     }
+
+    if (this.checkCombatEnd()) return;
 
     if (this.combat.player.metallicize > 0) {
       this.combat.player.block += this.combat.player.metallicize;
+    }
+    if (this.run.relics.includes('orichalcum_relic') && this.combat.player.block === 0) {
+      this.combat.player.block += 6;
+    }
+    if (this.run.relics.includes('clr_rank_s')) {
+      this.run.hp = Math.min(this.run.maxHp, this.run.hp + 2);
     }
     if (subId === 'hunter_conclave') {
       this.combat.enemies.forEach(en => {
@@ -1628,7 +2304,7 @@ const Game = {
     }
     if (subId === 'fey_wanderer') {
       this.combat.enemies.forEach(en => {
-        if (en.hp > 0) en.weak += 1;
+        if (en.hp > 0) this.applyDebuffToEnemy(en, 'weak', 1);
       });
     }
     if (this.combat.summon.active) {
@@ -1651,12 +2327,16 @@ const Game = {
       }
       if (en.hp <= 0) return;
 
+      // Slay the Spire Regeneration trait (Troll, Ochre Jelly, Otyugh, Vampire, Tiamat)
+      if (en.regen > 0) {
+        en.hp = Math.min(en.maxHp, en.hp + en.regen);
+      }
+
       const move = en.moves[en.moveIndex % en.moves.length];
       en.moveIndex += 1;
 
       if (move.intent === 'attack' || move.intent === 'attack_debuff' || move.intent === 'multi_attack') {
         const hits = move.hits || 1;
-        // Bosses/Elites using attack_debuff (Breath / AoE) cleave both Summon AND Hunter!
         const isCleaveBreath = (en.isBoss || en.isElite) && move.intent === 'attack_debuff';
         for (let h = 0; h < hits; h++) {
           let dmg = move.dmg + en.strength;
@@ -1664,6 +2344,9 @@ const Game = {
           if (this.combat.player.vuln > 0) dmg = Math.floor(dmg * 1.5);
           if (this.combat.stance === 'wrath') dmg = Math.floor(dmg * 2);
           this.applyEnemyDamageToPlayerOrSummon(dmg, isCleaveBreath);
+          if (move.lifesteal && dmg > 0) {
+            en.hp = Math.min(en.maxHp, en.hp + Math.round(dmg * 0.5));
+          }
         }
       }
 
@@ -1671,8 +2354,27 @@ const Game = {
       if (move.str) en.strength += move.str;
       if (move.weak) this.combat.player.weak += move.weak;
       if (move.vuln) this.combat.player.vuln += move.vuln;
+      if (move.frail) this.combat.player.frail = (this.combat.player.frail || 0) + move.frail;
+      if (move.strDown) {
+        this.combat.player.strength -= move.strDown;
+        this.logCombat(`💀 [${en.name}]의 영혼 흡수(Lagavulin Drain)! 내 힘이 -${move.strDown} 감소했습니다!`);
+      }
 
-      // Slay the Spire 2 Escalation: Bosses and Elites gain Enrage Strength every turn!
+      // Slay the Spire Status/Curse Card Injection (Slimed, Burn, Dazed, Wound, Curse)
+      if (move.addStatus && GAME_DATA.cards[move.addStatus]) {
+        const cnt = move.statusCount || 1;
+        for (let s = 0; s < cnt; s++) {
+          this.combat.discardPile.push(this.createCardInstance(move.addStatus));
+        }
+        this.logCombat(`⚠️ [${en.name}]의 공격으로 [${GAME_DATA.cards[move.addStatus].name}] ${cnt}장이 버린 덱에 섞였습니다!`);
+      }
+
+      // Enemy Metallicize (Plated Armor) at end of enemy turn
+      if (en.metallicize > 0) {
+        en.block += en.metallicize;
+      }
+
+      // Slay the Spire Escalation: Bosses and Elites gain Enrage Strength every turn!
       if (en.enragePerTurn > 0) {
         en.strength += en.enragePerTurn;
       }
@@ -1683,6 +2385,7 @@ const Game = {
 
     if (this.combat.player.weak > 0) this.combat.player.weak -= 1;
     if (this.combat.player.vuln > 0) this.combat.player.vuln -= 1;
+    if (this.combat.player.frail > 0) this.combat.player.frail -= 1;
 
     if (this.checkCombatEnd()) return;
     this.startPlayerTurn(false);
@@ -1696,24 +2399,12 @@ const Game = {
       remaining -= blocked;
     }
     if (remaining > 0 && this.combat.summon.active && this.combat.summon.hp > 0) {
-      if (isCleaveBreath) {
-        // Boss Breath / AoE cleaves: Summon absorbs 50%, Player takes 50%!
-        const summonShare = Math.ceil(remaining * 0.5);
-        const playerShare = Math.floor(remaining * 0.5);
-        this.combat.summon.hp = Math.max(0, this.combat.summon.hp - summonShare);
-        if (this.combat.summon.hp <= 0) {
-          this.combat.summon.active = false;
-          this.logCombat(`💥 보스의 광역 공격에 [${this.combat.summon.name}] 소환수가 소멸했습니다!`);
-        }
-        remaining = playerShare;
-      } else {
-        const tanked = Math.min(this.combat.summon.hp, remaining);
-        this.combat.summon.hp -= tanked;
-        remaining -= tanked;
-        if (this.combat.summon.hp <= 0) {
-          this.combat.summon.active = false;
-          this.logCombat(`💥 [${this.combat.summon.name}] 소환수가 대신 치명타를 막아내고 소멸했습니다!`);
-        }
+      const tanked = Math.min(this.combat.summon.hp, remaining);
+      this.combat.summon.hp -= tanked;
+      remaining -= tanked;
+      if (this.combat.summon.hp <= 0) {
+        this.combat.summon.active = false;
+        this.logCombat(`💥 [${this.combat.summon.name}] 소환수가 대신 치명타를 막아내고 소멸했습니다!`);
       }
     }
     if (remaining > 0) {
@@ -1739,8 +2430,9 @@ const Game = {
     const type = this.combat.encounterType;
 
     let healAmt = this.run.permStats.healAfterCombat || 0;
-    if (this.run.charId === 'fighter' || this.run.relics.includes('fighters_badge')) healAmt += 6;
-    if (this.run.charId === 'cleric' || this.run.relics.includes('holy_symbol_lathander')) healAmt += 5;
+    if (this.run.charId === 'fighter' || this.run.relics.includes('fighters_badge')) healAmt += 2;
+    if (this.run.charId === 'cleric' || this.run.relics.includes('holy_symbol_lathander')) healAmt += 2;
+    if (this.run.relics.includes('clr_rank_b')) healAmt += 4;
     if (healAmt > 0) {
       this.run.hp = Math.min(this.run.maxHp, this.run.hp + healAmt);
     }
@@ -1751,32 +2443,63 @@ const Game = {
     // Final Act 5 Stage 30 Boss (Tiamat) defeated!
     if (type === 'boss' && this.run.act >= this.run.maxActs) {
       this.meta.gems += 800;
-      this.meta.shards[this.run.charId] = (this.meta.shards[this.run.charId] || 0) + 25;
+      this.meta.totalClimbs = (this.meta.totalClimbs || 0) + 1;
+      this.recordTowerProgress();
       this.saveMeta();
       this.showGameOverModal(true);
       return;
     }
 
-    let goldEarned = type === 'boss' ? 120 : type === 'elite' || type === 'midboss' ? 70 : 38;
-    if (this.run.subclassId === 'thief') goldEarned += 25;
-    if (this.run.relics.includes('scavenger_goggles')) goldEarned = Math.round(goldEarned * 1.35);
+    let goldEarned = type === 'boss' ? 110 : type === 'elite' || type === 'midboss' ? 58 : 28;
+    if (this.run.subclassId === 'thief') goldEarned += 18;
+    if (this.run.relics.includes('scavenger_goggles')) goldEarned = Math.round(goldEarned * 1.25);
+    if (this.run.relics.includes('ectoplasm_slime')) goldEarned = 0; // Ectoplasm Boss Relic penalty!
     this.run.gold += goldEarned;
 
-    const gemsEarned = type === 'boss' ? 150 : type === 'elite' || type === 'midboss' ? 65 : 28;
+    const gemsEarned = type === 'boss' ? 150 : type === 'elite' || type === 'midboss' ? 65 : 25;
     this.meta.gems += gemsEarned;
-    this.meta.shards[this.run.charId] =
-      (this.meta.shards[this.run.charId] || 0) + (type === 'boss' ? 10 : type === 'elite' ? 4 : 2);
 
-    let bonusText = `⭐ 경험치 +${expRes.gained} EXP ${expRes.leveledUp > 0 ? `(🆙 레벨업! SP +${expRes.leveledUp * 2} 획득!)` : ''
+    // Boss & Midboss also grant a special high-tier Boss Card Draft in addition to Level-Up Card Drafts
+    let draftSource = 'levelup';
+    if (type === 'boss') {
+      this.run.pendingCardDrafts = (this.run.pendingCardDrafts || 0) + 1;
+      draftSource = 'boss';
+      this.run.pendingBossRelicDraft = true; // Slay the Spire 1 Boss Relic Chest (Pick 1 of 3 Boss Relics)!
+    } else if (type === 'midboss') {
+      this.run.pendingCardDrafts = (this.run.pendingCardDrafts || 0) + 1;
+      draftSource = 'midboss';
+    }
+
+    let bonusText = `⭐ 경험치 +${expRes.gained} EXP (${this.run.runExp}/${this.run.runNextExp}) ${expRes.leveledUp > 0 ? `| 🆙 Lv.${this.run.runLv} 레벨업! (SP +${expRes.leveledUp} & 카드 보상 획득!)` : ''
       } | 🪙 +${goldEarned} GP | 💎 마석 +${gemsEarned}`;
 
-    if (type === 'elite' || type === 'midboss' || type === 'boss') {
+    if (type === 'elite' || type === 'midboss') {
       const relicGranted = this.grantRandomRelic();
-      if (relicGranted) bonusText += ` | 🏆 마법 유물 획득: [${relicGranted.name}]`;
+      if (relicGranted) bonusText += ` | 🏆 유물 획득: [${relicGranted.name}]`;
+      if (type === 'elite' && this.run.relics.includes('black_star')) {
+        const extraRelic = this.grantRandomRelic();
+        this.run.maxHp += 8;
+        this.run.hp += 8;
+        if (extraRelic) bonusText += ` & [검은 별: ${extraRelic.name}]`;
+      }
+    }
+
+    // Slay the Spire 1 Potion Drop Chance after combat (40% chance unless Sozu is equipped)
+    if (!this.run.relics.includes('sozu_brew') && this.run.potions.length < (this.run.maxPotions || 3) && Math.random() < 0.35) {
+      const pKeys = Object.keys(GAME_DATA.potions);
+      const droppedPid = pKeys[Math.floor(Math.random() * pKeys.length)];
+      this.run.potions.push(droppedPid);
+      bonusText += ` | 🧪 물약 획득: [${GAME_DATA.potions[droppedPid].name}]`;
     }
 
     this.saveMeta();
-    this.openRewardModal(bonusText);
+
+    // Open Card Draft Modal ONLY when player leveled up (or defeated a Midboss / Act Boss)!
+    if ((this.run.pendingCardDrafts || 0) > 0) {
+      this.openRewardModal(bonusText, draftSource);
+    } else {
+      this.openLootSummaryModal(bonusText);
+    }
   },
 
   grantRandomRelic() {
@@ -1842,6 +2565,7 @@ const Game = {
     if (this.combat.player.metallicize > 0) pBuffs.push(`✨ 수호오라 +${this.combat.player.metallicize}`);
     if (this.combat.player.weak > 0) pBuffs.push(`💫 약화 ${this.combat.player.weak}`);
     if (this.combat.player.vuln > 0) pBuffs.push(`💔 취약 ${this.combat.player.vuln}`);
+    if (this.combat.player.frail > 0) pBuffs.push(`🦴 손상 ${this.combat.player.frail}`);
     document.getElementById('player-buffs-row').innerHTML = pBuffs
       .map(b => `<span class="buff-pill">${b}</span>`)
       .join('');
@@ -1886,7 +2610,13 @@ const Game = {
 
       const enBuffs = [];
       if (en.enragePerTurn > 0) enBuffs.push(`💢 격노 +${en.enragePerTurn}/턴`);
+      if (en.skillEnrage > 0) enBuffs.push(`👹 스킬격노 +${en.skillEnrage}`);
       if (en.strength > 0) enBuffs.push(`⚔️ 힘 +${en.strength}`);
+      if (en.thorns > 0) enBuffs.push(`🌵 가시 ${en.thorns}`);
+      if (en.regen > 0) enBuffs.push(`💚 재생 +${en.regen}`);
+      if (en.artifact > 0) enBuffs.push(`🛡️ 마법저항 ${en.artifact}`);
+      if (en.metallicize > 0) enBuffs.push(`🔩 철갑 +${en.metallicize}`);
+      if (en.curlUp > 0) enBuffs.push(`🐚 웅크리기 ${en.curlUp}`);
       if (en.poison > 0) enBuffs.push(`🧪 맹독/저주 ${en.poison}`);
       if (en.weak > 0) enBuffs.push(`💫 약화 ${en.weak}`);
       if (en.vuln > 0) enBuffs.push(`💔 취약 ${en.vuln}`);
@@ -1960,9 +2690,16 @@ const Game = {
     this.combat.hand.forEach((cardInst, idx) => {
       const cardEl = this.createCardElement(cardInst, () => this.playCardFromHand(idx));
       const tpl = GAME_DATA.cards[cardInst.id];
-      if (this.combat.energy < tpl.cost) {
+      const effectiveCost = cardInst.tempCost !== undefined ? cardInst.tempCost : tpl.cost;
+      if (this.combat.energy < effectiveCost) {
         cardEl.classList.add('unplayable');
       }
+      // Show Slay the Spire hotkey badge (1..9, 0) on each hand card!
+      const hotkeyLabel = idx === 9 ? '0' : String(idx + 1);
+      const badge = document.createElement('span');
+      badge.className = 'hotkey-badge';
+      badge.textContent = hotkeyLabel;
+      cardEl.appendChild(badge);
       handEl.appendChild(cardEl);
     });
 
@@ -1972,12 +2709,41 @@ const Game = {
   createCardElement(cardInst, onClickFn) {
     const tpl = GAME_DATA.cards[cardInst.id];
     const el = document.createElement('div');
-    el.className = `game-card type-${tpl.type} ${cardInst.upgraded ? 'upgraded' : ''}`;
+    const rarity = tpl.rarity || 'common';
+    el.className = `game-card type-${tpl.type} rarity-${rarity} ${cardInst.upgraded ? 'upgraded' : ''}`;
     if (onClickFn) el.onclick = onClickFn;
 
-    const typeKor = tpl.type === 'attack' ? '⚔️ 공격/주문' : tpl.type === 'skill' ? '🛡️ 전술/방어' : '⚡ 지속(Power)';
+    const typeKor =
+      tpl.type === 'attack'
+        ? '⚔️ 공격'
+        : tpl.type === 'skill'
+          ? '🛡️ 전술'
+          : tpl.type === 'status'
+            ? '⚠️ 상태이상'
+            : tpl.type === 'curse'
+              ? '☠️ 저주'
+              : '⚡ 지속';
+    const rarityBadgeMap = {
+      common: { label: '일반', color: '#b2bec3' },
+      uncommon: { label: '고급', color: '#18dcff' },
+      rare: { label: '희귀', color: '#c56cf0' },
+      legendary: { label: '전설', color: '#f6c967' }
+    };
+    const rInfo = rarityBadgeMap[rarity] || rarityBadgeMap.common;
     const iconArt =
-      tpl.type === 'attack' ? '⚔️' : tpl.addDrone ? '🔮' : tpl.summonHeal ? '🐾' : tpl.stance ? '✨' : '🛡️';
+      tpl.type === 'status'
+        ? '⚠️'
+        : tpl.type === 'curse'
+          ? '☠️'
+          : tpl.type === 'attack'
+            ? '⚔️'
+            : tpl.addDrone
+              ? '🔮'
+              : tpl.summonHeal
+                ? '🐾'
+                : tpl.stance
+                  ? '✨'
+                  : '🛡️';
 
     let mutHtml = '';
     if (cardInst.mutation) {
@@ -1987,11 +2753,15 @@ const Game = {
       }
     }
 
+    const shownCost = cardInst.tempCost !== undefined ? cardInst.tempCost : tpl.cost;
     el.innerHTML = `
       <div>
         <div class="card-top-row">
-          <div class="card-cost-orb">${tpl.cost}</div>
-          <span class="card-type-tag">${typeKor}</span>
+          <div class="card-cost-orb">${shownCost}</div>
+          <div class="card-badges-right">
+            <span class="card-type-tag">${typeKor}</span>
+            <span class="card-rarity-dot" style="color:${rInfo.color}">${rInfo.label}</span>
+          </div>
         </div>
         <div class="card-title">${tpl.name}${cardInst.upgraded ? ' +' : ''}</div>
         <div class="card-art-banner">${iconArt}</div>
@@ -2007,65 +2777,258 @@ const Game = {
   },
 
   // --------------------------------------------------------------------------
-  // POST-COMBAT REWARDS, REST, SHOP & D20 EVENTS
+  // POST-COMBAT REWARDS (LEVEL-UP CARD DRAFT vs NORMAL LOOT), REST, SHOP & D20 EVENTS
   // --------------------------------------------------------------------------
-  openRewardModal(summaryText) {
+  openLootSummaryModal(summaryText) {
     const modal = document.getElementById('modal-reward');
-    document.getElementById('reward-summary-text').textContent = summaryText;
+    const titleEl = modal.querySelector('h2');
+    const subHeaderEl = modal.querySelector('h3');
+    const skipBtn = modal.querySelector('.reward-footer button');
 
-    const ch = GAME_DATA.characters[this.run.charId];
-    const pool = [...ch.cardPool];
-    this.shuffleArray(pool);
-    const choices = pool.slice(0, 3).map(cid => this.createCardInstance(cid));
+    if (titleEl) titleEl.textContent = '⚔️ 전투 승리! 경험치(EXP) & 전리품 획득';
+    document.getElementById('reward-summary-text').textContent = summaryText;
+    if (subHeaderEl) {
+      subHeaderEl.textContent = `💡 새로운 카드 보상은 모험가 레벨업 시(다음 레벨까지 ${Math.max(0, this.run.runNextExp - this.run.runExp)} EXP) 또는 보스 토벌 시 획득합니다!`;
+    }
 
     const row = document.getElementById('reward-cards-row');
     row.innerHTML = '';
-    choices.forEach(cInst => {
-      const cardEl = this.createCardElement(cInst, () => {
-        this.run.deck.push(cInst);
+
+    if (skipBtn) {
+      skipBtn.textContent = '미궁 지도로 계속 전진 ➔';
+      skipBtn.onclick = () => {
         modal.classList.add('hidden');
         this.leaveNodeToMap();
+      };
+    }
+
+    modal.classList.remove('hidden');
+  },
+
+  openRewardModal(summaryText, sourceType = 'levelup') {
+    const modal = document.getElementById('modal-reward');
+    const titleEl = modal.querySelector('h2');
+    const subHeaderEl = modal.querySelector('h3');
+    const skipBtn = modal.querySelector('.reward-footer button');
+
+    this.run.pendingCardDrafts = Math.max(0, (this.run.pendingCardDrafts || 1) - 1);
+    const remainingDrafts = this.run.pendingCardDrafts;
+
+    if (titleEl) {
+      if (sourceType === 'boss') {
+        titleEl.textContent = `👑 계층 보스 토벌 성공! 고등급 전리품 카드 선택`;
+      } else if (sourceType === 'midboss') {
+        titleEl.textContent = `🩸 중간보스 토벌 성공! 특별 전리품 카드 선택`;
+      } else {
+        titleEl.textContent = `🆙 모험가 레벨업(Lv.${this.run.runLv}) 달성! 레벨업 카드 보상 선택${remainingDrafts > 0 ? ` (남은 선택: ${remainingDrafts + 1}회)` : ''}`;
+      }
+    }
+
+    document.getElementById('reward-summary-text').textContent = summaryText;
+    if (subHeaderEl) {
+      subHeaderEl.textContent =
+        sourceType === 'boss'
+          ? '보스 토벌 보너스! [고급 / 희귀 / 전설] 등급 카드 중 1장을 덱에 추가하세요:'
+          : '레벨업 보상! 덱에 추가할 새로운 주문/무기술 카드를 1장 선택하세요 (전설 ~1.5%, 희귀 ~8%, 고급 ~25%, 일반 ~65%):';
+    }
+
+    const choices = this.rollWeightedCardChoices(3, sourceType);
+
+    const proceedNextOrLeave = () => {
+      if ((this.run.pendingCardDrafts || 0) > 0) {
+        this.openRewardModal(summaryText, 'levelup');
+      } else if (this.run.pendingBossRelicDraft) {
+        this.openBossRelicDraftModal();
+      } else {
+        modal.classList.add('hidden');
+        this.leaveNodeToMap();
+      }
+    };
+
+    const row = document.getElementById('reward-cards-row');
+    row.innerHTML = '';
+    choices.forEach((cInst, idx) => {
+      const cardEl = this.createCardElement(cInst, () => {
+        this.run.deck.push(cInst);
+        proceedNextOrLeave();
       });
+      const badge = document.createElement('span');
+      badge.className = 'hotkey-badge';
+      badge.textContent = String(idx + 1);
+      cardEl.appendChild(badge);
       row.appendChild(cardEl);
     });
+
+    if (skipBtn) {
+      skipBtn.textContent = '카드 선택 건너뛰기 (+25 GP 보너스) ➔';
+      skipBtn.onclick = () => {
+        this.run.gold += 25;
+        proceedNextOrLeave();
+      };
+    }
 
     modal.classList.remove('hidden');
   },
 
   skipCardReward() {
     this.run.gold += 25;
-    document.getElementById('modal-reward').classList.add('hidden');
-    this.leaveNodeToMap();
+    if (this.run && (this.run.pendingCardDrafts || 0) > 0) {
+      this.openRewardModal(document.getElementById('reward-summary-text').textContent, 'levelup');
+    } else if (this.run && this.run.pendingBossRelicDraft) {
+      this.openBossRelicDraftModal();
+    } else {
+      document.getElementById('modal-reward').classList.add('hidden');
+      this.leaveNodeToMap();
+    }
+  },
+
+  // Slay the Spire 1 Boss Relic Chest: Pick 1 of 3 Boss Relics (+1 AP with major drawback, etc.)
+  openBossRelicDraftModal() {
+    this.run.pendingBossRelicDraft = false;
+    const modal = document.getElementById('modal-reward');
+    const titleEl = modal.querySelector('h2');
+    const subHeaderEl = modal.querySelector('h3');
+    const skipBtn = modal.querySelector('.reward-footer button');
+
+    if (titleEl) titleEl.textContent = '👑 [슬더스 보스 성물함] 계층 보스 유물 3종 중 1개 선택';
+    document.getElementById('reward-summary-text').textContent =
+      '보스 유물은 매 턴 최대 행동력(AP) +1 등 막강한 권능을 부여하지만, 슬레이 더 스파이어 1과 동일한 영구 제약(페널티)을 동반합니다!';
+    if (subHeaderEl) subHeaderEl.textContent = '원하는 보스 유물 1개를 선택하거나, 페널티가 싫다면 건너뛸 수 있습니다:';
+
+    const unownedBossRelics = Object.values(GAME_DATA.relics).filter(r => r.isBossRelic && !this.run.relics.includes(r.id));
+    this.shuffleArray(unownedBossRelics);
+    const choices = unownedBossRelics.slice(0, 3);
+
+    const row = document.getElementById('reward-cards-row');
+    row.innerHTML = '';
+
+    choices.forEach(r => {
+      const box = document.createElement('div');
+      box.className = 'game-card rarity-legendary';
+      box.style.width = '210px';
+      box.innerHTML = `
+        <div>
+          <div class="card-top-row">
+            <span class="card-type-tag">👑 보스 유물</span>
+            <span class="card-rarity-dot" style="color:#f6c967">BOSS</span>
+          </div>
+          <div class="card-title">${r.name}</div>
+          <div class="card-art-banner">${r.icon}</div>
+        </div>
+        <div class="card-desc">${r.desc}</div>
+      `;
+      box.onclick = () => {
+        this.run.relics.push(r.id);
+        modal.classList.add('hidden');
+        this.leaveNodeToMap();
+      };
+      row.appendChild(box);
+    });
+
+    if (skipBtn) {
+      skipBtn.textContent = '보스 유물 건너뛰기 ➔';
+      skipBtn.onclick = () => {
+        modal.classList.add('hidden');
+        this.leaveNodeToMap();
+      };
+    }
+    modal.classList.remove('hidden');
+  },
+
+  finishNodeWithPendingDrafts(sourceLabel = '레벨업 달성!') {
+    if (this.run && (this.run.pendingCardDrafts || 0) > 0) {
+      this.openRewardModal(`🆙 ${sourceLabel} (Lv.${this.run.runLv}) — 새로운 카드를 1장 선택하세요!`, 'levelup');
+    } else {
+      this.leaveNodeToMap();
+    }
   },
 
   doRestHeal() {
-    const heal = Math.round(this.run.maxHp * 0.35);
+    if (this.run && this.run.relics.includes('coffee_dripper')) {
+      alert('☕ [드워프 커피 드리퍼] 보스 유물 페널티로 인해 모닥불에서 휴식(체력 회복)을 할 수 없습니다! 카드 단련(+)을 선택하세요.');
+      return;
+    }
+    // Slay the Spire 1 Campfire Rest: Heal 30% of Max HP (no free EXP)
+    const heal = Math.round(this.run.maxHp * 0.3);
     this.run.hp = Math.min(this.run.maxHp, this.run.hp + heal);
-    this.gainRunExp(60);
     this.leaveNodeToMap();
   },
 
   openUpgradeModal(isMutation = false) {
+    if (this.run && this.run.relics.includes('fusion_hammer')) {
+      alert('🔨 [융합 해머] 보스 유물 페널티로 인해 모닥불에서 카드 단련(강화)을 할 수 없습니다! 긴 휴식을 선택하세요.');
+      return;
+    }
     this.deckModalMode = isMutation ? 'mutate' : 'upgrade';
     this.openDeckModal(this.deckModalMode);
   },
 
-  openRemoveCardModal(cost = 0) {
-    if (cost > 0 && this.run.gold < cost) {
-      alert('금화(GP)가 부족합니다!');
+  getShopRemoveCost() {
+    if (!this.run) return 75;
+    return 75 + (this.run.shopRemoveCount || 0) * 35; // Escalates 75 -> 110 -> 145 -> 180 GP
+  },
+
+  getShopMutateCost() {
+    if (!this.run) return 70;
+    return 70 + (this.run.shopMutateCount || 0) * 30; // Escalates 70 -> 100 -> 130 -> 160 GP
+  },
+
+  openRemoveCardModal() {
+    if (!this.run) return;
+    if (this.run.currentShopState && this.run.currentShopState.removedUsed) {
+      alert('이 상점에서는 이미 카드 제거(기억 소거) 서비스를 이용했습니다! (상점 방문당 1회 제한)');
+      return;
+    }
+    const cost = this.getShopRemoveCost();
+    if (this.run.gold < cost) {
+      alert(`금화(GP)가 부족합니다! (필요: ${cost} GP, 보유: ${this.run.gold} GP)`);
       return;
     }
     this.pendingShopCost = cost;
     this.openDeckModal('remove');
   },
 
-  shopMutateService(cost = 55) {
+  shopMutateService() {
+    if (!this.run) return;
+    if (this.run.currentShopState && this.run.currentShopState.mutatedUsed) {
+      alert('이 상점에서는 이미 카드 강화 + 룬 각인 서비스를 이용했습니다! (상점 방문당 1회 제한)');
+      return;
+    }
+    const cost = this.getShopMutateCost();
     if (this.run.gold < cost) {
-      alert('금화(GP)가 부족합니다!');
+      alert(`금화(GP)가 부족합니다! (필요: ${cost} GP, 보유: ${this.run.gold} GP)`);
       return;
     }
     this.pendingShopCost = cost;
     this.openDeckModal('shop_mutate');
+  },
+
+  updateShopServiceButtons() {
+    if (!this.run) return;
+    const remBtn = document.getElementById('btn-shop-remove');
+    const mutBtn = document.getElementById('btn-shop-mutate');
+    const st = this.run.currentShopState;
+
+    if (remBtn) {
+      if (st && st.removedUsed) {
+        remBtn.disabled = true;
+        remBtn.textContent = '✔ 카드 제거 완료 (이번 상점 1/1회 소진)';
+      } else {
+        remBtn.disabled = false;
+        const cost = this.getShopRemoveCost();
+        remBtn.textContent = `🗑️ 카드 제거 [이번 상점 1회 한정] (${cost} GP)`;
+      }
+    }
+    if (mutBtn) {
+      if (st && st.mutatedUsed) {
+        mutBtn.disabled = true;
+        mutBtn.textContent = '✔ 룬 각인 완료 (이번 상점 1/1회 소진)';
+      } else {
+        mutBtn.disabled = false;
+        const cost = this.getShopMutateCost();
+        mutBtn.textContent = `🔮 카드 강화(+) + 룬 각인 [이번 상점 1회 한정] (${cost} GP)`;
+      }
+    }
   },
 
   openDeckModal(mode = 'all') {
@@ -2085,11 +3048,11 @@ const Game = {
       titleEl.textContent = '⚒️ 단련(+)할 카드를 선택하세요';
       subEl.textContent = '선택한 주문/무기술 카드의 위력이 영구적으로 상승합니다.';
     } else if (mode === 'mutate' || mode === 'shop_mutate') {
-      titleEl.textContent = '🔮 고대 비전 룬을 각인할 카드를 선택하세요';
+      titleEl.textContent = '🔮 고대 비전 룬을 각인할 카드를 선택하세요 (상점당 1회 한정)';
       subEl.textContent = '선택한 카드에 [산성/가속/방호/흡혈] 룬 속성과 강화(+)가 동시에 부여됩니다!';
     } else if (mode === 'remove') {
-      titleEl.textContent = '🗑️ 덱에서 영구 제거할 카드를 선택하세요';
-      subEl.textContent = '기본 타격/방어 카드를 제거하면 핵심 카드를 더 자주 뽑을 수 있습니다.';
+      titleEl.textContent = '🗑️ 덱에서 영구 제거할 카드를 선택하세요 (상점당 1회 한정)';
+      subEl.textContent = '이용할 때마다 다음 상점의 카드 제거 비용이 +35 GP씩 영구 상승합니다.';
     } else {
       titleEl.textContent = `🎴 카드 목록 (${cardsToShow.length}장)`;
       subEl.textContent = '현재 보유 중인 카드와 강화/룬 각인 상태를 확인합니다.';
@@ -2108,20 +3071,28 @@ const Game = {
           modal.classList.add('hidden');
           this.leaveNodeToMap();
         } else if (mode === 'shop_mutate') {
+          if (this.run.currentShopState && this.run.currentShopState.mutatedUsed) return;
           this.run.gold -= this.pendingShopCost;
+          this.run.shopMutateCount = (this.run.shopMutateCount || 0) + 1;
+          if (this.run.currentShopState) this.run.currentShopState.mutatedUsed = true;
           const muts = GAME_DATA.mutations;
           cInst.mutation = muts[Math.floor(Math.random() * muts.length)].id;
           cInst.upgraded = true;
           modal.classList.add('hidden');
+          this.updateShopServiceButtons();
           this.updateTopHud();
         } else if (mode === 'remove') {
+          if (this.run.currentShopState && this.run.currentShopState.removedUsed) return;
           if (this.run.deck.length <= 5) {
             alert('덱에는 최소 5장의 카드가 남아있어야 합니다!');
             return;
           }
           if (this.pendingShopCost > 0) this.run.gold -= this.pendingShopCost;
+          this.run.shopRemoveCount = (this.run.shopRemoveCount || 0) + 1;
+          if (this.run.currentShopState) this.run.currentShopState.removedUsed = true;
           this.run.deck.splice(idx, 1);
           modal.classList.add('hidden');
+          this.updateShopServiceButtons();
           this.updateTopHud();
         }
       });
@@ -2137,34 +3108,60 @@ const Game = {
 
   openShopScreen() {
     this.switchScreen('screen-shop');
-    const ch = GAME_DATA.characters[this.run.charId];
-    const pool = [...ch.cardPool];
-    this.shuffleArray(pool);
+
+    // Lock shop inventory per floor/stage so players cannot refresh or infinitely buy items!
+    const shopKey = `act_${this.run.act}_stage_${this.run.stage}`;
+    if (!this.run.currentShopState || this.run.currentShopState.shopKey !== shopKey) {
+      const rolledCards = this.rollWeightedCardChoices(4, 'shop').map(cInst => {
+        const tpl = GAME_DATA.cards[cInst.id];
+        const price = tpl.rarity === 'legendary' ? 175 : tpl.rarity === 'rare' ? 115 : tpl.rarity === 'uncommon' ? 72 : 48;
+        return { cInst, price, sold: false };
+      });
+
+      const unownedRelics = Object.values(GAME_DATA.relics).filter(r => r.price && !this.run.relics.includes(r.id));
+      this.shuffleArray(unownedRelics);
+      const rolledRelics = unownedRelics.slice(0, 2).map(r => ({ relic: r, sold: false }));
+
+      const allPotions = [...Object.values(GAME_DATA.potions)];
+      this.shuffleArray(allPotions);
+      const rolledPotions = allPotions.slice(0, 2).map(p => ({ potion: p, sold: false }));
+
+      this.run.currentShopState = {
+        shopKey,
+        cards: rolledCards,
+        relics: rolledRelics,
+        potions: rolledPotions,
+        removedUsed: false,
+        mutatedUsed: false
+      };
+    }
+
+    const st = this.run.currentShopState;
 
     const cardsRow = document.getElementById('shop-cards-row');
     cardsRow.innerHTML = '';
 
-    pool.slice(0, 4).forEach(cid => {
-      const cInst = this.createCardInstance(cid);
-      const tpl = GAME_DATA.cards[cid];
-      const price = tpl.rarity === 'rare' ? 95 : tpl.rarity === 'uncommon' ? 65 : 45;
-
+    st.cards.forEach(entry => {
+      const { cInst, price } = entry;
       const wrap = document.createElement('div');
       wrap.className = 'shop-item-wrap';
       const cardEl = this.createCardElement(cInst, null);
 
       const btn = document.createElement('button');
       btn.className = 'shop-buy-btn';
-      btn.textContent = `🪙 ${price} GP 구매`;
+      btn.disabled = entry.sold;
+      btn.textContent = entry.sold ? '✔ 품절 (재고 소진)' : `🪙 ${price} GP 구매 (1개 한정)`;
       btn.onclick = () => {
+        if (entry.sold) return;
         if (this.run.gold < price) {
           alert('금화(GP)가 부족합니다!');
           return;
         }
         this.run.gold -= price;
+        entry.sold = true;
         this.run.deck.push(cInst);
         btn.disabled = true;
-        btn.textContent = '✔ 구매 완료';
+        btn.textContent = '✔ 품절 (재고 소진)';
         this.updateTopHud();
       };
 
@@ -2176,57 +3173,74 @@ const Game = {
     const itemsRow = document.getElementById('shop-items-row');
     itemsRow.innerHTML = '';
 
-    const shopRelics = Object.values(GAME_DATA.relics)
-      .filter(r => r.price && !this.run.relics.includes(r.id))
-      .slice(0, 2);
-
-    shopRelics.forEach(r => {
+    st.relics.forEach(entry => {
+      const r = entry.relic;
+      const isAlreadyOwned = this.run.relics.includes(r.id);
+      const isSold = entry.sold || isAlreadyOwned;
       const box = document.createElement('div');
       box.className = 'mech-box';
       box.style.width = '220px';
       box.innerHTML = `
         <h4>${r.icon} ${r.name}</h4>
         <p style="margin-bottom:8px;">${r.desc}</p>
-        <button class="shop-buy-btn">🪙 ${r.price} GP 구매</button>
+        <button class="shop-buy-btn" ${isSold ? 'disabled' : ''}>${isSold ? '✔ 품절 (장착됨)' : `🪙 ${r.price} GP 구매 (1개 한정)`}</button>
       `;
       itemsRow.appendChild(box);
       box.querySelector('button').onclick = e => {
+        if (entry.sold || this.run.relics.includes(r.id)) return;
         if (this.run.gold < r.price) {
           alert('금화(GP)가 부족합니다!');
           return;
         }
         this.run.gold -= r.price;
+        entry.sold = true;
         this.run.relics.push(r.id);
+        if (r.id === 'scavenger_goggles') {
+          this.run.maxHp += 10;
+          this.run.hp += 10;
+        }
         e.target.disabled = true;
-        e.target.textContent = '✔ 장착 완료';
+        e.target.textContent = '✔ 품절 (장착됨)';
         this.updateTopHud();
       };
     });
 
-    Object.values(GAME_DATA.potions)
-      .slice(0, 2)
-      .forEach(p => {
-        const box = document.createElement('div');
-        box.className = 'mech-box';
-        box.style.width = '200px';
-        box.innerHTML = `
-          <h4>${p.icon} ${p.name}</h4>
-          <p style="margin-bottom:8px;">${p.desc}</p>
-          <button class="shop-buy-btn">🪙 ${p.price} GP 구매</button>
-        `;
-        itemsRow.appendChild(box);
-        box.querySelector('button').onclick = e => {
-          if (this.run.gold < p.price) {
-            alert('금화(GP)가 부족합니다!');
-            return;
-          }
-          this.run.gold -= p.price;
-          this.run.potions.push(p.id);
-          e.target.disabled = true;
-          e.target.textContent = '✔ 획득 완료';
-          this.updateTopHud();
-        };
-      });
+    st.potions.forEach(entry => {
+      const p = entry.potion;
+      const maxPots = this.run.maxPotions || 3;
+      const box = document.createElement('div');
+      box.className = 'mech-box';
+      box.style.width = '200px';
+      box.innerHTML = `
+        <h4>${p.icon} ${p.name}</h4>
+        <p style="margin-bottom:8px;">${p.desc} <br/><span style="font-size:0.72rem; color:#fdcb6e;">(벨트 한도: 최대 ${maxPots}개)</span></p>
+        <button class="shop-buy-btn" ${entry.sold ? 'disabled' : ''}>${entry.sold ? '✔ 품절 (재고 소진)' : `🪙 ${p.price} GP 구매 (1개 한정)`}</button>
+      `;
+      itemsRow.appendChild(box);
+      box.querySelector('button').onclick = e => {
+        if (entry.sold) return;
+        if (this.run.relics.includes('sozu_brew')) {
+          alert('🍶 [봉인의 호리병(Sozu)] 보스 유물 페널티로 인해 물약을 획득할 수 없습니다!');
+          return;
+        }
+        if (this.run.potions.length >= maxPots) {
+          alert(`물약 벨트가 가득 찼습니다! (최대 ${maxPots}개까지 소지 가능)`);
+          return;
+        }
+        if (this.run.gold < p.price) {
+          alert('금화(GP)가 부족합니다!');
+          return;
+        }
+        this.run.gold -= p.price;
+        entry.sold = true;
+        this.run.potions.push(p.id);
+        e.target.disabled = true;
+        e.target.textContent = '✔ 품절 (재고 소진)';
+        this.updateTopHud();
+      };
+    });
+
+    this.updateShopServiceButtons();
   },
 
   openEventScreen() {
@@ -2238,10 +3252,10 @@ const Game = {
     const choicesBox = document.getElementById('event-choices');
     choicesBox.innerHTML = '';
 
-    ev.choices.forEach(ch => {
+    ev.choices.forEach((ch, idx) => {
       const btn = document.createElement('button');
       btn.className = 'event-choice-btn';
-      btn.textContent = ch.label;
+      btn.innerHTML = `<span class="kbd-hint">${idx + 1}</span> ${ch.label}`;
       btn.onclick = () => this.resolveEventChoice(ch.effect);
       choicesBox.appendChild(btn);
     });
@@ -2249,39 +3263,69 @@ const Game = {
 
   resolveEventChoice(effect) {
     if (effect === 'd20_arcana') {
-      const roll = Math.floor(Math.random() * 20) + 1 + 4; // D20 + proficiency
-      const muts = GAME_DATA.mutations;
-      for (let i = 0; i < Math.min(2, this.run.deck.length); i++) {
-        const card = this.run.deck[this.run.deck.length - 1 - i];
-        card.upgraded = true;
-        card.mutation = muts[i % muts.length].id;
+      const roll = Math.floor(Math.random() * 20) + 1;
+      if (roll >= 12) {
+        const muts = GAME_DATA.mutations;
+        const card = this.run.deck[this.run.deck.length - 1];
+        if (card) {
+          card.upgraded = true;
+          card.mutation = muts[Math.floor(Math.random() * muts.length)].id;
+        }
+        alert(`🎲 D20 비전 판정: [${roll}] (DC 12 성공!)\n덱의 카드 1장에 강화(+)와 비전 룬 각인이 부여되었습니다!`);
+      } else {
+        this.run.hp = Math.max(1, this.run.hp - 14);
+        this.run.deck.push(this.createCardInstance('status_burn'));
+        alert(`🎲 D20 비전 판정: [${roll}] (DC 12 실패!)\n비전 폭주로 체력을 14 잃고 덱에 [🔥 지옥 화상] 카드가 1장 추가되었습니다!`);
       }
-      this.gainRunExp(120);
-      alert(`🎲 D20 비전 판정 결과: [${roll}] (대성공!)\n덱의 카드 2장에 강화(+)+룬 각인이 부여되고 경험치 +120 EXP를 획득했습니다!`);
-    } else if (effect === 'full_heal_maxhp') {
-      this.run.maxHp += 12;
-      this.run.hp = this.run.maxHp;
+    } else if (effect === 'blood_sacrifice_maxhp') {
+      this.run.hp = Math.max(1, this.run.hp - 12);
+      this.run.maxHp += 8;
+      const unupgraded = this.run.deck.find(c => !c.upgraded);
+      if (unupgraded) unupgraded.upgraded = true;
     } else if (effect === 'scrap_and_relic') {
-      this.run.gold += 120;
-      this.run.hp = Math.max(1, this.run.hp - 8);
+      this.run.gold += 95;
+      this.run.hp = Math.max(1, this.run.hp - 15);
+      this.run.deck.push(this.createCardInstance('curse_pain'));
       this.grantRandomRelic();
     } else if (effect === 'gain_exp_sp_gems') {
-      this.gainRunExp(150);
-      this.run.sp += 2;
-      this.meta.gems += 250;
+      this.run.maxHp = Math.max(20, this.run.maxHp - 8);
+      this.run.hp = Math.min(this.run.hp, this.run.maxHp);
+      this.gainRunExp(95);
+      this.meta.gems += 120;
       this.saveMeta();
     } else if (effect === 'remove_and_rare') {
-      const basicIdx = this.run.deck.findIndex(c => GAME_DATA.cards[c.id].rarity === 'basic');
+      this.run.hp = Math.max(1, this.run.hp - 12);
+      const basicIdx = this.run.deck.findIndex(c => {
+        const r = GAME_DATA.cards[c.id].rarity;
+        return r === 'basic' || r === 'common';
+      });
       if (basicIdx >= 0) this.run.deck.splice(basicIdx, 1);
-      const ch = GAME_DATA.characters[this.run.charId];
-      const rareCardId = ch.cardPool[ch.cardPool.length - 1];
-      this.run.deck.push(this.createCardInstance(rareCardId));
-    } else if (effect === 'free_relic') {
+      const rareChoices = this.rollWeightedCardChoices(1, 'boss');
+      if (rareChoices.length > 0) this.run.deck.push(rareChoices[0]);
+    } else if (effect === 'cursed_relic') {
+      this.run.deck.push(this.createCardInstance('curse_pain'));
       this.grantRandomRelic();
-      this.run.hp = Math.min(this.run.maxHp, this.run.hp + 20);
+    } else if (effect === 'potion_and_exp') {
+      this.run.hp = Math.max(1, this.run.hp - 10);
+      this.gainRunExp(60);
+      const maxPots = this.run.maxPotions || 3;
+      if (this.run.potions.length < maxPots) {
+        const pKeys = Object.keys(GAME_DATA.potions);
+        this.run.potions.push(pKeys[Math.floor(Math.random() * pKeys.length)]);
+      }
+    } else if (effect === 'event_paid_remove') {
+      if (this.run.gold < 50) {
+        alert('금화(GP)가 부족하여 아무 일도 일어나지 않았습니다.');
+      } else if (this.run.deck.length > 5) {
+        this.run.gold -= 50;
+        const basicIdx = this.run.deck.findIndex(c => c.id === 'curse_pain' || GAME_DATA.cards[c.id].rarity === 'common');
+        if (basicIdx >= 0) this.run.deck.splice(basicIdx, 1);
+      }
+    } else if (effect === 'safe_leave') {
+      this.run.hp = Math.min(this.run.maxHp, this.run.hp + 6);
     }
 
-    this.leaveNodeToMap();
+    this.finishNodeWithPendingDrafts('이벤트 경험치 레벨업!');
   },
 
   showGameOverModal(isVictory) {
@@ -2292,13 +3336,13 @@ const Game = {
     if (isVictory) {
       title.textContent = '👑 언더마운틴 5계층(150 스테이지) & 오색룡의 여신 티아마트 토벌 완료!';
       desc.textContent =
-        '포가튼 렐름의 전설이 되었습니다! 클리어 보상으로 차원 마석 +800개와 승급 조각 +25개가 지급되었습니다. 다른 클래스와 32가지 하위 직업 빌드로 새로운 모험에 도전해보세요!';
+        '포가튼 렐름의 전설이 되었습니다! 클리어 보상으로 등반 마석 +800개가 지급되었습니다. 다른 클래스와 32가지 하위 직업 빌드로 새로운 모험에 도전해보세요!';
     } else {
       title.textContent = `💀 모험 실패 (제${this.run.act}계층 Stage ${this.run.stage}/30)`;
       desc.textContent =
-        '미궁에서 쓰러졌지만 원정 보상으로 마석 +150개와 승급 조각 +5개를 획득했습니다! 워터딥 주점 로비에서 클래스 레벨업, C→B→A→S 티어 승급, 마법 무구(+강화), D&D 특성(Feat)을 강화해 재도전하세요!';
+        '미궁에서 쓰러졌지만 원정 보상으로 등반 마석 +150개를 획득했습니다! 워터딥 주점 로비에서 클래스 레벨업, C→B→A→S 티어 승급, 마법 무구(+강화), D&D 특성(Feat)을 강화해 재도전하세요!';
       this.meta.gems += 150;
-      this.meta.shards[this.run.charId] = (this.meta.shards[this.run.charId] || 0) + 5;
+      this.meta.totalClimbs = (this.meta.totalClimbs || 0) + 1;
       this.saveMeta();
     }
 

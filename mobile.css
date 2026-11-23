@@ -312,3 +312,31 @@ body.mobile-edition {
   background: rgba(253, 203, 110, 0.15);
   color: #fdcb6e;
 }
+
+/* Hide desktop keyboard badges/guide on mobile touch edition & optimize touch tap targets */
+.mobile-edition .hotkey-badge,
+.mobile-edition .keyboard-guide-bar,
+.mobile-edition .kbd-hint {
+  display: none !important;
+}
+
+.mobile-edition .map-node-btn {
+  min-height: 46px;
+}
+
+.mobile-edition .event-choice-btn,
+.mobile-edition .shop-service-btn {
+  padding: 12px 14px;
+  font-size: 0.82rem;
+}
+
+.mobile-edition .char-roster-stats {
+  font-size: 0.65rem;
+  gap: 4px;
+  padding: 2px 5px;
+}
+
+.mobile-edition .modal-box {
+  padding: 16px;
+  max-height: 86dvh;
+}

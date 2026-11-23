@@ -5,6 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>D&D 5E SPIRE II: TALES OF UNDERMOUNTAIN (8클래스 32직업 · 5계층 150스테이지)</title>
   <link rel="stylesheet" href="style.css" />
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+      if (isMobile && params.get('force') !== 'pc') {
+        window.location.replace('mobile.html');
+      }
+    })();
+  </script>
 </head>
 <body>
   <!-- TOP GLOBAL HUD BAR -->
@@ -155,7 +164,7 @@
             </div>
 
             <button class="pile-btn draw-pile-btn" onclick="Game.openDeckModal('draw')">
-              📘 뽑을 덱 <span id="draw-pile-count">5</span>
+              📘 뽑을 덱 [A] <span id="draw-pile-count">5</span>
             </button>
           </div>
 
@@ -163,12 +172,15 @@
 
           <div class="right-controls-col">
             <button id="btn-end-turn" class="btn-end-turn" onclick="Game.endPlayerTurn()">
-              턴 종료 ⏭️
+              턴 종료 [E / Space] ⏭️
             </button>
             <button class="pile-btn discard-pile-btn" onclick="Game.openDeckModal('discard')">
-              📕 버린 덱 <span id="discard-pile-count">0</span>
+              📕 버린 덱 [S] <span id="discard-pile-count">0</span>
             </button>
           </div>
+        </div>
+        <div class="keyboard-guide-bar">
+          ⌨️ 단축키: <kbd>1~0</kbd> 카드 사용 · <kbd>Tab</kbd>/<kbd>←→</kbd> 타겟 전환 · <kbd>E</kbd>/<kbd>Space</kbd> 턴 종료 · <kbd>Q</kbd> 클래스 개방 · <kbd>Z/X/V</kbd> 물약 · <kbd>A/S/D</kbd> 덱 보기 · <kbd>C</kbd> 능력치(SP)
         </div>
       </div>
     </section>
@@ -181,18 +193,18 @@
         <div class="rest-options-grid">
           <div class="rest-option-card" onclick="Game.doRestHeal()">
             <div class="rest-icon">❤️‍🩹</div>
-            <h3>긴 휴식 (Long Rest)</h3>
-            <p>최대 체력의 35%를 회복하고 모험 경험치(EXP) +60을 얻습니다.</p>
+            <h3><span class="kbd-hint">1</span> 긴 휴식 (Long Rest)</h3>
+            <p>최대 체력의 30%를 회복합니다.</p>
           </div>
           <div class="rest-option-card" onclick="Game.openUpgradeModal(false)">
             <div class="rest-icon">⚒️</div>
-            <h3>주문/무기술 단련 (+)</h3>
+            <h3><span class="kbd-hint">2</span> 주문/무기술 단련 (+)</h3>
             <p>덱의 카드 1장을 선택해 위력을 영구 강화(+)합니다.</p>
           </div>
           <div class="rest-option-card" onclick="Game.openUpgradeModal(true)">
             <div class="rest-icon">🔮</div>
-            <h3>고대 비전 룬 각인 (슬더스2)</h3>
-            <p>덱의 카드 1장에 [맹독/가속/방호/흡혈] 룬 속성과 강화(+)를 동시에 부여합니다!</p>
+            <h3><span class="kbd-hint">3</span> 고대 비전 룬 각인</h3>
+            <p>덱의 카드 1장에 [맹독/집중/방호/예리함] 룬 속성과 강화(+)를 부여합니다!</p>
           </div>
         </div>
       </div>
@@ -223,11 +235,11 @@
           <div class="shop-section">
             <h3>🛠️ 아티피서 마법 공방 서비스</h3>
             <div class="shop-services-col">
-              <button id="btn-shop-remove" class="shop-service-btn" onclick="Game.openRemoveCardModal(60)">
-                🗑️ 카드 제거 (기억 소거 - 60 GP)
+              <button id="btn-shop-remove" class="shop-service-btn" onclick="Game.openRemoveCardModal()">
+                🗑️ 카드 제거 [이번 상점 1회 한정] (75 GP)
               </button>
-              <button id="btn-shop-mutate" class="shop-service-btn" onclick="Game.shopMutateService(55)">
-                🔮 카드 강화(+) + 비전 룬 각인 (55 GP)
+              <button id="btn-shop-mutate" class="shop-service-btn" onclick="Game.shopMutateService()">
+                🔮 카드 강화(+) + 룬 각인 [이번 상점 1회 한정] (70 GP)
               </button>
             </div>
           </div>
