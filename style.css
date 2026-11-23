@@ -950,6 +950,36 @@ body {
 .game-card.type-attack { border-color: #eb4d4b; }
 .game-card.type-skill { border-color: #22a6b3; }
 .game-card.type-power { border-color: #be2edd; }
+
+/* 4 Card Rarities: 일반(common), 고급(uncommon), 희귀(rare), 전설(legendary) */
+.game-card.rarity-common { border-color: #7f8fa6; }
+.game-card.rarity-uncommon { border-color: #00d2d3; box-shadow: 0 4px 14px rgba(0, 210, 211, 0.2); }
+.game-card.rarity-rare { border-color: #be2edd; box-shadow: 0 4px 16px rgba(190, 46, 221, 0.3); }
+.game-card.rarity-legendary {
+  border-color: #f1c40f;
+  background: linear-gradient(180deg, #2c221E 0%, #161224 100%);
+  box-shadow: 0 0 18px rgba(241, 196, 15, 0.45);
+}
+
+.rarity-pill {
+  font-size: 0.63rem;
+  font-weight: 900;
+  padding: 2px 6px;
+  border-radius: 5px;
+}
+.rarity-pill.r-common { background: #57606f; color: #f1f2f6; }
+.rarity-pill.r-uncommon { background: rgba(0, 210, 211, 0.22); color: #00d2d3; border: 1px solid #00d2d3; }
+.rarity-pill.r-rare { background: rgba(190, 46, 221, 0.25); color: #e056fd; border: 1px solid #e056fd; }
+.rarity-pill.r-legendary { background: linear-gradient(135deg, #f39c12, #d63031); color: #fff; border: 1px solid #ffeaa7; }
+
+.card-subclass-origin {
+  font-size: 0.63rem;
+  color: #a4b0be;
+  text-align: center;
+  margin-top: 4px;
+  font-weight: 700;
+}
+
 .game-card.upgraded {
   border-color: #00ff88;
   box-shadow: 0 0 14px rgba(0, 255, 136, 0.25);

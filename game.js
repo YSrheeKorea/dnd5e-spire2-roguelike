@@ -111,7 +111,7 @@ const Game = {
   saveMeta() {
     try {
       localStorage.setItem('DND5E_SPIRE_2_META', JSON.stringify(this.meta));
-    } catch (e) {}
+    } catch (e) { }
     this.updateTopHud();
   },
 
@@ -304,15 +304,16 @@ const Game = {
       .map(sub => {
         const isActive = sub.id === stats.subId;
         const bCard = GAME_DATA.cards[sub.bonusCard];
+        const lCard = GAME_DATA.cards[sub.legendaryCard];
         return `
           <div class="subclass-card ${isActive ? 'active' : ''}" onclick="Game.selectSubclass('${ch.id}', '${sub.id}')">
             <h4>
-              <span>${sub.icon} ${sub.name}</span>
+              <span>${sub.icon} ${sub.name} <span style="font-size:0.7rem; color:#00d2d3;">(전용카드 10종)</span></span>
               <span style="font-size:0.68rem; color:${isActive ? '#00ff88' : '#a4b0be'}">${isActive ? '✔ 선택됨' : '클릭 선택'}</span>
             </h4>
             <p>${sub.desc}</p>
             <div style="font-size:0.68rem; color:#fdcb6e; margin-top:3px;">
-              🎴 하위직업 시작 보너스 카드: [${bCard ? bCard.name : sub.bonusCard}]
+              🎴 시작: [${bCard ? bCard.name : ''}] | 🌟 전설: [${lCard ? lCard.name : ''}]
             </div>
           </div>
         `;
@@ -324,10 +325,13 @@ const Game = {
         <h2>
           <span class="rank-badge rank-${stats.currentRank}">${stats.currentRank}급</span>
           <span style="color:${ch.accent}">${ch.name}</span>
-          <span style="font-size:0.86rem; color:#dfe6e9;">— ${ch.heroName} (${ch.primaryAbility})</span>
+          <span style="font-size:0.86rem; color:#dfe6e9;">— ${ch.heroName}</span>
+          <button class="hud-btn" style="font-size:0.74rem; padding:4px 9px; border-color:#fdcb6e; color:#ffeaa7;" onclick="Game.openClassCompendium('${ch.id}')">
+            📖 ${ch.name.split(' ')[0]} 카드 도감 (44종: 공용 4 + 하위직업 40)
+          </button>
         </h2>
         <div class="subclass-picker-title">
-          🔱 하위 직업 (Subclass) 4종 중 하나를 선택하세요 (클릭 시 빌드 루트 & 고유 능력 즉시 전환):
+          🔱 하위 직업 (Subclass) 4종 선택 — 선택한 하위 직업의 전용 카드 10종(일반4·고급3·희귀2·전설1) + 클래스 공용 4종으로 덱이 구성됩니다!
         </div>
         <div class="subclass-grid">
           ${subCardsHtml}
@@ -352,26 +356,24 @@ const Game = {
             ⬆️ 클래스 레벨업 (Lv.${stats.hunterLv}→${stats.hunterLv + 1})<br/>
             <span style="color:#00d2d3">💎 ${lvCost} 마석</span>
           </button>
-          ${
-            nextRank
-              ? `<button class="btn-growth-action reawaken" onclick="Game.promoteHunterRank('${ch.id}')">
+          ${nextRank
+        ? `<button class="btn-growth-action reawaken" onclick="Game.promoteHunterRank('${ch.id}')">
                   🌟 ${stats.currentRank}급 ➔ ${nextRank}급 티어 승급!<br/>
                   <span style="color:#ffeaa7">🧩${rankShardCost}조각 또는 💎${rankGemCost}마석</span>
                 </button>`
-              : `<button class="btn-growth-action reawaken" disabled>👑 최고 등급 [S급 반신] 달성!</button>`
-          }
+        : `<button class="btn-growth-action reawaken" disabled>👑 최고 등급 [S급 반신] 달성!</button>`
+      }
         </div>
       </div>
 
       <div>
-        ${
-          isUnlocked
-            ? `<button class="btn-start-run" onclick="Game.startNewRun('${ch.id}')">
+        ${isUnlocked
+        ? `<button class="btn-start-run" onclick="Game.startNewRun('${ch.id}')">
                 🏰 언더마운틴 출격 ➔<br/>
                 <span style="font-size:0.75rem; font-weight:600; color:#ffeaa7;">[${stats.subObj.name.split(' ')[0]} 빌드]</span>
               </button>`
-            : `<button class="btn-gacha-banner" onclick="Game.openGachaModal()">🎲 가챠로 이 클래스 소환</button>`
-        }
+        : `<button class="btn-gacha-banner" onclick="Game.openGachaModal()">🎲 가챠로 이 클래스 소환</button>`
+      }
       </div>
     `;
   },
@@ -546,17 +548,14 @@ const Game = {
 
       let statText = '';
       if (item.slot === 'weapon') {
-        statText = `⚔️ 시작 힘 +${Math.round(item.baseStr + lv * item.strPerLv)}${
-          item.resourceBonus ? ` | 고유자원 +${item.resourceBonus}` : ''
-        }`;
+        statText = `⚔️ 시작 힘 +${Math.round(item.baseStr + lv * item.strPerLv)}${item.resourceBonus ? ` | 고유자원 +${item.resourceBonus}` : ''
+          }`;
       } else if (item.slot === 'armor') {
-        statText = `❤️ 최대 체력 +${Math.round(item.baseHp + lv * item.hpPerLv)}${
-          item.baseDex ? ` | 민첩 +${item.baseDex}` : ''
-        }`;
+        statText = `❤️ 최대 체력 +${Math.round(item.baseHp + lv * item.hpPerLv)}${item.baseDex ? ` | 민첩 +${item.baseDex}` : ''
+          }`;
       } else {
-        statText = `🛡️ 첫 턴 방어도 +${Math.round(item.baseBlock + lv * item.blockPerLv)}${
-          item.summonBoost ? ` | 소환수/구체 +${item.summonBoost}` : ''
-        }`;
+        statText = `🛡️ 첫 턴 방어도 +${Math.round(item.baseBlock + lv * item.blockPerLv)}${item.summonBoost ? ` | 소환수/구체 +${item.summonBoost}` : ''
+          }`;
       }
 
       const card = document.createElement('div');
@@ -572,10 +571,9 @@ const Game = {
           <p style="font-size:0.75rem; color:#a4b0be;">${item.desc}</p>
         </div>
         <div style="display:flex; gap:6px; margin-top:6px;">
-          ${
-            !isUnlocked
-              ? `<button class="btn-growth-action" onclick="Game.unlockGear('${item.id}')">🔓 해금 (💎 ${item.unlockCost})</button>`
-              : `
+          ${!isUnlocked
+          ? `<button class="btn-growth-action" onclick="Game.unlockGear('${item.id}')">🔓 해금 (💎 ${item.unlockCost})</button>`
+          : `
                 <button class="btn-growth-action" ${isEquipped ? 'disabled' : ''} onclick="Game.equipGear('${item.id}')">
                   ${isEquipped ? '✔ 장착 중' : '장착하기'}
                 </button>
@@ -583,7 +581,7 @@ const Game = {
                   ${lv >= 10 ? 'MAX' : `⚒️ +${lv + 1} 강화 (💎${upgCost})`}
                 </button>
               `
-          }
+        }
         </div>
       `;
       grid.appendChild(card);
@@ -679,23 +677,58 @@ const Game = {
 
   // --------------------------------------------------------------------------
   // START NEW RUN: 5 ACTS (FLOORS) x 30 STAGES PER FLOOR (150 STAGES)
+  // Uses Class's 4 Shared Cards + Selected Subclass's 10 Exclusive Cards!
   // --------------------------------------------------------------------------
+  getActiveSubclassCardPool(charId, subclassId) {
+    const ch = GAME_DATA.characters[charId];
+    const sub = ch.subclasses.find(s => s.id === subclassId) || ch.subclasses[0];
+    // Pool = 4 Shared Class Cards + 10 Selected Subclass Cards
+    return [...(ch.sharedCards || []), ...(sub.cards || [])];
+  },
+
+  openClassCompendium(charId) {
+    const ch = GAME_DATA.characters[charId];
+    const modal = document.getElementById('modal-deck');
+    const titleEl = document.getElementById('deck-modal-title');
+    const subEl = document.getElementById('deck-modal-subtitle');
+    const grid = document.getElementById('deck-modal-grid');
+    grid.innerHTML = '';
+
+    titleEl.textContent = `📖 ${ch.name} 전체 카드 도감 (총 44종: 공용 4종 + 하위직업 4×10종)`;
+    subEl.textContent = '등급 체계: [일반(Common)] · [고급(Uncommon)] · [희귀(Rare)] · [전설(Legendary)]';
+
+    const allIds = [...(ch.sharedCards || [])];
+    ch.subclasses.forEach(s => allIds.push(...(s.cards || [])));
+
+    allIds.forEach(cid => {
+      const cInst = this.createCardInstance(cid);
+      const cardEl = this.createCardElement(cInst, null);
+      grid.appendChild(cardEl);
+    });
+
+    modal.classList.remove('hidden');
+  },
+
   startNewRun(charId) {
     const ch = GAME_DATA.characters[charId];
     const stats = this.getHunterTotalBonuses(charId);
 
     const deck = ch.starterDeck.map((cardId, idx) => this.createCardInstance(cardId, idx));
 
-    // Add Subclass Signature Bonus Card!
+    // Add Subclass Signature Bonus Card (1st card of the 10 subclass cards)!
     if (stats.subObj && stats.subObj.bonusCard) {
       deck.push(this.createCardInstance(stats.subObj.bonusCard, 50));
     }
 
-    // Add Rank A / S Awakening Ultimate Card!
+    // Rank A adds the 4th Shared Rare Card; Rank S ALSO adds the Subclass's 10th [전설(Legendary)] Card!
     if (stats.currentRank === 'A' || stats.currentRank === 'S') {
-      const awkCard = this.createCardInstance(ch.awakeningCard, 99);
-      if (stats.currentRank === 'S') awkCard.upgraded = true;
+      const awkCard = this.createCardInstance(ch.awakeningCard, 98);
       deck.push(awkCard);
+    }
+    if (stats.currentRank === 'S' && stats.subObj && stats.subObj.legendaryCard) {
+      const legCard = this.createCardInstance(stats.subObj.legendaryCard, 99);
+      legCard.upgraded = true;
+      deck.push(legCard);
     }
 
     // Randomly roll 1 of the 4 Bosses & 1 of the Mid-Bosses for each of the 5 Acts!
@@ -825,9 +858,8 @@ const Game = {
     const currentBossObj = GAME_DATA.enemies[currentBossId];
 
     document.getElementById('map-act-title').textContent = `🏰 ${actInfo.name} (Stage ${this.run.stage} / 30)`;
-    document.getElementById('map-act-subtitle').innerHTML = `${actInfo.subtitle} — <strong style="color:#ff7675">이번 층의 30스테이지 보스 예고: ${
-      currentBossObj ? currentBossObj.name : ''
-    }</strong> (4종 중 무작위 배정됨)`;
+    document.getElementById('map-act-subtitle').innerHTML = `${actInfo.subtitle} — <strong style="color:#ff7675">이번 층의 30스테이지 보스 예고: ${currentBossObj ? currentBossObj.name : ''
+      }</strong> (4종 중 무작위 배정됨)`;
 
     const spCountEl = document.getElementById('map-sp-count');
     if (spCountEl) spCountEl.textContent = this.run.sp;
@@ -858,8 +890,7 @@ const Game = {
         .map(n => {
           const stateClass = isCurrent ? 'available' : row.completed ? 'completed' : '';
           return `
-            <button class="map-node-btn ${stateClass}" ${
-              isCurrent ? `onclick="Game.enterMapNode('${n.id}', '${n.type}')"` : ''
+            <button class="map-node-btn ${stateClass}" ${isCurrent ? `onclick="Game.enterMapNode('${n.id}', '${n.type}')"` : ''
             }>
               ${n.label}
             </button>
@@ -1901,9 +1932,8 @@ const Game = {
     this.meta.shards[this.run.charId] =
       (this.meta.shards[this.run.charId] || 0) + (type === 'boss' ? 10 : type === 'elite' ? 4 : 2);
 
-    let bonusText = `⭐ 경험치 +${expRes.gained} EXP ${
-      expRes.leveledUp > 0 ? `(🆙 레벨업! SP +${expRes.leveledUp * 2} 획득!)` : ''
-    } | 🪙 +${goldEarned} GP | 💎 마석 +${gemsEarned}`;
+    let bonusText = `⭐ 경험치 +${expRes.gained} EXP ${expRes.leveledUp > 0 ? `(🆙 레벨업! SP +${expRes.leveledUp * 2} 획득!)` : ''
+      } | 🪙 +${goldEarned} GP | 💎 마석 +${gemsEarned}`;
 
     if (type === 'elite' || type === 'midboss' || type === 'boss') {
       const relicGranted = this.grantRandomRelic();
@@ -2106,13 +2136,43 @@ const Game = {
 
   createCardElement(cardInst, onClickFn) {
     const tpl = GAME_DATA.cards[cardInst.id];
+    const rarity = tpl.rarity || 'common';
     const el = document.createElement('div');
-    el.className = `game-card type-${tpl.type} ${cardInst.upgraded ? 'upgraded' : ''}`;
+    el.className = `game-card type-${tpl.type} rarity-${rarity} ${cardInst.upgraded ? 'upgraded' : ''}`;
     if (onClickFn) el.onclick = onClickFn;
 
-    const typeKor = tpl.type === 'attack' ? '⚔️ 공격/주문' : tpl.type === 'skill' ? '🛡️ 전술/방어' : '⚡ 지속(Power)';
+    const rarityLabels = {
+      basic: '일반',
+      common: '일반',
+      uncommon: '고급',
+      rare: '희귀',
+      legendary: '전설'
+    };
+    const rarityKor = rarityLabels[rarity] || '일반';
+
+    const typeKor = tpl.type === 'attack' ? '⚔️공격' : tpl.type === 'skill' ? '🛡️스킬' : '⚡지속';
     const iconArt =
-      tpl.type === 'attack' ? '⚔️' : tpl.addDrone ? '🔮' : tpl.summonHeal ? '🐾' : tpl.stance ? '✨' : '🛡️';
+      rarity === 'legendary'
+        ? '👑'
+        : tpl.type === 'attack'
+        ? '⚔️'
+        : tpl.addDrone
+        ? '🔮'
+        : tpl.summonHeal
+        ? '🐾'
+        : tpl.stance
+        ? '✨'
+        : '🛡️';
+
+    // Show whether card is Shared (공용 4종) or Subclass Exclusive (하위직업 10종)
+    let originLabel = '공용 카드';
+    if (tpl.subclassId && tpl.subclassId !== 'shared') {
+      const ch = GAME_DATA.characters[tpl.classId];
+      const subObj = ch && ch.subclasses ? ch.subclasses.find(s => s.id === tpl.subclassId) : null;
+      originLabel = subObj ? `${subObj.icon} ${subObj.name.split(' ')[0]} 전용` : '하위직업 전용';
+    } else {
+      originLabel = '💠 클래스 공용';
+    }
 
     let mutHtml = '';
     if (cardInst.mutation) {
@@ -2126,12 +2186,14 @@ const Game = {
       <div>
         <div class="card-top-row">
           <div class="card-cost-orb">${tpl.cost}</div>
+          <span class="rarity-pill r-${rarity}">${rarityKor}</span>
           <span class="card-type-tag">${typeKor}</span>
         </div>
         <div class="card-title">${tpl.name}${cardInst.upgraded ? ' +' : ''}</div>
         <div class="card-art-banner">${iconArt}</div>
       </div>
       <div class="card-desc">${this.formatCardDesc(cardInst)}</div>
+      <div class="card-subclass-origin">${originLabel}</div>
       ${mutHtml}
     `;
     return el;
@@ -2143,15 +2205,55 @@ const Game = {
 
   // --------------------------------------------------------------------------
   // POST-COMBAT REWARDS, REST, SHOP & D20 EVENTS
+  // Filters rewards by the active Subclass's 10 cards + Class's 4 shared cards
+  // and weights by Rarity: 일반(common), 고급(uncommon), 희귀(rare), 전설(legendary)
   // --------------------------------------------------------------------------
+  pickRewardCards(count = 3, encounterType = 'combat') {
+    const activePool = this.getActiveSubclassCardPool(this.run.charId, this.run.subclassId);
+    const byRarity = {
+      common: activePool.filter(id => GAME_DATA.cards[id].rarity === 'common'),
+      uncommon: activePool.filter(id => GAME_DATA.cards[id].rarity === 'uncommon'),
+      rare: activePool.filter(id => GAME_DATA.cards[id].rarity === 'rare'),
+      legendary: activePool.filter(id => GAME_DATA.cards[id].rarity === 'legendary')
+    };
+
+    const pickedIds = [];
+    for (let i = 0; i < count; i++) {
+      const roll = Math.random() * 100;
+      let targetPool = byRarity.common;
+
+      if (encounterType === 'boss') {
+        // Boss rewards guarantee Legendary or Rare!
+        targetPool = i === 0 || roll < 45 ? byRarity.legendary : byRarity.rare;
+      } else if (encounterType === 'elite' || encounterType === 'midboss') {
+        if (roll < 18) targetPool = byRarity.legendary;
+        else if (roll < 55) targetPool = byRarity.rare;
+        else targetPool = byRarity.uncommon;
+      } else {
+        // Normal combat: Slay the Spire 2 style rarity distribution
+        const stageBonus = this.run.stage * 0.4 + (this.run.act - 1) * 3;
+        if (roll < 4 + stageBonus * 0.25) targetPool = byRarity.legendary;
+        else if (roll < 18 + stageBonus * 0.6) targetPool = byRarity.rare;
+        else if (roll < 55 + stageBonus * 0.5) targetPool = byRarity.uncommon;
+        else targetPool = byRarity.common;
+      }
+
+      const available = targetPool.filter(id => !pickedIds.includes(id));
+      const poolToUse = available.length > 0 ? available : activePool.filter(id => !pickedIds.includes(id));
+      if (poolToUse.length > 0) {
+        const chosen = poolToUse[Math.floor(Math.random() * poolToUse.length)];
+        pickedIds.push(chosen);
+      }
+    }
+    return pickedIds.map(cid => this.createCardInstance(cid));
+  },
+
   openRewardModal(summaryText) {
     const modal = document.getElementById('modal-reward');
     document.getElementById('reward-summary-text').textContent = summaryText;
 
-    const ch = GAME_DATA.characters[this.run.charId];
-    const pool = [...ch.cardPool];
-    this.shuffleArray(pool);
-    const choices = pool.slice(0, 3).map(cid => this.createCardInstance(cid));
+    const encType = this.combat ? this.combat.encounterType : 'combat';
+    const choices = this.pickRewardCards(3, encType);
 
     const row = document.getElementById('reward-cards-row');
     row.innerHTML = '';
@@ -2272,8 +2374,8 @@ const Game = {
 
   openShopScreen() {
     this.switchScreen('screen-shop');
-    const ch = GAME_DATA.characters[this.run.charId];
-    const pool = [...ch.cardPool];
+    const activePool = this.getActiveSubclassCardPool(this.run.charId, this.run.subclassId);
+    const pool = [...activePool];
     this.shuffleArray(pool);
 
     const cardsRow = document.getElementById('shop-cards-row');
@@ -2282,7 +2384,8 @@ const Game = {
     pool.slice(0, 4).forEach(cid => {
       const cInst = this.createCardInstance(cid);
       const tpl = GAME_DATA.cards[cid];
-      const price = tpl.rarity === 'rare' ? 95 : tpl.rarity === 'uncommon' ? 65 : 45;
+      const price =
+        tpl.rarity === 'legendary' ? 140 : tpl.rarity === 'rare' ? 95 : tpl.rarity === 'uncommon' ? 65 : 45;
 
       const wrap = document.createElement('div');
       wrap.className = 'shop-item-wrap';
@@ -2406,10 +2509,13 @@ const Game = {
       this.meta.gems += 250;
       this.saveMeta();
     } else if (effect === 'remove_and_rare') {
-      const basicIdx = this.run.deck.findIndex(c => GAME_DATA.cards[c.id].rarity === 'basic');
+      const basicIdx = this.run.deck.findIndex(c => GAME_DATA.cards[c.id].rarity === 'common');
       if (basicIdx >= 0) this.run.deck.splice(basicIdx, 1);
-      const ch = GAME_DATA.characters[this.run.charId];
-      const rareCardId = ch.cardPool[ch.cardPool.length - 1];
+      const activePool = this.getActiveSubclassCardPool(this.run.charId, this.run.subclassId);
+      const rareOrLeg = activePool.filter(
+        id => GAME_DATA.cards[id].rarity === 'rare' || GAME_DATA.cards[id].rarity === 'legendary'
+      );
+      const rareCardId = rareOrLeg.length > 0 ? rareOrLeg[0] : activePool[activePool.length - 1];
       this.run.deck.push(this.createCardInstance(rareCardId));
     } else if (effect === 'free_relic') {
       this.grantRandomRelic();
