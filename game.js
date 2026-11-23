@@ -185,8 +185,6 @@ const Game = {
     return {
       currentRank,
       hunterLv,
-      subId,
-      subObj,
       totalMaxHp: ch.maxHp + bonusHp,
       bonusHp,
       bonusStr,
@@ -203,7 +201,7 @@ const Game = {
   },
 
   // --------------------------------------------------------------------------
-  // HUB: 8 CLASSES GRID & 4 SUBCLASSES PICKER
+  // HUB: 8 CLASSES GRID & 4 SUBCLASS ARCHETYPE OVERVIEW (NO PRE-SELECTION)
   // --------------------------------------------------------------------------
   renderHub() {
     const grid = document.getElementById('hub-char-grid');
@@ -227,7 +225,7 @@ const Game = {
         <span class="char-star-badge">${isUnlocked ? `Lv.${stats.hunterLv}` : '🔒 미소환'}</span>
         <div class="char-avatar-wrap">${ch.avatarSvg}</div>
         <h3>${ch.name.split(' ')[0]}</h3>
-        <div class="char-archetype">${stats.subObj.icon} ${stats.subObj.name.split(' ')[0]}</div>
+        <div class="char-archetype">${ch.secondaryResourceIcon} 44종 카드 풀</div>
         <div style="font-size:0.7rem; color:#dfe6e9;">
           ❤️${stats.totalMaxHp} | ⚔️+${stats.bonusStr}
         </div>
@@ -239,12 +237,6 @@ const Game = {
     });
 
     this.renderSelectedCharPanel();
-  },
-
-  selectSubclass(charId, subId) {
-    this.meta.selectedSubclasses[charId] = subId;
-    this.saveMeta();
-    this.renderHub();
   },
 
   renderSelectedCharPanel() {
@@ -266,18 +258,16 @@ const Game = {
 
     const subCardsHtml = ch.subclasses
       .map(sub => {
-        const isActive = sub.id === stats.subId;
-        const bCard = GAME_DATA.cards[sub.bonusCard];
         const lCard = GAME_DATA.cards[sub.legendaryCard];
         return `
-          <div class="subclass-card ${isActive ? 'active' : ''}" onclick="Game.selectSubclass('${ch.id}', '${sub.id}')">
+          <div class="subclass-card" onclick="Game.openClassCompendium('${ch.id}', '${sub.id}')" title="클릭하면 이 하위 직업 계통의 카드 10종을 도감에서 확인합니다">
             <h4>
-              <span>${sub.icon} ${sub.name} <span style="font-size:0.7rem; color:#00d2d3;">(전용카드 10종)</span></span>
-              <span style="font-size:0.68rem; color:${isActive ? '#00ff88' : '#a4b0be'}">${isActive ? '✔ 선택됨' : '클릭 선택'}</span>
+              <span>${sub.icon} ${sub.name}</span>
+              <span style="font-size:0.68rem; color:#00d2d3;">카드 10종 도감 보기 🔎</span>
             </h4>
             <p>${sub.desc}</p>
             <div style="font-size:0.68rem; color:#fdcb6e; margin-top:3px;">
-              🎴 시작: [${bCard ? bCard.name : ''}] | 🌟 전설: [${lCard ? lCard.name : ''}]
+              👑 전설 카드: [${lCard ? lCard.name : ''}] 외 9종
             </div>
           </div>
         `;
@@ -290,12 +280,12 @@ const Game = {
           <span class="rank-badge rank-${stats.currentRank}">${stats.currentRank}급</span>
           <span style="color:${ch.accent}">${ch.name}</span>
           <span style="font-size:0.86rem; color:#dfe6e9;">— ${ch.heroName}</span>
-          <button class="hud-btn" style="font-size:0.74rem; padding:4px 9px; border-color:#fdcb6e; color:#ffeaa7;" onclick="Game.openClassCompendium('${ch.id}')">
-            📖 ${ch.name.split(' ')[0]} 카드 도감 (44종: 공용 4 + 하위직업 40)
+          <button class="hud-btn" style="font-size:0.74rem; padding:4px 9px; border-color:#fdcb6e; color:#ffeaa7;" onclick="Game.openClassCompendium('${ch.id}', 'all')">
+            📖 전체 44종 카드 도감 (공용 4 + 하위직업 4×10)
           </button>
         </h2>
         <div class="subclass-picker-title">
-          🔱 하위 직업 (Subclass) 4종 선택 — 선택한 하위 직업의 전용 카드 10종(일반4·고급3·희귀2·전설1) + 클래스 공용 4종으로 덱이 구성됩니다!
+          🎴 <strong>${ch.name.split(' ')[0]}의 4대 하위 직업 카드 계통 (총 44종 카드 풀)</strong> — 던전에서 44종 카드가 보상으로 등장하며 원하는 하위 직업 루트나 혼합 빌드를 자유롭게 맞춰갈 수 있습니다!
         </div>
         <div class="subclass-grid">
           ${subCardsHtml}
@@ -334,7 +324,7 @@ const Game = {
         ${isUnlocked
         ? `<button class="btn-start-run" onclick="Game.startNewRun('${ch.id}')">
                 🏰 언더마운틴 출격 ➔<br/>
-                <span style="font-size:0.75rem; font-weight:600; color:#ffeaa7;">[${stats.subObj.name.split(' ')[0]} 빌드]</span>
+                <span style="font-size:0.75rem; font-weight:600; color:#ffeaa7;">[${ch.name.split(' ')[0]} 출격]</span>
               </button>`
         : `<button class="btn-gacha-banner" onclick="Game.openGachaModal()">🎲 가챠로 이 클래스 소환</button>`
       }
