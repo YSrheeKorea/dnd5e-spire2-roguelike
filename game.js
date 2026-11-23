@@ -7,7 +7,7 @@
 
 const Game = {
   meta: {
-    gems: 1500,
+    gems: 300, // Balanced starter gems (enough for 3 pulls; earn more by conquering stages!)
     selectedCharId: 'fighter',
     // Selected Subclass ID for each of the 8 classes
     selectedSubclasses: {
@@ -32,13 +32,13 @@ const Game = {
     },
     ranks: {
       fighter: 'C',
-      barbarian: 'B',
-      rogue: 'B',
-      ranger: 'A',
-      wizard: 'A',
-      cleric: 'A',
-      paladin: 'S',
-      warlock: 'S'
+      barbarian: 'C',
+      rogue: 'C',
+      ranger: 'B',
+      wizard: 'B',
+      cleric: 'B',
+      paladin: 'A',
+      warlock: 'A'
     },
     levels: {
       fighter: 1,
@@ -138,48 +138,48 @@ const Game = {
     const subId = this.meta.selectedSubclasses[charId] || ch.subclasses[0].id;
     const subObj = ch.subclasses.find(s => s.id === subId) || ch.subclasses[0];
 
-    let bonusHp = rankBonus.hp + (hunterLv - 1) * 5;
-    let bonusStr = rankBonus.str + Math.floor(hunterLv / 3);
-    let bonusDex = rankBonus.dex + Math.floor(hunterLv / 4);
+    let bonusHp = rankBonus.hp + (hunterLv - 1) * 3;
+    let bonusStr = rankBonus.str + Math.floor(hunterLv / 5);
+    let bonusDex = rankBonus.dex + Math.floor(hunterLv / 6);
     let bonusResourceStart = rankBonus.resourceStart;
     let firstTurnBlock = 0;
     let healAfterCombat = 0;
     let summonBoost = 0;
 
-    // Subclass Stat Bonuses
+    // Subclass Stat Bonuses (Balanced to Slay the Spire 2 standards)
     if (subId === 'champion') {
-      bonusStr += 3;
-      bonusHp += 12;
+      bonusStr += 1;
+      bonusHp += 8;
     } else if (subId === 'battlemaster') {
-      bonusResourceStart += 4;
+      bonusResourceStart += 2;
     } else if (subId === 'berserker') {
-      bonusStr += 3;
+      bonusStr += 2;
     } else if (subId === 'totem_warrior') {
-      bonusHp += 20;
+      bonusHp += 12;
     } else if (subId === 'assassin') {
-      bonusResourceStart += 4;
+      bonusResourceStart += 2;
     } else if (subId === 'hunter_conclave') {
-      bonusStr += 3;
+      bonusStr += 1;
     } else if (subId === 'evocation') {
-      bonusStr += 3;
+      bonusStr += 1;
     } else if (subId === 'abjuration') {
-      firstTurnBlock += 15;
+      firstTurnBlock += 8;
     } else if (subId === 'life_domain') {
-      bonusHp += 18;
+      bonusHp += 10;
     } else if (subId === 'war_domain') {
-      bonusStr += 3;
-      bonusDex += 2;
+      bonusStr += 1;
+      bonusDex += 1;
     } else if (subId === 'devotion') {
-      bonusStr += 3;
-      bonusDex += 3;
+      bonusStr += 1;
+      bonusDex += 1;
     } else if (subId === 'oathbreaker') {
-      bonusStr += 4;
+      bonusStr += 2;
     } else if (subId === 'fiend_patron') {
-      healAfterCombat += 8;
-      summonBoost += 5;
+      healAfterCombat += 4;
+      summonBoost += 3;
     } else if (subId === 'hexblade') {
-      bonusStr += 4;
-      bonusDex += 2;
+      bonusStr += 2;
+      bonusDex += 1;
     }
 
     // Equipped Magic Gear
@@ -715,8 +715,8 @@ const Game = {
       rank: stats.currentRank,
       runLv: 1,
       runExp: 0,
-      runNextExp: 100,
-      sp: 1,
+      runNextExp: 120,
+      sp: 0, // Earn SP by leveling up in combat (D&D Lv.1 -> Lv.20 cap)
       allocatedStats: {
         str: 0,
         dex: 0,
@@ -726,7 +726,7 @@ const Game = {
       permStats: stats,
       maxHp: stats.totalMaxHp,
       hp: stats.totalMaxHp,
-      gold: 120 + stats.bonusGoldStart,
+      gold: 99 + stats.bonusGoldStart,
       act: 1, // Act 1 ~ 5 (총 5개 층)
       maxActs: 5,
       stage: 1, // Stage 1 ~ 30 per Act (1개 층당 30개 스테이지)
@@ -735,7 +735,7 @@ const Game = {
       selectedMidBosses,
       deck,
       relics: [ch.startRelic],
-      potions: ['rad_heal', 'fury_stim'],
+      potions: ['rad_heal'],
       actMap: null
     };
     this.run.actMap = this.generate30StageActMap(1);
@@ -909,10 +909,12 @@ const Game = {
       if (this.run.act < this.run.maxActs) {
         this.run.act += 1;
         this.run.stage = 1;
-        this.run.hp = this.run.maxHp; // Full heal between Acts!
+        // Slay the Spire style: Heal 60% of missing HP between Acts (instead of 100% free full heal)
+        const missingHp = this.run.maxHp - this.run.hp;
+        this.run.hp = Math.min(this.run.maxHp, this.run.hp + Math.round(missingHp * 0.6));
         this.run.actMap = this.generate30StageActMap(this.run.act);
         alert(
-          `🎉 제${this.run.act - 1}계층(30 스테이지)을 완전 돌파했습니다!\n체력이 모두 회복되며 다음 계층 [${
+          `🎉 제${this.run.act - 1}계층(30 스테이지) 보스를 토벌했습니다!\n잃은 체력의 60%를 회복하며 더 위험한 다음 계층 [${
             GAME_DATA.acts[this.run.act - 1].name
           }] (Stage 1/30)으로 진입합니다!`
         );
@@ -925,7 +927,7 @@ const Game = {
   },
 
   // --------------------------------------------------------------------------
-  // IN-RUN EXP & D&D ABILITY SCORE IMPROVEMENT (SP)
+  // IN-RUN EXP & D&D ABILITY SCORE IMPROVEMENT (SP - Capped at D&D Lv.20)
   // --------------------------------------------------------------------------
   gainRunExp(rawExp) {
     if (!this.run) return { gained: 0, leveledUp: 0 };
@@ -934,13 +936,13 @@ const Game = {
     this.run.runExp += gained;
 
     let leveledUp = 0;
-    while (this.run.runExp >= this.run.runNextExp) {
+    while (this.run.runExp >= this.run.runNextExp && this.run.runLv < 20) {
       this.run.runExp -= this.run.runNextExp;
       this.run.runLv += 1;
-      this.run.sp += 2;
-      this.run.maxHp += 6;
-      this.run.hp = Math.min(this.run.maxHp, this.run.hp + 10);
-      this.run.runNextExp = Math.round(this.run.runNextExp * 1.22);
+      this.run.sp += 1; // +1 SP per Level (D&D 5e Lv.1 -> Lv.20 curve across 150 stages)
+      this.run.maxHp += 3;
+      this.run.hp = Math.min(this.run.maxHp, this.run.hp + 5);
+      this.run.runNextExp = Math.round(this.run.runNextExp * 1.28 + 30);
       leveledUp += 1;
     }
     this.updateTopHud();
@@ -1145,32 +1147,58 @@ const Game = {
       enemyTemplates = [GAME_DATA.enemies[mId]];
     } else if (encounterType === 'elite') {
       const eId = actInfo.elitePool[this.run.stage % actInfo.elitePool.length];
-      enemyTemplates = [GAME_DATA.enemies[eId]];
+      const guardId = actInfo.normalPool[this.run.stage % actInfo.normalPool.length];
+      // From Act 2+, Elites can appear with a minion guard for STS2 tactical pressure!
+      enemyTemplates = this.run.act >= 2 && this.run.stage >= 12 ? [GAME_DATA.enemies[eId], GAME_DATA.enemies[guardId]] : [GAME_DATA.enemies[eId]];
     } else {
       const pool = actInfo.normalPool;
       const e1 = GAME_DATA.enemies[pool[this.run.stage % pool.length]];
       const e2 = GAME_DATA.enemies[pool[(this.run.stage + 1) % pool.length]];
-      enemyTemplates = this.run.stage % 3 === 1 ? [e1] : [e1, e2];
+      const e3 = GAME_DATA.enemies[pool[(this.run.stage + 2) % pool.length]];
+      if (this.run.stage <= 2 && this.run.act === 1) {
+        enemyTemplates = [e1]; // Easy first 2 stages of Act 1
+      } else if (this.run.stage >= 20 && this.run.stage % 4 === 2) {
+        enemyTemplates = [e1, e2, e3]; // 3-enemy encounter late in the floor!
+      } else {
+        enemyTemplates = [e1, e2];
+      }
     }
 
-    // Smooth scaling across 5 Acts x 30 Stages
-    const scale = 1 + (this.run.act - 1) * 0.22 + (this.run.stage - 1) * 0.015;
-    const enemies = enemyTemplates.map((t, i) => ({
-      uid: `en_${i}`,
-      id: t.id,
-      name: t.name,
-      maxHp: Math.round(t.maxHp * scale),
-      hp: Math.round(t.maxHp * scale),
-      expReward: t.expReward || 50,
-      block: 0,
-      strength: 0,
-      weak: 0,
-      vuln: 0,
-      poison: 0,
-      svg: t.svg,
-      moves: t.moves,
-      moveIndex: i % t.moves.length
-    }));
+    // Slay the Spire 2 Difficulty Scaling across 5 Acts x 30 Stages:
+    // Both Enemy HP AND Enemy Damage/Block scale progressively with Act & Stage!
+    const hpScale = 1 + (this.run.act - 1) * 0.42 + (this.run.stage - 1) * 0.024;
+    const dmgScale = 1 + (this.run.act - 1) * 0.28 + (this.run.stage - 1) * 0.016;
+    const enragePerTurn = encounterType === 'boss' ? Math.max(1, Math.floor(this.run.act * 0.8)) : encounterType === 'elite' || encounterType === 'midboss' ? 1 : 0;
+
+    const enemies = enemyTemplates.map((t, i) => {
+      const scaledMoves = t.moves.map(m => {
+        const sm = { ...m };
+        if (sm.dmg) sm.dmg = Math.round(sm.dmg * dmgScale);
+        if (sm.block) sm.block = Math.round(sm.block * dmgScale);
+        if (sm.str) sm.str = Math.max(1, Math.round(sm.str * (1 + (this.run.act - 1) * 0.2)));
+        return sm;
+      });
+
+      return {
+        uid: `en_${i}`,
+        id: t.id,
+        name: t.name,
+        isBoss: encounterType === 'boss',
+        isElite: encounterType === 'elite' || encounterType === 'midboss',
+        enragePerTurn,
+        maxHp: Math.round(t.maxHp * hpScale),
+        hp: Math.round(t.maxHp * hpScale),
+        expReward: t.expReward || 50,
+        block: encounterType === 'boss' ? this.run.act * 6 : 0,
+        strength: 0,
+        weak: 0,
+        vuln: 0,
+        poison: 0,
+        svg: t.svg,
+        moves: scaledMoves,
+        moveIndex: i % scaledMoves.length
+      };
+    });
 
     const drawPile = this.run.deck.map(c => ({ ...c }));
     this.shuffleArray(drawPile);
@@ -1193,7 +1221,9 @@ const Game = {
       turn: 1,
       maxEnergy,
       energy: maxEnergy,
-      secondaryResource: pStats.bonusResourceStart + rStats.mana * 2,
+      secondaryResource: pStats.bonusResourceStart + rStats.mana,
+      burstUsedThisTurn: false,
+      burstCost: 5,
       stance: 'neutral',
       targetIndex: 0,
       firstAttackUsedThisTurn: false,
@@ -1209,10 +1239,12 @@ const Game = {
         active: false,
         name: summonName,
         hp: 0,
-        maxHp: 18 + pStats.summonBoost,
-        atk: 7 + pStats.summonBoost + rStats.mana * 3
+        maxHp: 16 + pStats.summonBoost,
+        maxHpCap: 35 + this.run.act * 8 + pStats.summonBoost,
+        atk: 6 + pStats.summonBoost + rStats.mana * 2
       },
       drones: 0,
+      maxDrones: this.run.charId === 'wizard' || this.run.charId === 'cleric' ? 4 : 3,
       drawPile,
       hand: [],
       discardPile: [],
@@ -1337,15 +1369,17 @@ const Game = {
 
   summonOrBuffCompanion(healAmt, atkBoost = 0) {
     const s = this.combat.summon;
+    const cap = s.maxHpCap || 45;
+    const atkCap = 22 + (this.run ? this.run.act * 5 : 5);
     if (!s.active) {
       s.active = true;
-      s.maxHp = Math.max(18, healAmt);
-      s.hp = healAmt;
-      s.atk = Math.max(7, atkBoost);
+      s.maxHp = Math.min(cap, Math.max(16, healAmt));
+      s.hp = Math.min(s.maxHp, healAmt);
+      s.atk = Math.min(atkCap, Math.max(6, atkBoost));
     } else {
-      s.maxHp += Math.round(healAmt * 0.5);
-      s.hp = Math.min(s.maxHp, s.hp + healAmt);
-      s.atk += atkBoost;
+      s.maxHp = Math.min(cap, s.maxHp + Math.round(healAmt * 0.25));
+      s.hp = Math.min(s.maxHp, s.hp + Math.round(healAmt * 0.75));
+      s.atk = Math.min(atkCap, s.atk + Math.ceil(atkBoost * 0.6));
     }
   },
 
@@ -1353,23 +1387,24 @@ const Game = {
     if (!this.combat) return;
     const subId = this.run.subclassId;
     this.combat.firstAttackUsedThisTurn = false;
+    this.combat.burstUsedThisTurn = false;
 
     if (!isFirstTurn) {
       this.combat.turn += 1;
-      this.combat.player.block = subId === 'totem_warrior' ? 6 : subId === 'life_domain' ? 4 : 0;
+      this.combat.player.block = subId === 'totem_warrior' ? 4 : subId === 'life_domain' ? 3 : 0;
       this.combat.energy = this.combat.maxEnergy;
       if (this.combat.stance === 'divinity') this.combat.stance = 'neutral';
       if (subId === 'life_domain') {
-        this.run.hp = Math.min(this.run.maxHp, this.run.hp + 3);
+        this.run.hp = Math.min(this.run.maxHp, this.run.hp + 2);
       }
       if (subId === 'berserker') {
-        this.combat.secondaryResource += 2;
+        this.combat.secondaryResource += 1;
       }
       if (this.run.relics.includes('rod_of_pact_keeper') && this.combat.summon.active) {
-        this.combat.summon.hp = Math.min(this.combat.summon.maxHp, this.combat.summon.hp + 4);
+        this.combat.summon.hp = Math.min(this.combat.summon.maxHp, this.combat.summon.hp + 3);
       }
     } else {
-      if (subId === 'totem_warrior') this.combat.player.block += 6;
+      if (subId === 'totem_warrior') this.combat.player.block += 4;
       if (subId === 'thief' || subId === 'gloom_stalker' || subId === 'wild_magic' || subId === 'divination') {
         this.combat.energy += 1;
       }
@@ -1377,8 +1412,8 @@ const Game = {
 
     let drawCount = 5;
     if (isFirstTurn) {
-      if (this.run.charId === 'rogue') drawCount += 2;
-      if (subId === 'thief' || subId === 'gloom_stalker' || subId === 'wild_magic') drawCount += 2;
+      if (this.run.charId === 'rogue') drawCount += 1;
+      if (subId === 'thief' || subId === 'gloom_stalker' || subId === 'wild_magic') drawCount += 1;
       drawCount += this.run.permStats.bonusDrawFirstTurn || 0;
     }
     if (subId === 'divination' || subId === 'archfey_chain') drawCount += 1;
@@ -1498,7 +1533,10 @@ const Game = {
     if (stats.summonHeal > 0 || stats.summonAtkBoost > 0) {
       this.summonOrBuffCompanion(stats.summonHeal, stats.summonAtkBoost);
     }
-    if (tpl.addDrone) this.combat.drones += tpl.addDrone;
+    if (tpl.addDrone) {
+      const cap = this.combat.maxDrones || 3;
+      this.combat.drones = Math.min(cap, this.combat.drones + tpl.addDrone);
+    }
 
     const targets = tpl.target === 'all' ? this.combat.enemies.filter(e => e.hp > 0) : [target];
     const hits = tpl.hits || 1;
@@ -1601,61 +1639,70 @@ const Game = {
 
   triggerSecondaryBurst() {
     if (!this.combat) return;
-    if (this.combat.secondaryResource < 5) {
-      this.logCombat('⚠️ 고유 자원이 5 이상 모였을 때 클릭하면 클래스 궁극 개방을 발동할 수 있습니다!');
+    const cost = this.combat.burstCost || 5;
+    if (this.combat.burstUsedThisTurn) {
+      this.logCombat('⚠️ 클래스 고유 개방은 한 라운드(턴)에 1번만 발동할 수 있습니다!');
+      this.renderCombat();
+      return;
+    }
+    if (this.combat.secondaryResource < cost) {
+      this.logCombat(`⚠️ 고유 자원이 ${cost} 이상 모였을 때 클릭하면 클래스 궁극 개방을 발동할 수 있습니다!`);
+      this.renderCombat();
       return;
     }
 
-    this.combat.secondaryResource -= 5;
+    this.combat.secondaryResource -= cost;
+    this.combat.burstUsedThisTurn = true;
+    this.combat.burstCost = cost + 2; // Escalating cost (5 -> 7 -> 9) prevents infinite stalling!
     const cid = this.run.charId;
 
     if (cid === 'fighter') {
-      this.combat.energy += 2;
-      this.combat.player.strength += 2;
+      this.combat.energy += 1;
+      this.combat.player.strength += 1;
       this.drawCards(2);
-      this.logCombat('⚔️ [행동 연쇄(Action Surge) 개방] 행동력 +2, 힘 +2, 카드 2장 드로우!');
+      this.logCombat('⚔️ [행동 연쇄(Action Surge) 개방] 행동력 +1, 힘 +1, 카드 2장 드로우!');
     } else if (cid === 'barbarian') {
-      this.combat.player.strength += 3;
-      this.combat.player.block += 10;
-      this.logCombat('💢 [광란의 격노 폭발] 힘 +3 및 방어도 +10 획득!');
+      this.combat.player.strength += 2;
+      this.combat.player.block += 8;
+      this.logCombat('💢 [광란의 격노 폭발] 힘 +2 및 방어도 +8 획득!');
     } else if (cid === 'rogue') {
       this.combat.enemies.forEach(en => {
         if (en.hp > 0) {
-          en.poison += 6;
+          en.poison += 4;
           this.dealDamageToEnemy(en, en.poison, true);
         }
       });
       this.drawCards(1);
-      this.logCombat('🗡️ [급소 맹독 격발] 모든 적에게 맹독 +6 부여 및 즉시 맹독 피해 폭발!');
+      this.logCombat('🗡️ [급소 맹독 격발] 모든 적에게 맹독 +4 부여 및 즉시 맹독 피해 폭발!');
     } else if (cid === 'ranger') {
       this.combat.enemies.forEach(en => {
-        if (en.hp > 0) this.dealDamageToEnemy(en, 14 + this.combat.player.strength, true);
+        if (en.hp > 0) this.dealDamageToEnemy(en, 11 + this.combat.player.strength, true);
       });
       const target = this.combat.enemies.find(e => e.hp > 0);
       if (target && this.combat.summon.active) this.triggerSummonCoopAttack(target);
       this.logCombat('🏹 [사냥꾼의 일제 사격] 적 전체 관통 화살 및 야수 동료 협공!');
     } else if (cid === 'wizard') {
       this.combat.energy += 1;
-      this.combat.drones += 1;
+      this.combat.drones = Math.min(this.combat.maxDrones || 4, this.combat.drones + 1);
       this.triggerDronesAction();
-      this.logCombat('🔮 [비전 회복(Arcane Recovery)] 행동력 +1, 비전 구체 +1기 소환 및 일제 폭격!');
+      this.logCombat('🔮 [비전 회복(Arcane Recovery)] 행동력 +1, 비전 구체 소환 및 일제 폭격!');
     } else if (cid === 'cleric') {
-      this.run.hp = Math.min(this.run.maxHp, this.run.hp + 8);
+      this.run.hp = Math.min(this.run.maxHp, this.run.hp + 6);
       this.combat.enemies.forEach(en => {
-        if (en.hp > 0) this.dealDamageToEnemy(en, 15, true);
+        if (en.hp > 0) this.dealDamageToEnemy(en, 13, true);
       });
-      this.logCombat('☀️ [신성력 전달(Channel Divinity)] 내 체력 +8 회복 및 적 전체에 광휘 심판 15 피해!');
+      this.logCombat('☀️ [신성력 전달(Channel Divinity)] 내 체력 +6 회복 및 적 전체에 광휘 심판 13 피해!');
     } else if (cid === 'paladin') {
-      this.combat.player.strength += 2;
-      this.combat.player.block += 12;
+      this.combat.player.strength += 1;
+      this.combat.player.block += 10;
       const target = this.combat.enemies.find(e => e.hp > 0);
-      if (target) this.dealDamageToEnemy(target, 18 + this.combat.player.strength, true);
-      this.logCombat('✨ [천벌의 신성한 강타] 힘 +2, 방어도 +12 및 적에게 심판의 성검 강타!');
+      if (target) this.dealDamageToEnemy(target, 15 + this.combat.player.strength, true);
+      this.logCombat('✨ [천벌의 신성한 강타] 힘 +1, 방어도 +10 및 적에게 심판의 성검 강타!');
     } else if (cid === 'warlock') {
-      this.summonOrBuffCompanion(14, 5);
+      this.summonOrBuffCompanion(10, 3);
       const target = this.combat.enemies.find(e => e.hp > 0);
       if (target) this.triggerSummonCoopAttack(target);
-      this.logCombat('🟣 [후원자의 권능 개방] 계약 악마 체력 +14 / 공격력 +5 진화 및 즉시 협공!');
+      this.logCombat('🟣 [후원자의 권능 개방] 계약 악마 강화 및 즉시 협공!');
     }
 
     this.checkCombatEnd();
@@ -1743,12 +1790,14 @@ const Game = {
 
       if (move.intent === 'attack' || move.intent === 'attack_debuff' || move.intent === 'multi_attack') {
         const hits = move.hits || 1;
+        // Bosses/Elites using attack_debuff (Breath / AoE) cleave both Summon AND Hunter!
+        const isCleaveBreath = (en.isBoss || en.isElite) && move.intent === 'attack_debuff';
         for (let h = 0; h < hits; h++) {
           let dmg = move.dmg + en.strength;
           if (en.weak > 0) dmg = Math.floor(dmg * 0.75);
           if (this.combat.player.vuln > 0) dmg = Math.floor(dmg * 1.5);
           if (this.combat.stance === 'wrath') dmg = Math.floor(dmg * 2);
-          this.applyEnemyDamageToPlayerOrSummon(dmg);
+          this.applyEnemyDamageToPlayerOrSummon(dmg, isCleaveBreath);
         }
       }
 
@@ -1756,6 +1805,11 @@ const Game = {
       if (move.str) en.strength += move.str;
       if (move.weak) this.combat.player.weak += move.weak;
       if (move.vuln) this.combat.player.vuln += move.vuln;
+
+      // Slay the Spire 2 Escalation: Bosses and Elites gain Enrage Strength every turn!
+      if (en.enragePerTurn > 0) {
+        en.strength += en.enragePerTurn;
+      }
 
       if (en.weak > 0) en.weak -= 1;
       if (en.vuln > 0) en.vuln -= 1;
@@ -1768,7 +1822,7 @@ const Game = {
     this.startPlayerTurn(false);
   },
 
-  applyEnemyDamageToPlayerOrSummon(dmg) {
+  applyEnemyDamageToPlayerOrSummon(dmg, isCleaveBreath = false) {
     let remaining = dmg;
     if (this.combat.player.block > 0) {
       const blocked = Math.min(this.combat.player.block, remaining);
@@ -1776,12 +1830,24 @@ const Game = {
       remaining -= blocked;
     }
     if (remaining > 0 && this.combat.summon.active && this.combat.summon.hp > 0) {
-      const tanked = Math.min(this.combat.summon.hp, remaining);
-      this.combat.summon.hp -= tanked;
-      remaining -= tanked;
-      if (this.combat.summon.hp <= 0) {
-        this.combat.summon.active = false;
-        this.logCombat(`💥 [${this.combat.summon.name}] 소환수가 대신 치명타를 막아내고 소멸했습니다!`);
+      if (isCleaveBreath) {
+        // Boss Breath / AoE cleaves: Summon absorbs 50%, Player takes 50%!
+        const summonShare = Math.ceil(remaining * 0.5);
+        const playerShare = Math.floor(remaining * 0.5);
+        this.combat.summon.hp = Math.max(0, this.combat.summon.hp - summonShare);
+        if (this.combat.summon.hp <= 0) {
+          this.combat.summon.active = false;
+          this.logCombat(`💥 보스의 광역 공격에 [${this.combat.summon.name}] 소환수가 소멸했습니다!`);
+        }
+        remaining = playerShare;
+      } else {
+        const tanked = Math.min(this.combat.summon.hp, remaining);
+        this.combat.summon.hp -= tanked;
+        remaining -= tanked;
+        if (this.combat.summon.hp <= 0) {
+          this.combat.summon.active = false;
+          this.logCombat(`💥 [${this.combat.summon.name}] 소환수가 대신 치명타를 막아내고 소멸했습니다!`);
+        }
       }
     }
     if (remaining > 0) {
@@ -1954,10 +2020,25 @@ const Game = {
       const enPct = Math.max(0, Math.min(100, (en.hp / en.maxHp) * 100));
 
       const enBuffs = [];
+      if (en.enragePerTurn > 0) enBuffs.push(`💢 격노 +${en.enragePerTurn}/턴`);
       if (en.strength > 0) enBuffs.push(`⚔️ 힘 +${en.strength}`);
       if (en.poison > 0) enBuffs.push(`🧪 맹독/저주 ${en.poison}`);
       if (en.weak > 0) enBuffs.push(`💫 약화 ${en.weak}`);
       if (en.vuln > 0) enBuffs.push(`💔 취약 ${en.vuln}`);
+
+      // Compute Live Scaled Intent Text (STS2 style accurate damage prediction!)
+      let liveIntentDesc = move.desc;
+      if (move.dmg) {
+        let calcDmg = move.dmg + en.strength;
+        if (en.weak > 0) calcDmg = Math.floor(calcDmg * 0.75);
+        if (this.combat.player.vuln > 0) calcDmg = Math.floor(calcDmg * 1.5);
+        if (this.combat.stance === 'wrath') calcDmg = Math.floor(calcDmg * 2);
+        const hitsStr = move.hits ? ` x ${move.hits}` : '';
+        const debuffPart = move.desc.includes('+') ? ' + ' + move.desc.split('+').slice(1).join('+').trim() : '';
+        liveIntentDesc = `⚔️ 피해 ${calcDmg}${hitsStr}${debuffPart}`;
+      } else if (move.block) {
+        liveIntentDesc = `🛡️ 방어도 ${move.block}${move.str ? ` + 힘 +${move.str}` : ''}`;
+      }
 
       const enCard = document.createElement('div');
       enCard.className = `unit-card enemy-unit ${isTargeted ? 'targeted' : ''}`;
@@ -1969,7 +2050,7 @@ const Game = {
       enCard.innerHTML = `
         ${isTargeted ? `<span class="target-reticle">🎯 타겟</span>` : ''}
         <div class="enemy-intent-bubble">
-          ⚠️ ${move.name} (${move.desc})
+          ⚠️ ${move.name} (${liveIntentDesc})
         </div>
         <div class="unit-avatar">${en.svg}</div>
         <div class="unit-name-row">
@@ -1994,8 +2075,13 @@ const Game = {
     document.getElementById('sec-res-name').textContent = ch.secondaryResourceName.split('(')[0];
     document.getElementById('sec-res-val').textContent = this.combat.secondaryResource;
 
+    const bCost = this.combat.burstCost || 5;
+    const hintEl = document.getElementById('sec-burst-hint');
+    if (hintEl) {
+      hintEl.textContent = this.combat.burstUsedThisTurn ? '사용됨(1/턴)' : `${bCost}+ 클릭: 개방!`;
+    }
     const secOrb = document.getElementById('secondary-resource-box');
-    if (this.combat.secondaryResource >= 5) {
+    if (this.combat.secondaryResource >= bCost && !this.combat.burstUsedThisTurn) {
       secOrb.classList.add('ready-burst');
     } else {
       secOrb.classList.remove('ready-burst');

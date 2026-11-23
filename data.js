@@ -16,9 +16,9 @@ window.GAME_DATA = {
   },
   rankBonuses: {
     C: { hp: 0, str: 0, dex: 0, resourceStart: 0, desc: '기본 모험가 등급 (Tier 1)' },
-    B: { hp: 12, str: 1, dex: 1, resourceStart: 1, desc: '최대 체력 +12, 공격력(힘) +1, 방어도(민첩) +1, 시작 클래스 자원 +1' },
-    A: { hp: 26, str: 2, dex: 2, resourceStart: 2, desc: '체력 +26, 힘 +2, 민첩 +2, 시작 자원 +2, 클래스 전용 5레벨 필살 카드 해금!' },
-    S: { hp: 45, str: 4, dex: 3, resourceStart: 4, desc: '체력 +45, 힘 +4, 민첩 +3, 시작 자원 +4, S급 9레벨 전설 카드(+) 시작 덱 추가!' }
+    B: { hp: 6, str: 1, dex: 0, resourceStart: 1, desc: '최대 체력 +6, 공격력(힘) +1, 시작 클래스 자원 +1' },
+    A: { hp: 14, str: 1, dex: 1, resourceStart: 1, desc: '체력 +14, 힘 +1, 민첩 +1, 시작 자원 +1, 클래스 전용 5레벨 필살 카드 해금!' },
+    S: { hp: 24, str: 2, dex: 2, resourceStart: 2, desc: '체력 +24, 힘 +2, 민첩 +2, 시작 자원 +2, S급 9레벨 전설 카드(+) 시작 덱 추가!' }
   },
 
   // ==========================================================================
