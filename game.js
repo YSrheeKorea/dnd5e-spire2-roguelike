@@ -128,15 +128,15 @@ const Game = {
   },
 
   // --------------------------------------------------------------------------
-  // COMPUTE TOTAL PERMANENT BONUSES (Rank + Level + Subclass + Gear + Feats)
+  // COMPUTE TOTAL PERMANENT BONUSES (Rank + Level + Gear + Feats)
+  // No pre-selected subclass in lobby: players pick 1 of 8 main classes and
+  // freely draft from all 44 class cards (4 shared + 4x10 subclass archetypes) in-run!
   // --------------------------------------------------------------------------
   getHunterTotalBonuses(charId) {
     const ch = GAME_DATA.characters[charId];
     const currentRank = this.meta.ranks[charId] || ch.baseRank;
     const rankBonus = GAME_DATA.rankBonuses[currentRank] || GAME_DATA.rankBonuses.C;
     const hunterLv = this.meta.levels[charId] || 1;
-    const subId = this.meta.selectedSubclasses[charId] || ch.subclasses[0].id;
-    const subObj = ch.subclasses.find(s => s.id === subId) || ch.subclasses[0];
 
     let bonusHp = rankBonus.hp + (hunterLv - 1) * 3;
     let bonusStr = rankBonus.str + Math.floor(hunterLv / 5);
@@ -145,42 +145,6 @@ const Game = {
     let firstTurnBlock = 0;
     let healAfterCombat = 0;
     let summonBoost = 0;
-
-    // Subclass Stat Bonuses (Balanced to Slay the Spire 2 standards)
-    if (subId === 'champion') {
-      bonusStr += 1;
-      bonusHp += 8;
-    } else if (subId === 'battlemaster') {
-      bonusResourceStart += 2;
-    } else if (subId === 'berserker') {
-      bonusStr += 2;
-    } else if (subId === 'totem_warrior') {
-      bonusHp += 12;
-    } else if (subId === 'assassin') {
-      bonusResourceStart += 2;
-    } else if (subId === 'hunter_conclave') {
-      bonusStr += 1;
-    } else if (subId === 'evocation') {
-      bonusStr += 1;
-    } else if (subId === 'abjuration') {
-      firstTurnBlock += 8;
-    } else if (subId === 'life_domain') {
-      bonusHp += 10;
-    } else if (subId === 'war_domain') {
-      bonusStr += 1;
-      bonusDex += 1;
-    } else if (subId === 'devotion') {
-      bonusStr += 1;
-      bonusDex += 1;
-    } else if (subId === 'oathbreaker') {
-      bonusStr += 2;
-    } else if (subId === 'fiend_patron') {
-      healAfterCombat += 4;
-      summonBoost += 3;
-    } else if (subId === 'hexblade') {
-      bonusStr += 2;
-      bonusDex += 1;
-    }
 
     // Equipped Magic Gear
     const wId = this.meta.equipped.weapon;
@@ -677,16 +641,14 @@ const Game = {
 
   // --------------------------------------------------------------------------
   // START NEW RUN: 5 ACTS (FLOORS) x 30 STAGES PER FLOOR (150 STAGES)
-  // Uses Class's 4 Shared Cards + Selected Subclass's 10 Exclusive Cards!
+  // Full 44-Card Pool per Class (4 Shared Cards + 4 Subclasses x 10 Cards = 44 Cards)!
   // --------------------------------------------------------------------------
-  getActiveSubclassCardPool(charId, subclassId) {
+  getActiveSubclassCardPool(charId) {
     const ch = GAME_DATA.characters[charId];
-    const sub = ch.subclasses.find(s => s.id === subclassId) || ch.subclasses[0];
-    // Pool = 4 Shared Class Cards + 10 Selected Subclass Cards
-    return [...(ch.sharedCards || []), ...(sub.cards || [])];
+    return [...(ch.cardPool || [])];
   },
 
-  openClassCompendium(charId) {
+  openClassCompendium(charId, filterSubId = 'all') {
     const ch = GAME_DATA.characters[charId];
     const modal = document.getElementById('modal-deck');
     const titleEl = document.getElementById('deck-modal-title');
@@ -694,11 +656,17 @@ const Game = {
     const grid = document.getElementById('deck-modal-grid');
     grid.innerHTML = '';
 
-    titleEl.textContent = `📖 ${ch.name} 전체 카드 도감 (총 44종: 공용 4종 + 하위직업 4×10종)`;
-    subEl.textContent = '등급 체계: [일반(Common)] · [고급(Uncommon)] · [희귀(Rare)] · [전설(Legendary)]';
-
-    const allIds = [...(ch.sharedCards || [])];
-    ch.subclasses.forEach(s => allIds.push(...(s.cards || [])));
+    let allIds = [];
+    if (filterSubId === 'all') {
+      titleEl.textContent = `📖 ${ch.name} 전체 카드 도감 (총 44종: 공용 4종 + 하위직업 4×10종)`;
+      allIds = [...(ch.sharedCards || [])];
+      ch.subclasses.forEach(s => allIds.push(...(s.cards || [])));
+    } else {
+      const subObj = ch.subclasses.find(s => s.id === filterSubId);
+      titleEl.textContent = `📖 ${ch.name} — [${subObj ? subObj.name : ''}] 전용 카드 10종 + 공용 4종`;
+      allIds = [...(ch.sharedCards || []), ...(subObj ? subObj.cards : [])];
+    }
+    subEl.textContent = '등급 체계: [일반(Common)] · [고급(Uncommon)] · [희귀(Rare)] · [전설(Legendary)] — 던전에서 자유롭게 조합해 나만의 빌드를 완성하세요!';
 
     allIds.forEach(cid => {
       const cInst = this.createCardInstance(cid);
@@ -713,22 +681,14 @@ const Game = {
     const ch = GAME_DATA.characters[charId];
     const stats = this.getHunterTotalBonuses(charId);
 
+    // Starter deck uses ONLY the Class's Shared Cards (4x Strike, 4x Defend, 1x Shared Uncommon)
     const deck = ch.starterDeck.map((cardId, idx) => this.createCardInstance(cardId, idx));
 
-    // Add Subclass Signature Bonus Card (1st card of the 10 subclass cards)!
-    if (stats.subObj && stats.subObj.bonusCard) {
-      deck.push(this.createCardInstance(stats.subObj.bonusCard, 50));
-    }
-
-    // Rank A adds the 4th Shared Rare Card; Rank S ALSO adds the Subclass's 10th [전설(Legendary)] Card!
+    // Rank A / S adds the 4th Shared Rare Card to the starter deck
     if (stats.currentRank === 'A' || stats.currentRank === 'S') {
       const awkCard = this.createCardInstance(ch.awakeningCard, 98);
+      if (stats.currentRank === 'S') awkCard.upgraded = true;
       deck.push(awkCard);
-    }
-    if (stats.currentRank === 'S' && stats.subObj && stats.subObj.legendaryCard) {
-      const legCard = this.createCardInstance(stats.subObj.legendaryCard, 99);
-      legCard.upgraded = true;
-      deck.push(legCard);
     }
 
     // Randomly roll 1 of the 4 Bosses & 1 of the Mid-Bosses for each of the 5 Acts!
@@ -743,8 +703,8 @@ const Game = {
 
     this.run = {
       charId,
-      subclassId: stats.subId,
-      subclassObj: stats.subObj,
+      subclassId: null,
+      subclassObj: { icon: ch.secondaryResourceIcon, name: ch.name },
       rank: stats.currentRank,
       runLv: 1,
       runExp: 0,
@@ -1234,18 +1194,16 @@ const Game = {
     const drawPile = this.run.deck.map(c => ({ ...c }));
     this.shuffleArray(drawPile);
 
-    // Custom Companion Name based on Class & Subclass
+    // Custom Companion Name based on Class
     let summonName = '소환수 동료';
-    const subId = this.run.subclassId;
-    if (subId === 'echo_knight') summonName = '👤 그림자 잔상 (Echo)';
-    else if (subId === 'ancestral_guardian') summonName = '👻 선조의 수호령';
-    else if (subId === 'phantom') summonName = '🕯️ 원한의 망령';
+    if (this.run.charId === 'fighter') summonName = '👤 그림자 잔상 (Echo)';
+    else if (this.run.charId === 'barbarian') summonName = '👻 선조의 수호령';
+    else if (this.run.charId === 'rogue') summonName = '🕯️ 원한의 망령';
     else if (this.run.charId === 'ranger') summonName = '🐆 흑표범 구엔위바';
-    else if (subId === 'necromancy') summonName = '💀 언데드 해골 기사';
-    else if (subId === 'war_domain') summonName = '🔨 전쟁신의 영체 수호자';
-    else if (subId === 'conquest') summonName = '🦅 천상의 그리폰 군마';
-    else if (subId === 'oathbreaker') summonName = '🖤 타락한 데스나이트';
-    else if (this.run.charId === 'warlock') summonName = '😈 지옥마신 핀드';
+    else if (this.run.charId === 'wizard') summonName = '💀 언데드 해골 기사';
+    else if (this.run.charId === 'cleric') summonName = '🔨 전쟁신의 영체 수호자';
+    else if (this.run.charId === 'paladin') summonName = '🦅 성기사의 군마/데스나이트';
+    else if (this.run.charId === 'warlock') summonName = '😈 계약 악마 핀드';
 
     this.combat = {
       encounterType,
@@ -1328,66 +1286,29 @@ const Game = {
       this.summonOrBuffCompanion(18 + pStats.summonBoost, 7 + pStats.summonBoost + rStats.mana * 3);
     }
 
-    // 32 Subclass Special Combat Start Effects!
-    if (subId === 'eldritch_knight' || subId === 'wild_magic' || subId === 'arcane_trickster' || subId === 'fey_wanderer') {
-      this.combat.drones += 1;
-    }
-    if (subId === 'evocation' || subId === 'light_domain' || subId === 'great_old_one') {
-      this.combat.drones += 2;
-    }
-    if (
-      subId === 'echo_knight' ||
-      subId === 'ancestral_guardian' ||
-      subId === 'phantom' ||
-      subId === 'beast_master' ||
-      subId === 'necromancy' ||
-      subId === 'war_domain' ||
-      subId === 'conquest' ||
-      subId === 'oathbreaker'
-    ) {
-      this.summonOrBuffCompanion(18 + pStats.summonBoost, 8 + pStats.summonBoost + rStats.mana * 3);
-    }
-    if (subId === 'fiend_patron' && this.combat.summon.active) {
-      this.summonOrBuffCompanion(15, 5);
-    }
-    if (subId === 'archfey_chain' && this.combat.summon.active) {
-      this.combat.summon.maxHp *= 2;
-      this.combat.summon.hp *= 2;
-      this.combat.secondaryResource += 3;
-    }
-    if (subId === 'assassin') {
-      this.combat.enemies.forEach(en => {
-        en.poison += 6;
-        en.vuln += 2;
-      });
-    }
-    if (subId === 'light_domain') {
-      this.combat.enemies.forEach(en => {
-        en.poison += 5;
-        en.weak += 2;
-      });
-    }
-    if (subId === 'grave_domain') {
-      this.combat.enemies.forEach(en => (en.vuln += 3));
-    }
-    if (subId === 'vengeance') {
-      this.combat.enemies.forEach(en => (en.vuln += 2));
-    }
-    if (subId === 'conquest') {
-      this.combat.enemies.forEach(en => (en.weak += 2));
-    }
-    if (subId === 'great_old_one') {
-      this.combat.enemies.forEach(en => {
-        en.weak += 2;
-        en.vuln += 2;
-      });
-    }
-    if (subId === 'divination') {
-      this.combat.enemies.forEach(en => (en.vuln += 2));
-    }
-    if (subId === 'abjuration' || subId === 'devotion') {
-      this.combat.player.metallicize += 6;
-    }
+    // Dynamic Archetype Synergy: Count how many cards of each subclass archetype are in the player's current deck!
+    const deckSubCounts = {};
+    this.run.deck.forEach(c => {
+      const tpl = GAME_DATA.cards[c.id];
+      if (tpl && tpl.subclassId && tpl.subclassId !== 'shared') {
+        deckSubCounts[tpl.subclassId] = (deckSubCounts[tpl.subclassId] || 0) + 1;
+      }
+    });
+    // Identify dominant archetype if player has collected 3+ cards from that subclass route
+    let dominantSub = null;
+    let maxCnt = 2;
+    Object.keys(deckSubCounts).forEach(sid => {
+      if (deckSubCounts[sid] > maxCnt) {
+        maxCnt = deckSubCounts[sid];
+        dominantSub = sid;
+      }
+    });
+    this.run.subclassId = dominantSub;
+    const ch = GAME_DATA.characters[cid];
+    this.run.subclassObj = (dominantSub && ch.subclasses.find(s => s.id === dominantSub)) || {
+      icon: ch.secondaryResourceIcon,
+      name: ch.name
+    };
 
     // Relics
     if (relics.includes('Geiger_counter')) this.combat.player.strength += 2;
