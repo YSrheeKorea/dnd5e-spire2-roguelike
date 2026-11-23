@@ -1,6 +1,7 @@
 // ============================================================================
 // D&D 5E SPIRE II: TALES OF THE YAWNING PORTAL & UNDERMOUNTAIN
-// - Slay the Spire 1 Mechanics + Rank Card Pool Unlocks & 16 Class-Unique Rank Relics
+// - 8 Distinct Class Combat Engines & 8 Class-Unique Status Effects!
+// - 352 Class Cards + Combat Token Cards (Shiv, Smite Wave)
 // ============================================================================
 
 window.GAME_DATA = {
@@ -222,11 +223,11 @@ window.GAME_DATA = {
       "accent": "#fab1a0",
       "maxHp": 86,
       "startEnergy": 3,
-      "secondaryResourceName": "우위 주사위 (Superiority Dice)",
+      "secondaryResourceName": "연격 콤보 & 우위 주사위",
       "secondaryResourceIcon": "⚔️",
-      "secondaryResourceDesc": "공격과 방어 전술로 우위 주사위(d8~d12)를 모읍니다. 5 이상 모아 [행동 연쇄(Action Surge)]를 발동하면 즉시 마나 +2와 카드 2장을 뽑고 힘을 얻습니다!",
-      "passiveName": "재기 (Second Wind) & 행동 연쇄",
-      "passiveDesc": "전투 종료 시 체력을 6 회복하며, 첫 턴 우위 주사위 +2를 얻습니다.",
+      "secondaryResourceDesc": "【고유 시스템: 연격 콤보 & 반격】 한 턴에 카드를 사용할 때마다 [연격 콤보]가 쌓여 공격 피해가 +(콤보×15%) 증가하며, 3콤보 달성 시 즉시 행동력(AP)+1과 카드 1장을 뽑습니다! 적에게 [💥파쇄]를 쌓으면 받는 물리 피해가 고정 증가하고, [🛡️반격] 상태에서는 적의 공격을 막을 때 즉시 카운터 베기를 가합니다!",
+      "passiveName": "전장의 지배자 (연격 콤보 & 패링 반격)",
+      "passiveDesc": "매 턴 3콤보 달성 시 AP+1 & 1드로우! 공격 카드가 적의 방어도를 부수는 [💥파쇄]를 부여하고 방어 카드가 [🛡️반격]을 얻습니다.",
       "awakeningCard": "ftr_sh_4",
       "avatarSvg": "<svg viewBox=\"0 0 120 120\" class=\"char-svg\">\n        <circle cx=\"60\" cy=\"60\" r=\"52\" fill=\"#4a2311\" stroke=\"#e67e22\" stroke-width=\"4\"/>\n        <path d=\"M32 95 L28 48 L45 25 L60 32 L75 25 L92 48 L88 95 Z\" fill=\"#636e72\" stroke=\"#dfe6e9\" stroke-width=\"3\"/>\n        <rect x=\"42\" y=\"52\" width=\"36\" height=\"8\" fill=\"#fdcb6e\"/>\n        <line x1=\"60\" y1=\"25\" x2=\"60\" y2=\"85\" stroke=\"#2d3436\" stroke-width=\"4\"/>\n      </svg>",
       "startRelic": "fighters_badge",
@@ -378,7 +379,8 @@ window.GAME_DATA = {
       "rankRelics": {
         "B": "ftr_rank_b",
         "S": "ftr_rank_s"
-      }
+      },
+      "uniqueStatusName": "💥 파쇄 (Sunder) & 🛡️ 반격 (Parry)"
     },
     "barbarian": {
       "id": "barbarian",
@@ -391,11 +393,11 @@ window.GAME_DATA = {
       "accent": "#ff7675",
       "maxHp": 96,
       "startEnergy": 3,
-      "secondaryResourceName": "격노 (Rage)",
+      "secondaryResourceName": "격노 & 혈투 (Bloodlust)",
       "secondaryResourceIcon": "💢",
-      "secondaryResourceDesc": "공격하거나 피해를 입을 때 격노가 폭발합니다. 5 이상 모아 개방하면 즉시 [광란의 격노]가 발동해 힘 +3과 방어도 +10을 얻습니다!",
-      "passiveName": "무모한 공격 (Reckless) & 비무장 방어",
-      "passiveDesc": "전투 시작 시 힘 +2와 격노 +2를 얻고 시작합니다.",
+      "secondaryResourceDesc": "【고유 시스템: 손실 체력 비례 광폭화 & 출혈 폭발】 잃은 체력 10%마다 모든 공격 피해가 +12%씩 실시간 증폭됩니다(체력 50% 이하 [혈전] 상태 시 공격 적중마다 체력+2 흡혈)! 적에게 [🩸출혈]을 쌓고 공격하면 매 타격마다 출혈 수치의 50%가 즉시 추가 폭발합니다!",
+      "passiveName": "피의 광전사 (잃은 체력 비례 공격력 증폭)",
+      "passiveDesc": "체력이 낮을수록 공격력이 폭증하며, 모든 공격이 적에게 [🩸출혈]을 부여하고 출혈 중인 적을 타격할 때마다 추가 출혈 폭발 피해를 입힙니다!",
       "awakeningCard": "bar_sh_4",
       "avatarSvg": "<svg viewBox=\"0 0 120 120\" class=\"char-svg\">\n        <circle cx=\"60\" cy=\"60\" r=\"52\" fill=\"#5c1212\" stroke=\"#ff4757\" stroke-width=\"4\"/>\n        <path d=\"M28 92 L32 42 L60 26 L88 42 L92 92 Z\" fill=\"#833471\" stroke=\"#ff7675\" stroke-width=\"3\"/>\n        <polygon points=\"38,52 54,58 38,62\" fill=\"#ff3838\"/>\n        <polygon points=\"82,52 66,58 82,62\" fill=\"#ff3838\"/>\n        <polygon points=\"42,78 47,66 52,78\" fill=\"#fff\"/>\n        <polygon points=\"68,78 73,66 78,78\" fill=\"#fff\"/>\n      </svg>",
       "startRelic": "totem_necklace",
@@ -547,7 +549,8 @@ window.GAME_DATA = {
       "rankRelics": {
         "B": "bar_rank_b",
         "S": "bar_rank_s"
-      }
+      },
+      "uniqueStatusName": "🩸 과다출혈 (Bleed) & 🔥 혈투 광폭화"
     },
     "rogue": {
       "id": "rogue",
@@ -560,11 +563,11 @@ window.GAME_DATA = {
       "accent": "#55efc4",
       "maxHp": 72,
       "startEnergy": 3,
-      "secondaryResourceName": "급소 공격 주사위 (Sneak Dice)",
+      "secondaryResourceName": "연계 점수 (Combo 1~5) & 암기",
       "secondaryResourceIcon": "🗡️",
-      "secondaryResourceDesc": "은신, 단검, 맹독 카드를 사용할 때 급소 주사위(d6)가 쌓입니다. 5 이상 모아 개방하면 모든 적의 맹독을 즉시 폭발시키고 0코스트 단검을 뽑습니다!",
-      "passiveName": "교활한 행동 (Cunning Action) & 급소 공격",
-      "passiveDesc": "전투 시작 시 모든 적에게 맹독 3과 취약 1을 부여하고 첫 턴 카드를 2장 더 뽑습니다.",
+      "secondaryResourceDesc": "【고유 시스템: 0코스트 단검(Shiv) 생성 & 5연계 자동 처형】 스킬 사용 시 손패에 0코스트 [비장의 투척 단검]을 생성합니다! 공격할 때마다 적에게 [⚪연계 점수(1~5)]가 쌓이며, 5연계 도달 시 즉시 [💀마무리 일격(Eviscerate)]이 자동 폭발해 고정 피해 20 + 맹독 즉시 격발 + 행동력(AP) +1을 획득합니다!",
+      "passiveName": "그림자 암살술 (단검 생성 & 5연계 폭발)",
+      "passiveDesc": "전투 시작 시 손패에 0코스트 [투척 단검] 1장을 생성하며, 공격으로 5연계를 채울 때마다 마무리 일격과 맹독 폭발이 자동으로 터집니다!",
       "awakeningCard": "rog_sh_4",
       "avatarSvg": "<svg viewBox=\"0 0 120 120\" class=\"char-svg\">\n        <circle cx=\"60\" cy=\"60\" r=\"52\" fill=\"#09331e\" stroke=\"#00ff88\" stroke-width=\"4\"/>\n        <path d=\"M26 92 Q28 22 60 22 Q92 22 94 92 Z\" fill=\"#1e272e\" stroke=\"#2ecc71\" stroke-width=\"3\"/>\n        <polygon points=\"42,56 54,58 40,62\" fill=\"#00ff88\"/>\n        <polygon points=\"78,56 66,58 80,62\" fill=\"#00ff88\"/>\n      </svg>",
       "startRelic": "thieves_tools",
@@ -716,7 +719,8 @@ window.GAME_DATA = {
       "rankRelics": {
         "B": "rog_rank_b",
         "S": "rog_rank_s"
-      }
+      },
+      "uniqueStatusName": "⚪ 5연계 마무리 (Combo Points) & 🗡️ 단검(Shiv) 생성"
     },
     "ranger": {
       "id": "ranger",
@@ -729,11 +733,11 @@ window.GAME_DATA = {
       "accent": "#81ecec",
       "maxHp": 76,
       "startEnergy": 3,
-      "secondaryResourceName": "사냥꾼의 징표 (Hunter Mark)",
+      "secondaryResourceName": "사냥꾼의 징표 & 함정 매설",
       "secondaryResourceIcon": "🏹",
-      "secondaryResourceDesc": "사격 및 야수 명령 시 사냥꾼의 징표가 중첩됩니다. 5 이상 모아 개방하면 대상에게 연쇄 폭풍 화살을 퍼붓고 야수 동료가 협공합니다!",
-      "passiveName": "숙적 사냥꾼 (Favored Enemy)",
-      "passiveDesc": "전투 시작 시 사냥꾼의 징표 +3 및 민첩 +2를 얻습니다.",
+      "secondaryResourceDesc": "【고유 시스템: 전술 함정(Trap) 설치 & 야수 태세】 스킬을 사용할 때마다 전장에 [🪤전술 함정]이 매설됩니다! 적이 공격하려는 순간 함정이 먼저 터져 적에게 피해를 주고 공격력을 깎습니다. 적에게 [🎯표적]을 부여하고 공격하면 표적이 폭발하며 1.5배 치명타 피해와 취약/출혈을 입힙니다!",
+      "passiveName": "올가미 함정술 & 흑표범 사냥",
+      "passiveDesc": "전투 시작 시 [🪤전술 함정 2개]를 설치한 채 시작하며, 방어/전술 카드가 함정을 추가 매설하고 공격 카드가 [🎯표적]을 격발합니다!",
       "awakeningCard": "rng_sh_4",
       "avatarSvg": "<svg viewBox=\"0 0 120 120\" class=\"char-svg\">\n        <circle cx=\"60\" cy=\"60\" r=\"52\" fill=\"#0b3b24\" stroke=\"#55efc4\" stroke-width=\"4\"/>\n        <path d=\"M90 18 Q112 60 90 102\" stroke=\"#fdcb6e\" stroke-width=\"4\" fill=\"none\"/>\n        <path d=\"M30 92 L36 32 L60 20 L84 32 L90 92 Z\" fill=\"#1e5631\" stroke=\"#55efc4\" stroke-width=\"3\"/>\n        <circle cx=\"48\" cy=\"54\" r=\"5\" fill=\"#ffeaa7\"/>\n        <circle cx=\"72\" cy=\"54\" r=\"5\" fill=\"#ffeaa7\"/>\n      </svg>",
       "startRelic": "hunters_quiver",
@@ -885,7 +889,8 @@ window.GAME_DATA = {
       "rankRelics": {
         "B": "rng_rank_b",
         "S": "rng_rank_s"
-      }
+      },
+      "uniqueStatusName": "🪤 전술 함정 (Traps) & 🎯 표적 관통 (Quarry)"
     },
     "wizard": {
       "id": "wizard",
@@ -898,11 +903,11 @@ window.GAME_DATA = {
       "accent": "#74b9ff",
       "maxHp": 68,
       "startEnergy": 3,
-      "secondaryResourceName": "비전 주문력 (Arcane Charges)",
+      "secondaryResourceName": "비전 주문력 & 3원소 구체 발현",
       "secondaryResourceIcon": "🔮",
-      "secondaryResourceDesc": "주문 카드를 시전할 때마다 비전 주문력이 충전되고 [비전 구체(Orb)]가 생성됩니다. 5 이상 모아 개방하면 [비전 회복(Arcane Recovery)]으로 마나 +1 및 구체 일제 폭격을 가합니다!",
-      "passiveName": "비전 회복 & 원소 구체 서클",
-      "passiveDesc": "전투 시작 시 [비전 구체 오브] 1기와 비전 주문력 +3을 가지고 시작합니다.",
+      "secondaryResourceDesc": "【고유 시스템: 디펙트 스타일 3원소 구체 영창(Channel) & 발현(Evoke)】 주문을 시전할 때마다 [🔥화염 구체(전체 피해)], [❄️냉기 구체(방어도+적 동상)], [⚡번개 구체(단일 고화력+드로우)]가 생성됩니다! 슬롯(4칸)이 가득 차면 가장 앞의 구체가 [발현(2배 위력 폭발)]하며, 적에게 [❄️동상]이 8 이상 쌓이면 [🧊빙결(공격력 50% 반감)]됩니다!",
+      "passiveName": "원소 대마도사 (화염·냉기·번개 구체 & 빙결)",
+      "passiveDesc": "전투 시작 시 [❄️냉기 구체 1기 + ⚡번개 구체 1기]를 영창하며, 모든 주문이 적에게 공격력을 깎는 [❄️동상]을 부여합니다!",
       "awakeningCard": "wiz_sh_4",
       "avatarSvg": "<svg viewBox=\"0 0 120 120\" class=\"char-svg\">\n        <circle cx=\"60\" cy=\"60\" r=\"52\" fill=\"#0a1931\" stroke=\"#00d2d3\" stroke-width=\"4\"/>\n        <polygon points=\"60,10 86,46 34,46\" fill=\"#192a56\" stroke=\"#00d2d3\" stroke-width=\"3\"/>\n        <ellipse cx=\"60\" cy=\"46\" rx=\"36\" ry=\"7\" fill=\"#273c75\" stroke=\"#00d2d3\" stroke-width=\"2\"/>\n        <circle cx=\"49\" cy=\"62\" r=\"6\" fill=\"#00d2d3\"/>\n        <circle cx=\"71\" cy=\"62\" r=\"6\" fill=\"#00d2d3\"/>\n      </svg>",
       "startRelic": "spellbook_of_mystra",
@@ -1054,7 +1059,8 @@ window.GAME_DATA = {
       "rankRelics": {
         "B": "wiz_rank_b",
         "S": "wiz_rank_s"
-      }
+      },
+      "uniqueStatusName": "🔥❄️⚡ 3원소 구체 (Fire/Frost/Lightning) & 🧊 동상/빙결"
     },
     "cleric": {
       "id": "cleric",
@@ -1067,11 +1073,11 @@ window.GAME_DATA = {
       "accent": "#ffeaa7",
       "maxHp": 80,
       "startEnergy": 3,
-      "secondaryResourceName": "신성력 전달 (Channel Divinity)",
+      "secondaryResourceName": "신앙심 (10 도달 시 천상 기적!)",
       "secondaryResourceIcon": "☀️",
-      "secondaryResourceDesc": "기도와 광휘 공격으로 신성력을 축적합니다. 5 이상 모아 [신성력 전달]을 개방하면 체력을 8 회복하고 모든 적에게 광휘 심판 피해를 입힙니다!",
-      "passiveName": "영혼의 수호자 (Spirit Guardians)",
-      "passiveDesc": "전투 시작 시 [천상의 수호령 오브] 1기를 소환하고 매 전투 종료 시 체력을 5 회복합니다.",
+      "secondaryResourceDesc": "【고유 시스템: 초과치유 100% 보호막 전환 & 성스러운 낙인 반사】 체력을 회복할 때 최대 체력을 초과한 치유량(Overheal)이 100% 방어도로 전환되며, 카드로 내 체력을 치유하거나 방어도를 얻을 때마다 [☀️성스러운 낙인]이 찍힌 모든 적에게 치유/방어량의 60%만큼 광휘 심판 피해가 자동으로 꽂힙니다! 신앙심 10 도달 시 [🌟기적 강림(피해 3배, AP+2)]이 자동 발동합니다!",
+      "passiveName": "라센더의 축복 (초과치유 보호막 & 힐/방어 광휘 반사)",
+      "passiveDesc": "전투 시작 시 모든 적에게 [☀️성스러운 낙인 3]을 부여합니다! 치유와 방어가 곧 적 전체를 태우는 광휘 공격이 됩니다.",
       "awakeningCard": "clr_sh_4",
       "avatarSvg": "<svg viewBox=\"0 0 120 120\" class=\"char-svg\">\n        <circle cx=\"60\" cy=\"60\" r=\"52\" fill=\"#4a3500\" stroke=\"#ffeaa7\" stroke-width=\"4\"/>\n        <circle cx=\"60\" cy=\"50\" r=\"32\" fill=\"none\" stroke=\"#fdcb6e\" stroke-width=\"3\" stroke-dasharray=\"5,3\"/>\n        <path d=\"M32 94 L38 38 L60 24 L82 38 L88 94 Z\" fill=\"#dfe6e9\" stroke=\"#f1c40f\" stroke-width=\"3\"/>\n        <circle cx=\"48\" cy=\"56\" r=\"5\" fill=\"#f39c12\"/>\n        <circle cx=\"72\" cy=\"56\" r=\"5\" fill=\"#f39c12\"/>\n      </svg>",
       "startRelic": "holy_symbol_lathander",
@@ -1223,7 +1229,8 @@ window.GAME_DATA = {
       "rankRelics": {
         "B": "clr_rank_b",
         "S": "clr_rank_s"
-      }
+      },
+      "uniqueStatusName": "☀️ 성스러운 낙인 (Holy Brand) & 💛 초과치유 보호막 (Overheal)"
     },
     "paladin": {
       "id": "paladin",
@@ -1236,11 +1243,11 @@ window.GAME_DATA = {
       "accent": "#ffeaa7",
       "maxHp": 88,
       "startEnergy": 3,
-      "secondaryResourceName": "신성한 강타 (Divine Smite)",
+      "secondaryResourceName": "신성한 강타 & 3대 오라 전환",
       "secondaryResourceIcon": "✨",
-      "secondaryResourceDesc": "검격과 축복 카드로 강타 에너지를 모읍니다. 5 이상 모아 개방하면 즉시 [천벌의 신성한 강타]가 폭발해 힘 +2, 방어도 +12 및 적에게 심판 피해를 가합니다!",
-      "passiveName": "수호의 오라 (Aura of Protection) & 안수 치료",
-      "passiveDesc": "매 턴 종료 시 방어도 +4를 자동으로 얻으며, 전투 시작 시 신성한 강타 +3을 보유합니다.",
+      "secondaryResourceDesc": "【고유 시스템: 3대 성기사 오라 실시간 전환 & 심판의 문장 폭발】 고유 자원 버튼을 누르거나 카드를 쓸 때 [🔥응보의 오라(피격 시 적에게 광휘 반사 피해)] ↔ [🛡️헌신의 오라(매 턴 방어도+6 & 피해 감소)] ↔ [⚔️성전의 오라(모든 공격에 추가 성검 피해)]를 전환하며, 적에게 [⚖️심판의 문장]을 쌓아 강타로 폭발시키면 대량 피해와 함께 내 방어도가 충전됩니다!",
+      "passiveName": "성기사단장의 오라 & 문장 심판",
+      "passiveDesc": "전투 시작 시 [🔥응보의 오라(가시 반사 +5)]가 활성화되며, 공격이 [⚖️심판의 문장]을 새기고 강타 카드가 문장을 폭발시킵니다!",
       "awakeningCard": "pal_sh_4",
       "avatarSvg": "<svg viewBox=\"0 0 120 120\" class=\"char-svg\">\n        <circle cx=\"60\" cy=\"60\" r=\"52\" fill=\"#2c2c54\" stroke=\"#f1c40f\" stroke-width=\"4\"/>\n        <path d=\"M30 95 L28 45 L60 22 L92 45 L90 95 Z\" fill=\"#dcdde1\" stroke=\"#f39c12\" stroke-width=\"3\"/>\n        <polygon points=\"60,32 66,52 84,52 68,62 74,80 60,68 46,80 52,62 36,52 54,52\" fill=\"#f1c40f\"/>\n      </svg>",
       "startRelic": "holy_avenger_hilt",
@@ -1392,7 +1399,8 @@ window.GAME_DATA = {
       "rankRelics": {
         "B": "pal_rank_b",
         "S": "pal_rank_s"
-      }
+      },
+      "uniqueStatusName": "⚜️ 3대 성기사 오라 (응보/헌신/성전) & ⚖️ 심판의 문장"
     },
     "warlock": {
       "id": "warlock",
@@ -1405,11 +1413,11 @@ window.GAME_DATA = {
       "accent": "#e056fd",
       "maxHp": 74,
       "startEnergy": 3,
-      "secondaryResourceName": "영혼 조각 (Soul Shards)",
+      "secondaryResourceName": "영혼 조각 & 사역마 혈맹 진화",
       "secondaryResourceIcon": "🟣",
-      "secondaryResourceDesc": "섬뜩한 파열(Eldritch Blast)과 주술(Hex)로 영혼 조각을 수확합니다. 5 이상 모아 개방하면 후원자의 권능을 빌려 소환수를 진화시키고 전체 암흑 폭격을 가합니다!",
-      "passiveName": "사슬의 계약 (Pact of the Chain - 슬더스2 악마 소환)",
-      "passiveDesc": "전투 시작 시 전방에 계약 악마 [지옥마신 핀드]를 소환하여 공격을 대신 흡수하고 매 턴 적을 불태웁니다!",
+      "secondaryResourceDesc": "【고유 시스템: 슬더스 2 네크로바인더 파멸(Doom) 즉사 처형 & 사역마 진화】 모든 공격과 주술이 적에게 영구 유지되는 [💀파멸(Doom)]을 쌓습니다! 적의 현재 체력이 [💀파멸] 수치 이하가 되는 순간 방어도를 무시하고 즉시 처형(즉사 폭발!)됩니다! 또한 고유 버튼으로 계약 악마의 생명력을 일부 바쳐 행동력(AP)+1과 카드 2장을 뽑고 모든 적의 파멸을 증폭시킬 수 있습니다!",
+      "passiveName": "슬더스 2 네크로바인더: 파멸(Doom) 처형 & 계약 악마",
+      "passiveDesc": "전투 시작 시 계약 악마 [핀드]를 소환하고 모든 적에게 [💀파멸 10]을 부여합니다! 적 체력이 파멸 수치 이하가 되면 즉시 처형됩니다!",
       "awakeningCard": "wlk_sh_4",
       "avatarSvg": "<svg viewBox=\"0 0 120 120\" class=\"char-svg\">\n        <circle cx=\"60\" cy=\"60\" r=\"52\" fill=\"#1a0526\" stroke=\"#e056fd\" stroke-width=\"4\"/>\n        <path d=\"M30 94 L34 40 L47 22 L60 36 L73 22 L86 40 L90 94 Z\" fill=\"#130f40\" stroke=\"#be2edd\" stroke-width=\"3\"/>\n        <polygon points=\"40,54 55,58 53,64 38,59\" fill=\"#00cec9\"/>\n        <polygon points=\"80,54 65,58 67,64 82,59\" fill=\"#00cec9\"/>\n      </svg>",
       "startRelic": "rod_of_pact_keeper",
@@ -1561,7 +1569,8 @@ window.GAME_DATA = {
       "rankRelics": {
         "B": "wlk_rank_b",
         "S": "wlk_rank_s"
-      }
+      },
+      "uniqueStatusName": "💀 파멸의 저주 (Doom - 체력 이하 시 즉사!) & 🩸 사역마 혈맹"
     }
   },
   "equipment": {
@@ -1767,9 +1776,10 @@ window.GAME_DATA = {
       "cost": 1,
       "damage": 6,
       "upgradeDamage": 9,
-      "desc": "적에게 피해를 {damage} 줍니다.",
+      "desc": "적에게 피해를 {damage} 줍니다. 💥파쇄 +2.",
       "classId": "fighter",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "sunder": 2
     },
     "ftr_sh_2": {
       "id": "ftr_sh_2",
@@ -1779,9 +1789,10 @@ window.GAME_DATA = {
       "cost": 1,
       "block": 5,
       "upgradeBlock": 8,
-      "desc": "방어도를 {block} 얻습니다.",
+      "desc": "방어도를 {block} 얻습니다. 🛡️반격 +4 획득.",
       "classId": "fighter",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "parry": 4
     },
     "ftr_sh_3": {
       "id": "ftr_sh_3",
@@ -1793,10 +1804,11 @@ window.GAME_DATA = {
       "upgradeBlock": 8,
       "healOnHit": 2,
       "resourceGain": 1,
-      "desc": "방어도 {block}을 얻고 내 체력을 4 회복합니다. 주사위 +1. (소멸)",
+      "desc": "방어도 {block}을 얻고 내 체력을 4 회복합니다. 주사위 +1. (소멸) 🛡️반격 +4 획득.",
       "classId": "fighter",
       "subclassId": "shared",
-      "exhaust": true
+      "exhaust": true,
+      "parry": 4
     },
     "ftr_sh_4": {
       "id": "ftr_sh_4",
@@ -1821,9 +1833,10 @@ window.GAME_DATA = {
       "damage": 7,
       "upgradeDamage": 10,
       "resourceGain": 1,
-      "desc": "피해를 {damage} 줍니다. 우위 주사위 +1.",
+      "desc": "피해를 {damage} 줍니다. 우위 주사위 +1. 💥파쇄 +2.",
       "classId": "fighter",
-      "subclassId": "champion"
+      "subclassId": "champion",
+      "sunder": 2
     },
     "fighter_champion_2": {
       "id": "fighter_champion_2",
@@ -1833,9 +1846,10 @@ window.GAME_DATA = {
       "cost": 1,
       "block": 6,
       "upgradeBlock": 8,
-      "desc": "방어도 {block}을 얻고",
+      "desc": "방어도 {block}을 얻고 🛡️반격 +4 획득.",
       "classId": "fighter",
-      "subclassId": "champion"
+      "subclassId": "champion",
+      "parry": 4
     },
     "fighter_champion_3": {
       "id": "fighter_champion_3",
@@ -1847,9 +1861,10 @@ window.GAME_DATA = {
       "upgradeDamage": 8,
       "block": 4,
       "upgradeBlock": 6,
-      "desc": "피해 {damage}를 주고 방어도 {block}을 얻습니다.",
+      "desc": "피해 {damage}를 주고 방어도 {block}을 얻습니다. 💥파쇄 +2.",
       "classId": "fighter",
-      "subclassId": "champion"
+      "subclassId": "champion",
+      "sunder": 2
     },
     "fighter_champion_4": {
       "id": "fighter_champion_4",
@@ -1860,9 +1875,10 @@ window.GAME_DATA = {
       "damage": 6,
       "upgradeDamage": 9,
       "target": "all",
-      "desc": "적 전체에게 피해를 {damage} 줍니다.",
+      "desc": "적 전체에게 피해를 {damage} 줍니다. 💥파쇄 +2.",
       "classId": "fighter",
-      "subclassId": "champion"
+      "subclassId": "champion",
+      "sunder": 2
     },
     "fighter_champion_5": {
       "id": "fighter_champion_5",
@@ -1888,9 +1904,10 @@ window.GAME_DATA = {
       "upgradeDamage": 5,
       "hits": 3,
       "resourceGain": 1,
-      "desc": "피해를 {damage}씩 3번 연속 가합니다. 주사위 +1.",
+      "desc": "피해를 {damage}씩 3번 연속 가합니다. 주사위 +1. 💥파쇄 +2.",
       "classId": "fighter",
-      "subclassId": "champion"
+      "subclassId": "champion",
+      "sunder": 2
     },
     "fighter_champion_7": {
       "id": "fighter_champion_7",
@@ -1901,10 +1918,11 @@ window.GAME_DATA = {
       "block": 8,
       "upgradeBlock": 11,
       "doubleBlock": true,
-      "desc": "방어도 {block} 획득 후 현재 방어도를 2배로 증폭합니다! (소멸)",
+      "desc": "방어도 {block} 획득 후 현재 방어도를 2배로 증폭합니다! (소멸) 🛡️반격 +4 획득.",
       "classId": "fighter",
       "subclassId": "champion",
-      "exhaust": true
+      "exhaust": true,
+      "parry": 4
     },
     "fighter_champion_8": {
       "id": "fighter_champion_8",
@@ -1915,9 +1933,11 @@ window.GAME_DATA = {
       "damage": 16,
       "upgradeDamage": 22,
       "vuln": 2,
-      "desc": "치명타 강타! 피해 {damage}를 주고 취약 2를 부여합니다.",
+      "desc": "치명타 강타! 피해 {damage}를 주고 취약 2를 부여합니다. 💥파쇄 +4 (현재 콤보당 피해 +4!).",
       "classId": "fighter",
-      "subclassId": "champion"
+      "subclassId": "champion",
+      "sunder": 4,
+      "comboScaling": true
     },
     "fighter_champion_9": {
       "id": "fighter_champion_9",
@@ -1942,10 +1962,12 @@ window.GAME_DATA = {
       "upgradeDamage": 8,
       "hits": 4,
       "healOnHit": 4,
-      "desc": "[전설] 피해 {damage}x4 연속 공격 후 내 체력을 6 회복합니다! (소멸)",
+      "desc": "[전설] 피해 {damage}x4 연속 공격 후 내 체력을 6 회복합니다! (소멸) 💥파쇄 +4 (현재 콤보당 피해 +4!).",
       "classId": "fighter",
       "subclassId": "champion",
-      "exhaust": true
+      "exhaust": true,
+      "sunder": 4,
+      "comboScaling": true
     },
     "fighter_battlemaster_1": {
       "id": "fighter_battlemaster_1",
@@ -1958,9 +1980,10 @@ window.GAME_DATA = {
       "block": 5,
       "upgradeBlock": 7,
       "resourceGain": 1,
-      "desc": "피해 {damage}, 방어도 {block}, 우위 주사위 +1.",
+      "desc": "피해 {damage}, 방어도 {block}, 우위 주사위 +1. 💥파쇄 +2.",
       "classId": "fighter",
-      "subclassId": "battlemaster"
+      "subclassId": "battlemaster",
+      "sunder": 2
     },
     "fighter_battlemaster_2": {
       "id": "fighter_battlemaster_2",
@@ -1972,9 +1995,10 @@ window.GAME_DATA = {
       "upgradeDamage": 9,
       "weak": 2,
       "resourceGain": 1,
-      "desc": "피해 {damage}를 주고 대상에게 약화 2를 부여합니다.",
+      "desc": "피해 {damage}를 주고 대상에게 약화 2를 부여합니다. 💥파쇄 +2.",
       "classId": "fighter",
-      "subclassId": "battlemaster"
+      "subclassId": "battlemaster",
+      "sunder": 2
     },
     "fighter_battlemaster_3": {
       "id": "fighter_battlemaster_3",
@@ -1986,9 +2010,10 @@ window.GAME_DATA = {
       "upgradeDamage": 9,
       "vuln": 2,
       "resourceGain": 1,
-      "desc": "피해 {damage}를 주고 대상에게 취약 2를 부여합니다.",
+      "desc": "피해 {damage}를 주고 대상에게 취약 2를 부여합니다. 💥파쇄 +2.",
       "classId": "fighter",
-      "subclassId": "battlemaster"
+      "subclassId": "battlemaster",
+      "sunder": 2
     },
     "fighter_battlemaster_4": {
       "id": "fighter_battlemaster_4",
@@ -1999,9 +2024,10 @@ window.GAME_DATA = {
       "block": 7,
       "upgradeBlock": 10,
       "draw": 1,
-      "desc": "방어도 {block}을 얻고 카드를 1장 뽑습니다.",
+      "desc": "방어도 {block}을 얻고 카드를 1장 뽑습니다. 🛡️반격 +4 획득.",
       "classId": "fighter",
-      "subclassId": "battlemaster"
+      "subclassId": "battlemaster",
+      "parry": 4
     },
     "fighter_battlemaster_5": {
       "id": "fighter_battlemaster_5",
@@ -2027,9 +2053,10 @@ window.GAME_DATA = {
       "upgradeBlock": 11,
       "draw": 1,
       "resourceGain": 1,
-      "desc": "방어도 {block}, 카드 1장 드로우, 주사위 +1.",
+      "desc": "방어도 {block}, 카드 1장 드로우, 주사위 +1. 🛡️반격 +4 획득.",
       "classId": "fighter",
-      "subclassId": "battlemaster"
+      "subclassId": "battlemaster",
+      "parry": 4
     },
     "fighter_battlemaster_7": {
       "id": "fighter_battlemaster_7",
@@ -2041,9 +2068,10 @@ window.GAME_DATA = {
       "upgradeDamage": 12,
       "target": "all",
       "weak": 2,
-      "desc": "적 전체에게 피해 {damage}와 약화 2를 부여합니다.",
+      "desc": "적 전체에게 피해 {damage}와 약화 2를 부여합니다. 💥파쇄 +2.",
       "classId": "fighter",
-      "subclassId": "battlemaster"
+      "subclassId": "battlemaster",
+      "sunder": 2
     },
     "fighter_battlemaster_8": {
       "id": "fighter_battlemaster_8",
@@ -2068,9 +2096,11 @@ window.GAME_DATA = {
       "upgradeDamage": 16,
       "target": "all",
       "bonusPerResource": 2,
-      "desc": "적 전체 피해 {damage} + 보유한 주사위 1당 추가 피해 +2!",
+      "desc": "적 전체 피해 {damage} + 보유한 주사위 1당 추가 피해 +2! 💥파쇄 +4 (현재 콤보당 피해 +4!).",
       "classId": "fighter",
-      "subclassId": "battlemaster"
+      "subclassId": "battlemaster",
+      "sunder": 4,
+      "comboScaling": true
     },
     "fighter_battlemaster_10": {
       "id": "fighter_battlemaster_10",
@@ -2085,9 +2115,11 @@ window.GAME_DATA = {
       "weak": 3,
       "consumeResourceAll": true,
       "bonusPerResource": 3,
-      "desc": "[전설] 적 전체 피해 {damage}(주사위당 +3) 및 취약 3, 약화 3 부여!",
+      "desc": "[전설] 적 전체 피해 {damage}(주사위당 +3) 및 취약 3, 약화 3 부여! 💥파쇄 +4 (현재 콤보당 피해 +4!).",
       "classId": "fighter",
-      "subclassId": "battlemaster"
+      "subclassId": "battlemaster",
+      "sunder": 4,
+      "comboScaling": true
     },
     "fighter_eldritch_knight_1": {
       "id": "fighter_eldritch_knight_1",
@@ -2098,9 +2130,10 @@ window.GAME_DATA = {
       "damage": 6,
       "upgradeDamage": 9,
       "addDrone": 1,
-      "desc": "피해 {damage}를 주고 [비전 검기 구체] 1기를 소환합니다!",
+      "desc": "피해 {damage}를 주고 [비전 검기 구체] 1기를 소환합니다! 💥파쇄 +2.",
       "classId": "fighter",
-      "subclassId": "eldritch_knight"
+      "subclassId": "eldritch_knight",
+      "sunder": 2
     },
     "fighter_eldritch_knight_2": {
       "id": "fighter_eldritch_knight_2",
@@ -2112,9 +2145,10 @@ window.GAME_DATA = {
       "upgradeDamage": 8,
       "target": "all",
       "resourceGain": 1,
-      "desc": "적 전체에게 화염 검기 피해 {damage}를 주고 주사위 +1.",
+      "desc": "적 전체에게 화염 검기 피해 {damage}를 주고 주사위 +1. 💥파쇄 +2.",
       "classId": "fighter",
-      "subclassId": "eldritch_knight"
+      "subclassId": "eldritch_knight",
+      "sunder": 2
     },
     "fighter_eldritch_knight_3": {
       "id": "fighter_eldritch_knight_3",
@@ -2125,9 +2159,10 @@ window.GAME_DATA = {
       "block": 7,
       "upgradeBlock": 10,
       "blockPerDrone": 3,
-      "desc": "방어도 {block} + 소환된 검기 구체 1기당 방어도 +3!",
+      "desc": "방어도 {block} + 소환된 검기 구체 1기당 방어도 +3! 🛡️반격 +4 획득.",
       "classId": "fighter",
-      "subclassId": "eldritch_knight"
+      "subclassId": "eldritch_knight",
+      "parry": 4
     },
     "fighter_eldritch_knight_4": {
       "id": "fighter_eldritch_knight_4",
@@ -2152,10 +2187,11 @@ window.GAME_DATA = {
       "block": 8,
       "upgradeBlock": 11,
       "strength": 1,
-      "desc": "방어도 {block}을 얻고 원소 마력을 흡수해 힘 +2! (소멸)",
+      "desc": "방어도 {block}을 얻고 원소 마력을 흡수해 힘 +2! (소멸) 🛡️반격 +4 획득.",
       "classId": "fighter",
       "subclassId": "eldritch_knight",
-      "exhaust": true
+      "exhaust": true,
+      "parry": 4
     },
     "fighter_eldritch_knight_6": {
       "id": "fighter_eldritch_knight_6",
@@ -2167,9 +2203,10 @@ window.GAME_DATA = {
       "upgradeDamage": 11,
       "triggerDronesNow": true,
       "draw": 1,
-      "desc": "피해 {damage}, 모든 검기 구체 즉시 발사, 카드 1장 드로우!",
+      "desc": "피해 {damage}, 모든 검기 구체 즉시 발사, 카드 1장 드로우! 💥파쇄 +2.",
       "classId": "fighter",
-      "subclassId": "eldritch_knight"
+      "subclassId": "eldritch_knight",
+      "sunder": 2
     },
     "fighter_eldritch_knight_7": {
       "id": "fighter_eldritch_knight_7",
@@ -2181,9 +2218,10 @@ window.GAME_DATA = {
       "upgradeDamage": 12,
       "vuln": 2,
       "addDrone": 1,
-      "desc": "피해 {damage}, 취약 2 부여 및 검기 구체 +1기 소환.",
+      "desc": "피해 {damage}, 취약 2 부여 및 검기 구체 +1기 소환. 💥파쇄 +2.",
       "classId": "fighter",
-      "subclassId": "eldritch_knight"
+      "subclassId": "eldritch_knight",
+      "sunder": 2
     },
     "fighter_eldritch_knight_8": {
       "id": "fighter_eldritch_knight_8",
@@ -2196,9 +2234,11 @@ window.GAME_DATA = {
       "weak": 2,
       "vuln": 2,
       "triggerDronesNow": true,
-      "desc": "피해 {damage}, 약화 2, 취약 2 부여 후 검기 구체 일제 폭격!",
+      "desc": "피해 {damage}, 약화 2, 취약 2 부여 후 검기 구체 일제 폭격! 💥파쇄 +4 (현재 콤보당 피해 +4!).",
       "classId": "fighter",
-      "subclassId": "eldritch_knight"
+      "subclassId": "eldritch_knight",
+      "sunder": 4,
+      "comboScaling": true
     },
     "fighter_eldritch_knight_9": {
       "id": "fighter_eldritch_knight_9",
@@ -2224,9 +2264,11 @@ window.GAME_DATA = {
       "target": "all",
       "addDrone": 2,
       "triggerDronesNow": true,
-      "desc": "[전설] 적 전체 피해 {damage}, 구체 2기 추가 소환 후 전체 구체 총공격!",
+      "desc": "[전설] 적 전체 피해 {damage}, 구체 2기 추가 소환 후 전체 구체 총공격! 💥파쇄 +4 (현재 콤보당 피해 +4!).",
       "classId": "fighter",
-      "subclassId": "eldritch_knight"
+      "subclassId": "eldritch_knight",
+      "sunder": 4,
+      "comboScaling": true
     },
     "fighter_echo_knight_1": {
       "id": "fighter_echo_knight_1",
@@ -2250,9 +2292,10 @@ window.GAME_DATA = {
       "damage": 5,
       "upgradeDamage": 8,
       "triggerSummonAttack": true,
-      "desc": "피해 {damage}를 주고 [그림자 잔상]이 즉시 협동 공격합니다!",
+      "desc": "피해 {damage}를 주고 [그림자 잔상]이 즉시 협동 공격합니다! 💥파쇄 +2.",
       "classId": "fighter",
-      "subclassId": "echo_knight"
+      "subclassId": "echo_knight",
+      "sunder": 2
     },
     "fighter_echo_knight_3": {
       "id": "fighter_echo_knight_3",
@@ -2264,9 +2307,10 @@ window.GAME_DATA = {
       "upgradeBlock": 8,
       "summonHeal": 4,
       "draw": 1,
-      "desc": "잔상과 위치를 바꿔 방어도 {block}, 잔상 체력 +6, 카드 1장 드로우.",
+      "desc": "잔상과 위치를 바꿔 방어도 {block}, 잔상 체력 +6, 카드 1장 드로우. 🛡️반격 +4 획득.",
       "classId": "fighter",
-      "subclassId": "echo_knight"
+      "subclassId": "echo_knight",
+      "parry": 4
     },
     "fighter_echo_knight_4": {
       "id": "fighter_echo_knight_4",
@@ -2277,9 +2321,10 @@ window.GAME_DATA = {
       "damage": 4,
       "upgradeDamage": 6,
       "triggerSummonAttack": true,
-      "desc": "0코스트! 피해 {damage}를 주고 그림자 잔상이 즉시 협공합니다.",
+      "desc": "0코스트! 피해 {damage}를 주고 그림자 잔상이 즉시 협공합니다. 💥파쇄 +2.",
       "classId": "fighter",
-      "subclassId": "echo_knight"
+      "subclassId": "echo_knight",
+      "sunder": 2
     },
     "fighter_echo_knight_5": {
       "id": "fighter_echo_knight_5",
@@ -2292,9 +2337,10 @@ window.GAME_DATA = {
       "hits": 2,
       "triggerSummonAttack": true,
       "summonAtkBoost": 1,
-      "desc": "피해 {damage}x2, 잔상 공격력 +2 및 즉시 잔상 협공!",
+      "desc": "피해 {damage}x2, 잔상 공격력 +2 및 즉시 잔상 협공! 💥파쇄 +2.",
       "classId": "fighter",
-      "subclassId": "echo_knight"
+      "subclassId": "echo_knight",
+      "sunder": 2
     },
     "fighter_echo_knight_6": {
       "id": "fighter_echo_knight_6",
@@ -2305,9 +2351,10 @@ window.GAME_DATA = {
       "block": 9,
       "upgradeBlock": 12,
       "summonHeal": 8,
-      "desc": "내 방어도 +{block} 및 그림자 잔상의 체력을 +12 회복합니다.",
+      "desc": "내 방어도 +{block} 및 그림자 잔상의 체력을 +12 회복합니다. 🛡️반격 +4 획득.",
       "classId": "fighter",
-      "subclassId": "echo_knight"
+      "subclassId": "echo_knight",
+      "parry": 4
     },
     "fighter_echo_knight_7": {
       "id": "fighter_echo_knight_7",
@@ -2319,9 +2366,10 @@ window.GAME_DATA = {
       "upgradeDamage": 10,
       "target": "all",
       "triggerSummonAttack": true,
-      "desc": "적 전체에게 피해 {damage}를 주고 잔상이 대상을 추가 타격합니다!",
+      "desc": "적 전체에게 피해 {damage}를 주고 잔상이 대상을 추가 타격합니다! 💥파쇄 +2.",
       "classId": "fighter",
-      "subclassId": "echo_knight"
+      "subclassId": "echo_knight",
+      "sunder": 2
     },
     "fighter_echo_knight_8": {
       "id": "fighter_echo_knight_8",
@@ -2333,10 +2381,11 @@ window.GAME_DATA = {
       "healOnHit": 4,
       "summonHeal": 7,
       "draw": 1,
-      "desc": "방어도 10, 내 체력 +7 회복, 잔상 체력 +10, 카드 1장 드로우! (소멸)",
+      "desc": "방어도 10, 내 체력 +7 회복, 잔상 체력 +10, 카드 1장 드로우! (소멸) 🛡️반격 +7 획득.",
       "classId": "fighter",
       "subclassId": "echo_knight",
-      "exhaust": true
+      "exhaust": true,
+      "parry": 7
     },
     "fighter_echo_knight_9": {
       "id": "fighter_echo_knight_9",
@@ -2361,9 +2410,11 @@ window.GAME_DATA = {
       "upgradeDamage": 22,
       "damagePlusSummonHp": true,
       "triggerSummonAttack": true,
-      "desc": "[전설] 피해 {damage} + 잔상의 현재 체력만큼 추가 피해 후 잔상 협공!",
+      "desc": "[전설] 피해 {damage} + 잔상의 현재 체력만큼 추가 피해 후 잔상 협공! 💥파쇄 +4 (현재 콤보당 피해 +4!).",
       "classId": "fighter",
-      "subclassId": "echo_knight"
+      "subclassId": "echo_knight",
+      "sunder": 4,
+      "comboScaling": true
     },
     "bar_sh_1": {
       "id": "bar_sh_1",
@@ -2373,9 +2424,10 @@ window.GAME_DATA = {
       "cost": 1,
       "damage": 6,
       "upgradeDamage": 9,
-      "desc": "적에게 피해를 {damage} 줍니다.",
+      "desc": "적에게 피해를 {damage} 줍니다. 🩸출혈 +4 부여 및 출혈 폭발!",
       "classId": "barbarian",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "bleed": 4
     },
     "bar_sh_2": {
       "id": "bar_sh_2",
@@ -2385,9 +2437,10 @@ window.GAME_DATA = {
       "cost": 1,
       "block": 5,
       "upgradeBlock": 8,
-      "desc": "방어도를 {block} 얻습니다.",
+      "desc": "방어도를 {block} 얻습니다. (혈전 상태 시 방어도/힘 추가 증폭!)",
       "classId": "barbarian",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "enrageBoost": 1
     },
     "bar_sh_3": {
       "id": "bar_sh_3",
@@ -2399,9 +2452,10 @@ window.GAME_DATA = {
       "upgradeDamage": 13,
       "vuln": 2,
       "resourceGain": 1,
-      "desc": "피해 {damage}를 주고 취약 2를 부여합니다. 격노 +1.",
+      "desc": "피해 {damage}를 주고 취약 2를 부여합니다. 격노 +1. 🩸출혈 +4 부여 및 출혈 폭발!",
       "classId": "barbarian",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "bleed": 4
     },
     "bar_sh_4": {
       "id": "bar_sh_4",
@@ -2414,10 +2468,11 @@ window.GAME_DATA = {
       "upgradeStrength": 2,
       "block": 5,
       "resourceGain": 1,
-      "desc": "0코스트! 체력 2 소모, 힘 +{strength}, 방어도 6, 격노 +1! (소멸)",
+      "desc": "0코스트! 체력 2 소모, 힘 +{strength}, 방어도 6, 격노 +1! (소멸) (혈전 상태 시 방어도/힘 추가 증폭!)",
       "classId": "barbarian",
       "subclassId": "shared",
-      "exhaust": true
+      "exhaust": true,
+      "enrageBoost": 3
     },
     "barbarian_berserker_1": {
       "id": "barbarian_berserker_1",
@@ -2428,9 +2483,10 @@ window.GAME_DATA = {
       "damage": 8,
       "upgradeDamage": 11,
       "resourceGain": 1,
-      "desc": "피해를 {damage} 줍니다. 격노 +1.",
+      "desc": "피해를 {damage} 줍니다. 격노 +1. 🩸출혈 +4 부여 및 출혈 폭발!",
       "classId": "barbarian",
-      "subclassId": "berserker"
+      "subclassId": "berserker",
+      "bleed": 4
     },
     "barbarian_berserker_2": {
       "id": "barbarian_berserker_2",
@@ -2442,10 +2498,11 @@ window.GAME_DATA = {
       "upgradeBlock": 8,
       "strength": 1,
       "resourceGain": 1,
-      "desc": "방어도 {block}, 힘 +1, 격노 +1을 얻습니다. (소멸)",
+      "desc": "방어도 {block}, 힘 +1, 격노 +1을 얻습니다. (소멸) (혈전 상태 시 방어도/힘 추가 증폭!)",
       "classId": "barbarian",
       "subclassId": "berserker",
-      "exhaust": true
+      "exhaust": true,
+      "enrageBoost": 1
     },
     "barbarian_berserker_3": {
       "id": "barbarian_berserker_3",
@@ -2456,9 +2513,10 @@ window.GAME_DATA = {
       "damage": 6,
       "upgradeDamage": 9,
       "vuln": 2,
-      "desc": "피해를 {damage} 주고 취약 2를 부여합니다.",
+      "desc": "피해를 {damage} 주고 취약 2를 부여합니다. 🩸출혈 +4 부여 및 출혈 폭발!",
       "classId": "barbarian",
-      "subclassId": "berserker"
+      "subclassId": "berserker",
+      "bleed": 4
     },
     "barbarian_berserker_4": {
       "id": "barbarian_berserker_4",
@@ -2470,9 +2528,10 @@ window.GAME_DATA = {
       "upgradeDamage": 9,
       "target": "all",
       "resourceGain": 1,
-      "desc": "적 전체에게 피해를 {damage} 줍니다. 격노 +1.",
+      "desc": "적 전체에게 피해를 {damage} 줍니다. 격노 +1. 🩸출혈 +4 부여 및 출혈 폭발!",
       "classId": "barbarian",
-      "subclassId": "berserker"
+      "subclassId": "berserker",
+      "bleed": 4
     },
     "barbarian_berserker_5": {
       "id": "barbarian_berserker_5",
@@ -2484,9 +2543,10 @@ window.GAME_DATA = {
       "upgradeDamage": 12,
       "stance": "wrath",
       "resourceGain": 1,
-      "desc": "피해 {damage}를 주고 [광란(공격력 2배)] 태세에 돌입합니다!",
+      "desc": "피해 {damage}를 주고 [광란(공격력 2배)] 태세에 돌입합니다! 🩸출혈 +4 부여 및 출혈 폭발!",
       "classId": "barbarian",
-      "subclassId": "berserker"
+      "subclassId": "berserker",
+      "bleed": 4
     },
     "barbarian_berserker_6": {
       "id": "barbarian_berserker_6",
@@ -2497,10 +2557,11 @@ window.GAME_DATA = {
       "damage": 8,
       "upgradeDamage": 11,
       "healOnHit": 3,
-      "desc": "피해를 {damage} 주고 내 체력을 5 회복합니다. (소멸)",
+      "desc": "피해를 {damage} 주고 내 체력을 5 회복합니다. (소멸) 🩸출혈 +4 부여 및 출혈 폭발!",
       "classId": "barbarian",
       "subclassId": "berserker",
-      "exhaust": true
+      "exhaust": true,
+      "bleed": 4
     },
     "barbarian_berserker_7": {
       "id": "barbarian_berserker_7",
@@ -2512,9 +2573,10 @@ window.GAME_DATA = {
       "upgradeDamage": 7,
       "hits": 3,
       "resourceGain": 1,
-      "desc": "피해를 {damage}씩 3번 연속 줍니다. 격노 +1.",
+      "desc": "피해를 {damage}씩 3번 연속 줍니다. 격노 +1. 🩸출혈 +4 부여 및 출혈 폭발!",
       "classId": "barbarian",
-      "subclassId": "berserker"
+      "subclassId": "berserker",
+      "bleed": 4
     },
     "barbarian_berserker_8": {
       "id": "barbarian_berserker_8",
@@ -2526,9 +2588,10 @@ window.GAME_DATA = {
       "vuln": 3,
       "target": "all",
       "exhaust": true,
-      "desc": "적 전체를 공포에 빠뜨려 약화 3과 취약 3을 부여합니다! (소멸)",
+      "desc": "적 전체를 공포에 빠뜨려 약화 3과 취약 3을 부여합니다! (소멸) (혈전 상태 시 방어도/힘 추가 증폭!)",
       "classId": "barbarian",
-      "subclassId": "berserker"
+      "subclassId": "berserker",
+      "enrageBoost": 3
     },
     "barbarian_berserker_9": {
       "id": "barbarian_berserker_9",
@@ -2539,9 +2602,10 @@ window.GAME_DATA = {
       "damage": 17,
       "upgradeDamage": 23,
       "bonusPerResource": 3,
-      "desc": "피해 {damage} + 보유한 격노 1당 추가 피해 +3!",
+      "desc": "피해 {damage} + 보유한 격노 1당 추가 피해 +3! 🩸출혈 +7 부여 및 출혈 폭발!",
       "classId": "barbarian",
-      "subclassId": "berserker"
+      "subclassId": "berserker",
+      "bleed": 7
     },
     "barbarian_berserker_10": {
       "id": "barbarian_berserker_10",
@@ -2555,9 +2619,10 @@ window.GAME_DATA = {
       "stance": "divinity",
       "consumeResourceAll": true,
       "bonusPerResource": 4,
-      "desc": "[전설] 적 전체 피해 {damage}(격노당 +4) 및 [천상 광란(피해 3배)] 돌입!",
+      "desc": "[전설] 적 전체 피해 {damage}(격노당 +4) 및 [천상 광란(피해 3배)] 돌입! 🩸출혈 +7 부여 및 출혈 폭발!",
       "classId": "barbarian",
-      "subclassId": "berserker"
+      "subclassId": "berserker",
+      "bleed": 7
     },
     "barbarian_totem_warrior_1": {
       "id": "barbarian_totem_warrior_1",
@@ -2568,9 +2633,10 @@ window.GAME_DATA = {
       "block": 8,
       "upgradeBlock": 11,
       "resourceGain": 1,
-      "desc": "곰의 인내로 방어도 {block}과 격노 +1을 얻습니다.",
+      "desc": "곰의 인내로 방어도 {block}과 격노 +1을 얻습니다. (혈전 상태 시 방어도/힘 추가 증폭!)",
       "classId": "barbarian",
-      "subclassId": "totem_warrior"
+      "subclassId": "totem_warrior",
+      "enrageBoost": 1
     },
     "barbarian_totem_warrior_2": {
       "id": "barbarian_totem_warrior_2",
@@ -2581,9 +2647,10 @@ window.GAME_DATA = {
       "damage": 6,
       "upgradeDamage": 9,
       "draw": 1,
-      "desc": "피해를 {damage} 주고 카드를 1장 뽑습니다.",
+      "desc": "피해를 {damage} 주고 카드를 1장 뽑습니다. 🩸출혈 +4 부여 및 출혈 폭발!",
       "classId": "barbarian",
-      "subclassId": "totem_warrior"
+      "subclassId": "totem_warrior",
+      "bleed": 4
     },
     "barbarian_totem_warrior_3": {
       "id": "barbarian_totem_warrior_3",
@@ -2595,9 +2662,10 @@ window.GAME_DATA = {
       "upgradeDamage": 8,
       "vuln": 2,
       "resourceGain": 1,
-      "desc": "피해 {damage}, 대상에게 취약 2 부여, 격노 +1.",
+      "desc": "피해 {damage}, 대상에게 취약 2 부여, 격노 +1. 🩸출혈 +4 부여 및 출혈 폭발!",
       "classId": "barbarian",
-      "subclassId": "totem_warrior"
+      "subclassId": "totem_warrior",
+      "bleed": 4
     },
     "barbarian_totem_warrior_4": {
       "id": "barbarian_totem_warrior_4",
@@ -2609,9 +2677,10 @@ window.GAME_DATA = {
       "upgradeDamage": 7,
       "block": 5,
       "upgradeBlock": 7,
-      "desc": "피해 {damage}를 주고 방어도 {block}을 얻습니다.",
+      "desc": "피해 {damage}를 주고 방어도 {block}을 얻습니다. 🩸출혈 +4 부여 및 출혈 폭발!",
       "classId": "barbarian",
-      "subclassId": "totem_warrior"
+      "subclassId": "totem_warrior",
+      "bleed": 4
     },
     "barbarian_totem_warrior_5": {
       "id": "barbarian_totem_warrior_5",
@@ -2622,9 +2691,10 @@ window.GAME_DATA = {
       "damage": 10,
       "upgradeDamage": 14,
       "damagePerBlock": true,
-      "desc": "피해 {damage} + 현재 내 방어도만큼 추가 피해를 줍니다!",
+      "desc": "피해 {damage} + 현재 내 방어도만큼 추가 피해를 줍니다! 🩸출혈 +4 부여 및 출혈 폭발!",
       "classId": "barbarian",
-      "subclassId": "totem_warrior"
+      "subclassId": "totem_warrior",
+      "bleed": 4
     },
     "barbarian_totem_warrior_6": {
       "id": "barbarian_totem_warrior_6",
@@ -2636,10 +2706,11 @@ window.GAME_DATA = {
       "upgradeBlock": 10,
       "healOnHit": 3,
       "stance": "calm",
-      "desc": "방어도 {block}, 체력 +5 회복 및 [평온(해제 시 AP+2)] 돌입! (소멸)",
+      "desc": "방어도 {block}, 체력 +5 회복 및 [평온(해제 시 AP+2)] 돌입! (소멸) (혈전 상태 시 방어도/힘 추가 증폭!)",
       "classId": "barbarian",
       "subclassId": "totem_warrior",
-      "exhaust": true
+      "exhaust": true,
+      "enrageBoost": 1
     },
     "barbarian_totem_warrior_7": {
       "id": "barbarian_totem_warrior_7",
@@ -2650,10 +2721,11 @@ window.GAME_DATA = {
       "block": 6,
       "upgradeBlock": 9,
       "doubleBlock": true,
-      "desc": "방어도 {block}을 얻고 현재 방어도를 2배로 만듭니다! (소멸)",
+      "desc": "방어도 {block}을 얻고 현재 방어도를 2배로 만듭니다! (소멸) (혈전 상태 시 방어도/힘 추가 증폭!)",
       "classId": "barbarian",
       "subclassId": "totem_warrior",
-      "exhaust": true
+      "exhaust": true,
+      "enrageBoost": 1
     },
     "barbarian_totem_warrior_8": {
       "id": "barbarian_totem_warrior_8",
@@ -2679,10 +2751,11 @@ window.GAME_DATA = {
       "target": "all",
       "weak": 2,
       "healOnHit": 3,
-      "desc": "적 전체 피해 {damage}, 약화 2 부여 및 체력 5 회복. (소멸)",
+      "desc": "적 전체 피해 {damage}, 약화 2 부여 및 체력 5 회복. (소멸) 🩸출혈 +7 부여 및 출혈 폭발!",
       "classId": "barbarian",
       "subclassId": "totem_warrior",
-      "exhaust": true
+      "exhaust": true,
+      "bleed": 7
     },
     "barbarian_totem_warrior_10": {
       "id": "barbarian_totem_warrior_10",
@@ -2695,9 +2768,10 @@ window.GAME_DATA = {
       "target": "all",
       "damagePerBlock": true,
       "block": 11,
-      "desc": "[전설] 방어도 +15 획득 후 적 전체에게 피해 {damage} + 내 방어도만큼 추가 피해!",
+      "desc": "[전설] 방어도 +15 획득 후 적 전체에게 피해 {damage} + 내 방어도만큼 추가 피해! 🩸출혈 +7 부여 및 출혈 폭발!",
       "classId": "barbarian",
-      "subclassId": "totem_warrior"
+      "subclassId": "totem_warrior",
+      "bleed": 7
     },
     "barbarian_ancestral_guardian_1": {
       "id": "barbarian_ancestral_guardian_1",
@@ -2708,9 +2782,10 @@ window.GAME_DATA = {
       "summonHeal": 8,
       "upgradeSummonHeal": 11,
       "block": 4,
-      "desc": "전방에 [선조 수호령] 체력 +{summonHeal} 소환 및 내 방어도 +5.",
+      "desc": "전방에 [선조 수호령] 체력 +{summonHeal} 소환 및 내 방어도 +5. (혈전 상태 시 방어도/힘 추가 증폭!)",
       "classId": "barbarian",
-      "subclassId": "ancestral_guardian"
+      "subclassId": "ancestral_guardian",
+      "enrageBoost": 1
     },
     "barbarian_ancestral_guardian_2": {
       "id": "barbarian_ancestral_guardian_2",
@@ -2721,9 +2796,10 @@ window.GAME_DATA = {
       "damage": 6,
       "upgradeDamage": 9,
       "triggerSummonAttack": true,
-      "desc": "피해 {damage}를 주고 선조 수호령이 즉시 협동 공격합니다!",
+      "desc": "피해 {damage}를 주고 선조 수호령이 즉시 협동 공격합니다! 🩸출혈 +4 부여 및 출혈 폭발!",
       "classId": "barbarian",
-      "subclassId": "ancestral_guardian"
+      "subclassId": "ancestral_guardian",
+      "bleed": 4
     },
     "barbarian_ancestral_guardian_3": {
       "id": "barbarian_ancestral_guardian_3",
@@ -2734,9 +2810,10 @@ window.GAME_DATA = {
       "block": 6,
       "upgradeBlock": 8,
       "summonHeal": 5,
-      "desc": "내 방어도 +{block} 및 선조 수호령의 체력을 +8 회복합니다.",
+      "desc": "내 방어도 +{block} 및 선조 수호령의 체력을 +8 회복합니다. (혈전 상태 시 방어도/힘 추가 증폭!)",
       "classId": "barbarian",
-      "subclassId": "ancestral_guardian"
+      "subclassId": "ancestral_guardian",
+      "enrageBoost": 1
     },
     "barbarian_ancestral_guardian_4": {
       "id": "barbarian_ancestral_guardian_4",
@@ -2748,9 +2825,10 @@ window.GAME_DATA = {
       "upgradeDamage": 8,
       "weak": 2,
       "resourceGain": 1,
-      "desc": "피해 {damage}를 주고 약화 2를 부여합니다. 격노 +1.",
+      "desc": "피해 {damage}를 주고 약화 2를 부여합니다. 격노 +1. 🩸출혈 +4 부여 및 출혈 폭발!",
       "classId": "barbarian",
-      "subclassId": "ancestral_guardian"
+      "subclassId": "ancestral_guardian",
+      "bleed": 4
     },
     "barbarian_ancestral_guardian_5": {
       "id": "barbarian_ancestral_guardian_5",
@@ -2762,9 +2840,10 @@ window.GAME_DATA = {
       "upgradeDamage": 10,
       "summonAtkBoost": 2,
       "triggerSummonAttack": true,
-      "desc": "피해 {damage}, 수호령 공격력 +4 강화 후 즉시 수호령 협공!",
+      "desc": "피해 {damage}, 수호령 공격력 +4 강화 후 즉시 수호령 협공! 🩸출혈 +4 부여 및 출혈 폭발!",
       "classId": "barbarian",
-      "subclassId": "ancestral_guardian"
+      "subclassId": "ancestral_guardian",
+      "bleed": 4
     },
     "barbarian_ancestral_guardian_6": {
       "id": "barbarian_ancestral_guardian_6",
@@ -2776,10 +2855,11 @@ window.GAME_DATA = {
       "upgradeDraw": 2,
       "summonHeal": 5,
       "resourceGain": 1,
-      "desc": "0코스트! 카드 {draw}장 드로우, 수호령 체력 +8, 격노 +1. (소멸)",
+      "desc": "0코스트! 카드 {draw}장 드로우, 수호령 체력 +8, 격노 +1. (소멸) (혈전 상태 시 방어도/힘 추가 증폭!)",
       "classId": "barbarian",
       "subclassId": "ancestral_guardian",
-      "exhaust": true
+      "exhaust": true,
+      "enrageBoost": 1
     },
     "barbarian_ancestral_guardian_7": {
       "id": "barbarian_ancestral_guardian_7",
@@ -2791,9 +2871,10 @@ window.GAME_DATA = {
       "upgradeDamage": 11,
       "target": "all",
       "triggerSummonAttack": true,
-      "desc": "적 전체에게 피해 {damage}를 주고 수호령이 추가 타격합니다.",
+      "desc": "적 전체에게 피해 {damage}를 주고 수호령이 추가 타격합니다. 🩸출혈 +4 부여 및 출혈 폭발!",
       "classId": "barbarian",
-      "subclassId": "ancestral_guardian"
+      "subclassId": "ancestral_guardian",
+      "bleed": 4
     },
     "barbarian_ancestral_guardian_8": {
       "id": "barbarian_ancestral_guardian_8",
@@ -2817,10 +2898,11 @@ window.GAME_DATA = {
       "block": 9,
       "healOnHit": 4,
       "summonHeal": 9,
-      "desc": "방어도 12, 내 체력 +6 회복, 수호령 체력 +14 회복! (소멸)",
+      "desc": "방어도 12, 내 체력 +6 회복, 수호령 체력 +14 회복! (소멸) (혈전 상태 시 방어도/힘 추가 증폭!)",
       "classId": "barbarian",
       "subclassId": "ancestral_guardian",
-      "exhaust": true
+      "exhaust": true,
+      "enrageBoost": 3
     },
     "barbarian_ancestral_guardian_10": {
       "id": "barbarian_ancestral_guardian_10",
@@ -2833,9 +2915,10 @@ window.GAME_DATA = {
       "target": "all",
       "damagePlusSummonHp": true,
       "triggerSummonAttack": true,
-      "desc": "[전설] 적 전체에게 피해 {damage} + 수호령 체력만큼 추가 피해 후 협공!",
+      "desc": "[전설] 적 전체에게 피해 {damage} + 수호령 체력만큼 추가 피해 후 협공! 🩸출혈 +7 부여 및 출혈 폭발!",
       "classId": "barbarian",
-      "subclassId": "ancestral_guardian"
+      "subclassId": "ancestral_guardian",
+      "bleed": 7
     },
     "barbarian_wild_magic_1": {
       "id": "barbarian_wild_magic_1",
@@ -2846,9 +2929,10 @@ window.GAME_DATA = {
       "damage": 6,
       "upgradeDamage": 9,
       "addDrone": 1,
-      "desc": "피해 {damage}를 주고 [야생 마력 구체] 1기를 생성합니다!",
+      "desc": "피해 {damage}를 주고 [야생 마력 구체] 1기를 생성합니다! 🩸출혈 +4 부여 및 출혈 폭발!",
       "classId": "barbarian",
-      "subclassId": "wild_magic"
+      "subclassId": "wild_magic",
+      "bleed": 4
     },
     "barbarian_wild_magic_2": {
       "id": "barbarian_wild_magic_2",
@@ -2859,9 +2943,10 @@ window.GAME_DATA = {
       "block": 6,
       "upgradeBlock": 8,
       "blockPerDrone": 3,
-      "desc": "방어도 {block} + 야생 마력 구체 1기당 방어도 +3!",
+      "desc": "방어도 {block} + 야생 마력 구체 1기당 방어도 +3! (혈전 상태 시 방어도/힘 추가 증폭!)",
       "classId": "barbarian",
-      "subclassId": "wild_magic"
+      "subclassId": "wild_magic",
+      "enrageBoost": 1
     },
     "barbarian_wild_magic_3": {
       "id": "barbarian_wild_magic_3",
@@ -2873,9 +2958,10 @@ window.GAME_DATA = {
       "upgradeDamage": 8,
       "target": "all",
       "resourceGain": 1,
-      "desc": "적 전체에게 마력 피해 {damage}를 주고 격노 +1.",
+      "desc": "적 전체에게 마력 피해 {damage}를 주고 격노 +1. 🩸출혈 +4 부여 및 출혈 폭발!",
       "classId": "barbarian",
-      "subclassId": "wild_magic"
+      "subclassId": "wild_magic",
+      "bleed": 4
     },
     "barbarian_wild_magic_4": {
       "id": "barbarian_wild_magic_4",
@@ -2886,10 +2972,11 @@ window.GAME_DATA = {
       "draw": 1,
       "upgradeDraw": 2,
       "resourceGain": 1,
-      "desc": "0코스트! 카드 {draw}장을 뽑고 격노 +1를 얻습니다. (소멸)",
+      "desc": "0코스트! 카드 {draw}장을 뽑고 격노 +1를 얻습니다. (소멸) (혈전 상태 시 방어도/힘 추가 증폭!)",
       "classId": "barbarian",
       "subclassId": "wild_magic",
-      "exhaust": true
+      "exhaust": true,
+      "enrageBoost": 1
     },
     "barbarian_wild_magic_5": {
       "id": "barbarian_wild_magic_5",
@@ -2901,9 +2988,10 @@ window.GAME_DATA = {
       "addDrone": 1,
       "draw": 1,
       "exhaust": true,
-      "desc": "0코스트! 행동력(AP) +1, 마력 구체 1기 생성, 카드 1장 드로우 (소멸)",
+      "desc": "0코스트! 행동력(AP) +1, 마력 구체 1기 생성, 카드 1장 드로우 (소멸) (혈전 상태 시 방어도/힘 추가 증폭!)",
       "classId": "barbarian",
-      "subclassId": "wild_magic"
+      "subclassId": "wild_magic",
+      "enrageBoost": 1
     },
     "barbarian_wild_magic_6": {
       "id": "barbarian_wild_magic_6",
@@ -2915,9 +3003,10 @@ window.GAME_DATA = {
       "upgradeDamage": 12,
       "triggerDronesNow": true,
       "block": 5,
-      "desc": "피해 {damage}, 방어도 6, 모든 야생 마력 구체 즉시 발사!",
+      "desc": "피해 {damage}, 방어도 6, 모든 야생 마력 구체 즉시 발사! 🩸출혈 +4 부여 및 출혈 폭발!",
       "classId": "barbarian",
-      "subclassId": "wild_magic"
+      "subclassId": "wild_magic",
+      "bleed": 4
     },
     "barbarian_wild_magic_7": {
       "id": "barbarian_wild_magic_7",
@@ -2930,9 +3019,10 @@ window.GAME_DATA = {
       "target": "all",
       "weak": 2,
       "addDrone": 1,
-      "desc": "적 전체 피해 {damage}, 약화 2 부여, 마력 구체 +1기 생성.",
+      "desc": "적 전체 피해 {damage}, 약화 2 부여, 마력 구체 +1기 생성. 🩸출혈 +4 부여 및 출혈 폭발!",
       "classId": "barbarian",
-      "subclassId": "wild_magic"
+      "subclassId": "wild_magic",
+      "bleed": 4
     },
     "barbarian_wild_magic_8": {
       "id": "barbarian_wild_magic_8",
@@ -2944,9 +3034,10 @@ window.GAME_DATA = {
       "upgradeDamage": 20,
       "target": "all",
       "triggerDronesNow": true,
-      "desc": "적 전체에게 피해 {damage}를 주고 모든 구체가 일제 폭격합니다!",
+      "desc": "적 전체에게 피해 {damage}를 주고 모든 구체가 일제 폭격합니다! 🩸출혈 +7 부여 및 출혈 폭발!",
       "classId": "barbarian",
-      "subclassId": "wild_magic"
+      "subclassId": "wild_magic",
+      "bleed": 7
     },
     "barbarian_wild_magic_9": {
       "id": "barbarian_wild_magic_9",
@@ -2973,9 +3064,10 @@ window.GAME_DATA = {
       "addDrone": 2,
       "triggerDronesNow": true,
       "stance": "divinity",
-      "desc": "[전설] 적 전체 피해 {damage}, 구체 2기 생성&폭격 및 [초월(3배 피해)] 돌입!",
+      "desc": "[전설] 적 전체 피해 {damage}, 구체 2기 생성&폭격 및 [초월(3배 피해)] 돌입! 🩸출혈 +7 부여 및 출혈 폭발!",
       "classId": "barbarian",
-      "subclassId": "wild_magic"
+      "subclassId": "wild_magic",
+      "bleed": 7
     },
     "rog_sh_1": {
       "id": "rog_sh_1",
@@ -2987,9 +3079,10 @@ window.GAME_DATA = {
       "upgradeDamage": 9,
       "poison": 2,
       "upgradePoison": 3,
-      "desc": "적에게 피해를 {damage} 줍니다.",
+      "desc": "적에게 피해를 {damage} 줍니다. ⚪연계 +1점 (5점 시 마무리 일격 폭발!).",
       "classId": "rogue",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "comboPoint": 1
     },
     "rog_sh_2": {
       "id": "rog_sh_2",
@@ -2999,9 +3092,10 @@ window.GAME_DATA = {
       "cost": 1,
       "block": 5,
       "upgradeBlock": 8,
-      "desc": "방어도를 {block} 얻습니다.",
+      "desc": "방어도를 {block} 얻습니다. 🗡️0코스트 [투척 단검] 1장 생성!",
       "classId": "rogue",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "addShiv": 1
     },
     "rog_sh_3": {
       "id": "rog_sh_3",
@@ -3013,10 +3107,11 @@ window.GAME_DATA = {
       "upgradeBlock": 5,
       "draw": 1,
       "resourceGain": 1,
-      "desc": "0코스트! 방어도 {block}, 카드 2장 드로우, 급소 주사위 +1. (소멸)",
+      "desc": "0코스트! 방어도 {block}, 카드 2장 드로우, 급소 주사위 +1. (소멸) 🗡️0코스트 [투척 단검] 1장 생성!",
       "classId": "rogue",
       "subclassId": "shared",
-      "exhaust": true
+      "exhaust": true,
+      "addShiv": 1
     },
     "rog_sh_4": {
       "id": "rog_sh_4",
@@ -3028,9 +3123,10 @@ window.GAME_DATA = {
       "upgradeDamage": 11,
       "bonusPerResource": 2,
       "resourceGain": 1,
-      "desc": "피해 {damage} + 보유한 급소 주사위 1당 추가 피해 +1!",
+      "desc": "피해 {damage} + 보유한 급소 주사위 1당 추가 피해 +1! ⚪연계 +2점 (5점 시 마무리 일격 폭발!).",
       "classId": "rogue",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "comboPoint": 2
     },
     "rogue_thief_1": {
       "id": "rogue_thief_1",
@@ -3041,10 +3137,11 @@ window.GAME_DATA = {
       "draw": 1,
       "upgradeDraw": 2,
       "block": 3,
-      "desc": "0코스트! 카드를 {draw}장 뽑고 방어도 4를 얻습니다. (소멸)",
+      "desc": "0코스트! 카드를 {draw}장 뽑고 방어도 4를 얻습니다. (소멸) 🗡️0코스트 [투척 단검] 1장 생성!",
       "classId": "rogue",
       "subclassId": "thief",
-      "exhaust": true
+      "exhaust": true,
+      "addShiv": 1
     },
     "rogue_thief_2": {
       "id": "rogue_thief_2",
@@ -3056,9 +3153,10 @@ window.GAME_DATA = {
       "upgradeDamage": 9,
       "draw": 1,
       "resourceGain": 1,
-      "desc": "피해를 {damage} 주고 카드를 1장 뽑습니다. 주사위 +1.",
+      "desc": "피해를 {damage} 주고 카드를 1장 뽑습니다. 주사위 +1. ⚪연계 +1점 (5점 시 마무리 일격 폭발!).",
       "classId": "rogue",
-      "subclassId": "thief"
+      "subclassId": "thief",
+      "comboPoint": 1
     },
     "rogue_thief_3": {
       "id": "rogue_thief_3",
@@ -3069,10 +3167,11 @@ window.GAME_DATA = {
       "block": 7,
       "upgradeBlock": 10,
       "dexterity": 1,
-      "desc": "방어도 {block}을 얻고 민첩 +1을 얻습니다. (소멸)",
+      "desc": "방어도 {block}을 얻고 민첩 +1을 얻습니다. (소멸) 🗡️0코스트 [투척 단검] 1장 생성!",
       "classId": "rogue",
       "subclassId": "thief",
-      "exhaust": true
+      "exhaust": true,
+      "addShiv": 1
     },
     "rogue_thief_4": {
       "id": "rogue_thief_4",
@@ -3084,9 +3183,10 @@ window.GAME_DATA = {
       "upgradeBlock": 8,
       "weak": 2,
       "target": "all",
-      "desc": "방어도 {block}을 얻고 적 전체에게 약화 2를 부여합니다.",
+      "desc": "방어도 {block}을 얻고 적 전체에게 약화 2를 부여합니다. 🗡️0코스트 [투척 단검] 1장 생성!",
       "classId": "rogue",
-      "subclassId": "thief"
+      "subclassId": "thief",
+      "addShiv": 1
     },
     "rogue_thief_5": {
       "id": "rogue_thief_5",
@@ -3098,9 +3198,10 @@ window.GAME_DATA = {
       "upgradeBlock": 12,
       "stance": "calm",
       "resourceGain": 1,
-      "desc": "방어도 {block}을 얻고 [은신/명경(해제 시 AP+1)] 태세에 돌입!",
+      "desc": "방어도 {block}을 얻고 [은신/명경(해제 시 AP+1)] 태세에 돌입! 🗡️0코스트 [투척 단검] 1장 생성!",
       "classId": "rogue",
-      "subclassId": "thief"
+      "subclassId": "thief",
+      "addShiv": 1
     },
     "rogue_thief_6": {
       "id": "rogue_thief_6",
@@ -3113,9 +3214,10 @@ window.GAME_DATA = {
       "hits": 2,
       "poison": 3,
       "target": "all",
-      "desc": "적 전체에게 피해 {damage}x2와 산성 맹독 4를 부여합니다.",
+      "desc": "적 전체에게 피해 {damage}x2와 산성 맹독 4를 부여합니다. ⚪연계 +1점 (5점 시 마무리 일격 폭발!).",
       "classId": "rogue",
-      "subclassId": "thief"
+      "subclassId": "thief",
+      "comboPoint": 1
     },
     "rogue_thief_7": {
       "id": "rogue_thief_7",
@@ -3127,9 +3229,10 @@ window.GAME_DATA = {
       "draw": 1,
       "resourceGain": 1,
       "exhaust": true,
-      "desc": "0코스트! 행동력 +1, 카드 2장 드로우, 주사위 +1 (소멸)",
+      "desc": "0코스트! 행동력 +1, 카드 2장 드로우, 주사위 +1 (소멸) 🗡️0코스트 [투척 단검] 1장 생성!",
       "classId": "rogue",
-      "subclassId": "thief"
+      "subclassId": "thief",
+      "addShiv": 1
     },
     "rogue_thief_8": {
       "id": "rogue_thief_8",
@@ -3154,9 +3257,10 @@ window.GAME_DATA = {
       "upgradeDamage": 5,
       "hits": 4,
       "resourceGain": 1,
-      "desc": "피해를 {damage}씩 4번 연속 가합니다! 주사위 +1.",
+      "desc": "피해를 {damage}씩 4번 연속 가합니다! 주사위 +1. ⚪연계 +2점 (5점 시 마무리 일격 폭발!).",
       "classId": "rogue",
-      "subclassId": "thief"
+      "subclassId": "thief",
+      "comboPoint": 2
     },
     "rogue_thief_10": {
       "id": "rogue_thief_10",
@@ -3169,9 +3273,10 @@ window.GAME_DATA = {
       "target": "all",
       "gainEnergy": 2,
       "draw": 1,
-      "desc": "[전설] 적 전체 피해 {damage} 후 행동력(AP) +2 및 카드 3장 드로우!",
+      "desc": "[전설] 적 전체 피해 {damage} 후 행동력(AP) +2 및 카드 3장 드로우! ⚪연계 +2점 (5점 시 마무리 일격 폭발!).",
       "classId": "rogue",
-      "subclassId": "thief"
+      "subclassId": "thief",
+      "comboPoint": 2
     },
     "rogue_assassin_1": {
       "id": "rogue_assassin_1",
@@ -3182,9 +3287,10 @@ window.GAME_DATA = {
       "poison": 5,
       "upgradePoison": 7,
       "resourceGain": 1,
-      "desc": "대상에게 와이번 맹독 {poison}을 부여합니다. 주사위 +1.",
+      "desc": "대상에게 와이번 맹독 {poison}을 부여합니다. 주사위 +1. 🗡️0코스트 [투척 단검] 1장 생성!",
       "classId": "rogue",
-      "subclassId": "assassin"
+      "subclassId": "assassin",
+      "addShiv": 1
     },
     "rogue_assassin_2": {
       "id": "rogue_assassin_2",
@@ -3196,9 +3302,10 @@ window.GAME_DATA = {
       "upgradeDamage": 9,
       "vuln": 2,
       "poison": 2,
-      "desc": "피해 {damage}, 취약 2 및 맹독 3을 부여합니다.",
+      "desc": "피해 {damage}, 취약 2 및 맹독 3을 부여합니다. ⚪연계 +1점 (5점 시 마무리 일격 폭발!).",
       "classId": "rogue",
-      "subclassId": "assassin"
+      "subclassId": "assassin",
+      "comboPoint": 1
     },
     "rogue_assassin_3": {
       "id": "rogue_assassin_3",
@@ -3210,9 +3317,10 @@ window.GAME_DATA = {
       "upgradeDamage": 6,
       "poison": 3,
       "resourceGain": 1,
-      "desc": "0코스트! 피해 {damage}와 맹독 4를 부여합니다.",
+      "desc": "0코스트! 피해 {damage}와 맹독 4를 부여합니다. ⚪연계 +1점 (5점 시 마무리 일격 폭발!).",
       "classId": "rogue",
-      "subclassId": "assassin"
+      "subclassId": "assassin",
+      "comboPoint": 1
     },
     "rogue_assassin_4": {
       "id": "rogue_assassin_4",
@@ -3223,9 +3331,10 @@ window.GAME_DATA = {
       "block": 7,
       "upgradeBlock": 10,
       "resourceGain": 1,
-      "desc": "방어도 {block}과 급소 주사위 +1를 얻습니다.",
+      "desc": "방어도 {block}과 급소 주사위 +1를 얻습니다. 🗡️0코스트 [투척 단검] 1장 생성!",
       "classId": "rogue",
-      "subclassId": "assassin"
+      "subclassId": "assassin",
+      "addShiv": 1
     },
     "rogue_assassin_5": {
       "id": "rogue_assassin_5",
@@ -3237,9 +3346,10 @@ window.GAME_DATA = {
       "upgradePoison": 8,
       "weak": 2,
       "target": "all",
-      "desc": "적 전체에게 맹독 {poison}과 약화 2를 퍼뜨립니다!",
+      "desc": "적 전체에게 맹독 {poison}과 약화 2를 퍼뜨립니다! 🗡️0코스트 [투척 단검] 1장 생성!",
       "classId": "rogue",
-      "subclassId": "assassin"
+      "subclassId": "assassin",
+      "addShiv": 1
     },
     "rogue_assassin_6": {
       "id": "rogue_assassin_6",
@@ -3250,9 +3360,10 @@ window.GAME_DATA = {
       "damage": 8,
       "upgradeDamage": 11,
       "damagePerPoison": true,
-      "desc": "피해 {damage} + 대상의 현재 맹독 수치만큼 추가 피해를 줍니다!",
+      "desc": "피해 {damage} + 대상의 현재 맹독 수치만큼 추가 피해를 줍니다! ⚪연계 +1점 (5점 시 마무리 일격 폭발!).",
       "classId": "rogue",
-      "subclassId": "assassin"
+      "subclassId": "assassin",
+      "comboPoint": 1
     },
     "rogue_assassin_7": {
       "id": "rogue_assassin_7",
@@ -3263,9 +3374,10 @@ window.GAME_DATA = {
       "doublePoison": true,
       "triggerPoisonNow": true,
       "exhaust": true,
-      "desc": "대상의 맹독을 2배로 증폭하고 즉시 맹독 피해를 터뜨립니다! (소멸)",
+      "desc": "대상의 맹독을 2배로 증폭하고 즉시 맹독 피해를 터뜨립니다! (소멸) 🗡️0코스트 [투척 단검] 1장 생성!",
       "classId": "rogue",
-      "subclassId": "assassin"
+      "subclassId": "assassin",
+      "addShiv": 1
     },
     "rogue_assassin_8": {
       "id": "rogue_assassin_8",
@@ -3290,9 +3402,10 @@ window.GAME_DATA = {
       "poison": 10,
       "upgradePoison": 14,
       "vuln": 2,
-      "desc": "D&D 최강의 맹독! 대상에게 맹독 {poison}과 취약 2를 부여합니다.",
+      "desc": "D&D 최강의 맹독! 대상에게 맹독 {poison}과 취약 2를 부여합니다. 🗡️0코스트 [투척 단검] 2장 생성!",
       "classId": "rogue",
-      "subclassId": "assassin"
+      "subclassId": "assassin",
+      "addShiv": 2
     },
     "rogue_assassin_10": {
       "id": "rogue_assassin_10",
@@ -3304,10 +3417,11 @@ window.GAME_DATA = {
       "upgradeDamage": 23,
       "doublePoison": true,
       "triggerPoisonNow": true,
-      "desc": "[전설] 피해 {damage}를 주고 대상의 맹독을 2배로 증폭한 뒤 즉시 격발! (소멸)",
+      "desc": "[전설] 피해 {damage}를 주고 대상의 맹독을 2배로 증폭한 뒤 즉시 격발! (소멸) ⚪연계 +2점 (5점 시 마무리 일격 폭발!).",
       "classId": "rogue",
       "subclassId": "assassin",
-      "exhaust": true
+      "exhaust": true,
+      "comboPoint": 2
     },
     "rogue_arcane_trickster_1": {
       "id": "rogue_arcane_trickster_1",
@@ -3318,9 +3432,10 @@ window.GAME_DATA = {
       "addDrone": 1,
       "block": 5,
       "upgradeBlock": 8,
-      "desc": "방어도 {block}을 얻고 [마법사의 손 구체] 1기를 소환합니다!",
+      "desc": "방어도 {block}을 얻고 [마법사의 손 구체] 1기를 소환합니다! 🗡️0코스트 [투척 단검] 1장 생성!",
       "classId": "rogue",
-      "subclassId": "arcane_trickster"
+      "subclassId": "arcane_trickster",
+      "addShiv": 1
     },
     "rogue_arcane_trickster_2": {
       "id": "rogue_arcane_trickster_2",
@@ -3331,9 +3446,10 @@ window.GAME_DATA = {
       "damage": 6,
       "upgradeDamage": 9,
       "triggerDronesNow": true,
-      "desc": "피해 {damage}를 주고 마법사의 손 구체가 즉시 협공합니다!",
+      "desc": "피해 {damage}를 주고 마법사의 손 구체가 즉시 협공합니다! ⚪연계 +1점 (5점 시 마무리 일격 폭발!).",
       "classId": "rogue",
-      "subclassId": "arcane_trickster"
+      "subclassId": "arcane_trickster",
+      "comboPoint": 1
     },
     "rogue_arcane_trickster_3": {
       "id": "rogue_arcane_trickster_3",
@@ -3344,9 +3460,10 @@ window.GAME_DATA = {
       "block": 7,
       "upgradeBlock": 10,
       "blockPerDrone": 3,
-      "desc": "방어도 {block} + 소환된 구체 1기당 방어도 +3 획득!",
+      "desc": "방어도 {block} + 소환된 구체 1기당 방어도 +3 획득! 🗡️0코스트 [투척 단검] 1장 생성!",
       "classId": "rogue",
-      "subclassId": "arcane_trickster"
+      "subclassId": "arcane_trickster",
+      "addShiv": 1
     },
     "rogue_arcane_trickster_4": {
       "id": "rogue_arcane_trickster_4",
@@ -3358,9 +3475,10 @@ window.GAME_DATA = {
       "upgradeDamage": 6,
       "draw": 1,
       "resourceGain": 1,
-      "desc": "0코스트! 피해 {damage}, 카드 1장 드로우, 주사위 +1.",
+      "desc": "0코스트! 피해 {damage}, 카드 1장 드로우, 주사위 +1. ⚪연계 +1점 (5점 시 마무리 일격 폭발!).",
       "classId": "rogue",
-      "subclassId": "arcane_trickster"
+      "subclassId": "arcane_trickster",
+      "comboPoint": 1
     },
     "rogue_arcane_trickster_5": {
       "id": "rogue_arcane_trickster_5",
@@ -3373,9 +3491,10 @@ window.GAME_DATA = {
       "target": "all",
       "weak": 2,
       "addDrone": 1,
-      "desc": "적 전체 피해 {damage}, 약화 2 부여, 구체 +1기 소환!",
+      "desc": "적 전체 피해 {damage}, 약화 2 부여, 구체 +1기 소환! ⚪연계 +1점 (5점 시 마무리 일격 폭발!).",
       "classId": "rogue",
-      "subclassId": "arcane_trickster"
+      "subclassId": "arcane_trickster",
+      "comboPoint": 1
     },
     "rogue_arcane_trickster_6": {
       "id": "rogue_arcane_trickster_6",
@@ -3387,9 +3506,10 @@ window.GAME_DATA = {
       "weak": 2,
       "draw": 2,
       "resourceGain": 1,
-      "desc": "대상에게 취약 2, 약화 2를 걸고 카드를 2장 뽑습니다.",
+      "desc": "대상에게 취약 2, 약화 2를 걸고 카드를 2장 뽑습니다. 🗡️0코스트 [투척 단검] 1장 생성!",
       "classId": "rogue",
-      "subclassId": "arcane_trickster"
+      "subclassId": "arcane_trickster",
+      "addShiv": 1
     },
     "rogue_arcane_trickster_7": {
       "id": "rogue_arcane_trickster_7",
@@ -3401,9 +3521,10 @@ window.GAME_DATA = {
       "upgradeDamage": 8,
       "hits": 2,
       "triggerDronesNow": true,
-      "desc": "피해 {damage}x2를 주고 모든 마법사의 손 구체가 일제 타격!",
+      "desc": "피해 {damage}x2를 주고 모든 마법사의 손 구체가 일제 타격! ⚪연계 +1점 (5점 시 마무리 일격 폭발!).",
       "classId": "rogue",
-      "subclassId": "arcane_trickster"
+      "subclassId": "arcane_trickster",
+      "comboPoint": 1
     },
     "rogue_arcane_trickster_8": {
       "id": "rogue_arcane_trickster_8",
@@ -3428,9 +3549,10 @@ window.GAME_DATA = {
       "upgradeBlock": 14,
       "stance": "calm",
       "draw": 1,
-      "desc": "방어도 {block}, 카드 1장 드로우 및 [투명화/명경(AP+2)] 돌입!",
+      "desc": "방어도 {block}, 카드 1장 드로우 및 [투명화/명경(AP+2)] 돌입! 🗡️0코스트 [투척 단검] 2장 생성!",
       "classId": "rogue",
-      "subclassId": "arcane_trickster"
+      "subclassId": "arcane_trickster",
+      "addShiv": 2
     },
     "rogue_arcane_trickster_10": {
       "id": "rogue_arcane_trickster_10",
@@ -3443,9 +3565,10 @@ window.GAME_DATA = {
       "target": "all",
       "gainEnergy": 2,
       "triggerDronesNow": true,
-      "desc": "[전설] 적의 마력을 훔쳐 전체 피해 {damage}, 행동력 +2 및 구체 총공격!",
+      "desc": "[전설] 적의 마력을 훔쳐 전체 피해 {damage}, 행동력 +2 및 구체 총공격! ⚪연계 +2점 (5점 시 마무리 일격 폭발!).",
       "classId": "rogue",
-      "subclassId": "arcane_trickster"
+      "subclassId": "arcane_trickster",
+      "comboPoint": 2
     },
     "rogue_phantom_1": {
       "id": "rogue_phantom_1",
@@ -3456,9 +3579,10 @@ window.GAME_DATA = {
       "damage": 6,
       "upgradeDamage": 9,
       "triggerSummonAttack": true,
-      "desc": "피해 {damage}를 주고 전방의 [원한의 망령]이 즉시 협공합니다!",
+      "desc": "피해 {damage}를 주고 전방의 [원한의 망령]이 즉시 협공합니다! ⚪연계 +1점 (5점 시 마무리 일격 폭발!).",
       "classId": "rogue",
-      "subclassId": "phantom"
+      "subclassId": "phantom",
+      "comboPoint": 1
     },
     "rogue_phantom_2": {
       "id": "rogue_phantom_2",
@@ -3469,9 +3593,10 @@ window.GAME_DATA = {
       "summonHeal": 8,
       "upgradeSummonHeal": 11,
       "block": 5,
-      "desc": "[원한의 망령] 체력 +{summonHeal} 소환 및 내 방어도 +6.",
+      "desc": "[원한의 망령] 체력 +{summonHeal} 소환 및 내 방어도 +6. 🗡️0코스트 [투척 단검] 1장 생성!",
       "classId": "rogue",
-      "subclassId": "phantom"
+      "subclassId": "phantom",
+      "addShiv": 1
     },
     "rogue_phantom_3": {
       "id": "rogue_phantom_3",
@@ -3483,9 +3608,10 @@ window.GAME_DATA = {
       "upgradeDamage": 8,
       "poison": 2,
       "summonHeal": 4,
-      "desc": "피해 {damage}, 영혼 저주 3 부여, 망령 체력 +4 회복.",
+      "desc": "피해 {damage}, 영혼 저주 3 부여, 망령 체력 +4 회복. ⚪연계 +1점 (5점 시 마무리 일격 폭발!).",
       "classId": "rogue",
-      "subclassId": "phantom"
+      "subclassId": "phantom",
+      "comboPoint": 1
     },
     "rogue_phantom_4": {
       "id": "rogue_phantom_4",
@@ -3496,10 +3622,11 @@ window.GAME_DATA = {
       "draw": 1,
       "upgradeDraw": 2,
       "resourceGain": 1,
-      "desc": "0코스트! 망자의 지혜로 카드를 {draw}장 뽑고 주사위 +1. (소멸)",
+      "desc": "0코스트! 망자의 지혜로 카드를 {draw}장 뽑고 주사위 +1. (소멸) 🗡️0코스트 [투척 단검] 1장 생성!",
       "classId": "rogue",
       "subclassId": "phantom",
-      "exhaust": true
+      "exhaust": true,
+      "addShiv": 1
     },
     "rogue_phantom_5": {
       "id": "rogue_phantom_5",
@@ -3511,9 +3638,10 @@ window.GAME_DATA = {
       "upgradeBlock": 12,
       "summonHeal": 7,
       "draw": 1,
-      "desc": "비물질화! 내 방어도 +{block}, 망령 체력 +10, 카드 1장 드로우.",
+      "desc": "비물질화! 내 방어도 +{block}, 망령 체력 +10, 카드 1장 드로우. 🗡️0코스트 [투척 단검] 1장 생성!",
       "classId": "rogue",
-      "subclassId": "phantom"
+      "subclassId": "phantom",
+      "addShiv": 1
     },
     "rogue_phantom_6": {
       "id": "rogue_phantom_6",
@@ -3525,10 +3653,11 @@ window.GAME_DATA = {
       "upgradeDamage": 11,
       "healOnHit": 2,
       "summonHeal": 4,
-      "desc": "피해 {damage}를 주고 내 체력 4, 망령 체력 6을 회복합니다. (소멸)",
+      "desc": "피해 {damage}를 주고 내 체력 4, 망령 체력 6을 회복합니다. (소멸) ⚪연계 +1점 (5점 시 마무리 일격 폭발!).",
       "classId": "rogue",
       "subclassId": "phantom",
-      "exhaust": true
+      "exhaust": true,
+      "comboPoint": 1
     },
     "rogue_phantom_7": {
       "id": "rogue_phantom_7",
@@ -3541,9 +3670,10 @@ window.GAME_DATA = {
       "poison": 4,
       "target": "all",
       "triggerSummonAttack": true,
-      "desc": "적 전체 피해 {damage} 및 저주 5 부여 후 망령 협공!",
+      "desc": "적 전체 피해 {damage} 및 저주 5 부여 후 망령 협공! ⚪연계 +1점 (5점 시 마무리 일격 폭발!).",
       "classId": "rogue",
-      "subclassId": "phantom"
+      "subclassId": "phantom",
+      "comboPoint": 1
     },
     "rogue_phantom_8": {
       "id": "rogue_phantom_8",
@@ -3567,9 +3697,10 @@ window.GAME_DATA = {
       "damage": 12,
       "upgradeDamage": 17,
       "damagePlusSummonHp": true,
-      "desc": "피해 {damage} + 원한의 망령 현재 체력만큼 추가 피해!",
+      "desc": "피해 {damage} + 원한의 망령 현재 체력만큼 추가 피해! ⚪연계 +2점 (5점 시 마무리 일격 폭발!).",
       "classId": "rogue",
-      "subclassId": "phantom"
+      "subclassId": "phantom",
+      "comboPoint": 2
     },
     "rogue_phantom_10": {
       "id": "rogue_phantom_10",
@@ -3583,10 +3714,11 @@ window.GAME_DATA = {
       "poison": 6,
       "triggerSummonAttack": true,
       "healOnHit": 4,
-      "desc": "[전설] 적 전체 피해 {damage}, 저주 8 부여, 내 체력 +6 및 망령 협공! (소멸)",
+      "desc": "[전설] 적 전체 피해 {damage}, 저주 8 부여, 내 체력 +6 및 망령 협공! (소멸) ⚪연계 +2점 (5점 시 마무리 일격 폭발!).",
       "classId": "rogue",
       "subclassId": "phantom",
-      "exhaust": true
+      "exhaust": true,
+      "comboPoint": 2
     },
     "rng_sh_1": {
       "id": "rng_sh_1",
@@ -3596,9 +3728,10 @@ window.GAME_DATA = {
       "cost": 1,
       "damage": 6,
       "upgradeDamage": 9,
-      "desc": "적에게 피해를 {damage} 줍니다.",
+      "desc": "적에게 피해를 {damage} 줍니다. 🎯표적 +3 부여 및 표적 격발!",
       "classId": "ranger",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "quarry": 3
     },
     "rng_sh_2": {
       "id": "rng_sh_2",
@@ -3608,9 +3741,10 @@ window.GAME_DATA = {
       "cost": 1,
       "block": 5,
       "upgradeBlock": 8,
-      "desc": "방어도를 {block} 얻습니다.",
+      "desc": "방어도를 {block} 얻습니다. 🪤전술 함정 +1개 매설!",
       "classId": "ranger",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "placeTrap": 1
     },
     "rng_sh_3": {
       "id": "rng_sh_3",
@@ -3622,9 +3756,10 @@ window.GAME_DATA = {
       "upgradeDamage": 9,
       "vuln": 2,
       "resourceGain": 1,
-      "desc": "피해 {damage}, 대상에게 취약 2 부여, 사냥꾼의 징표 +1.",
+      "desc": "피해 {damage}, 대상에게 취약 2 부여, 사냥꾼의 징표 +1. 🎯표적 +3 부여 및 표적 격발!",
       "classId": "ranger",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "quarry": 3
     },
     "rng_sh_4": {
       "id": "rng_sh_4",
@@ -3636,10 +3771,11 @@ window.GAME_DATA = {
       "upgradeBlock": 8,
       "healOnHit": 4,
       "draw": 1,
-      "desc": "방어도 {block}, 내 체력 +6 회복, 카드 1장 드로우! (소멸)",
+      "desc": "방어도 {block}, 내 체력 +6 회복, 카드 1장 드로우! (소멸) 🪤전술 함정 +2개 매설!",
       "classId": "ranger",
       "subclassId": "shared",
-      "exhaust": true
+      "exhaust": true,
+      "placeTrap": 2
     },
     "ranger_hunter_conclave_1": {
       "id": "ranger_hunter_conclave_1",
@@ -3650,9 +3786,10 @@ window.GAME_DATA = {
       "damage": 8,
       "upgradeDamage": 11,
       "resourceGain": 1,
-      "desc": "거인 사냥용 강사! 피해를 {damage} 줍니다. 징표 +1.",
+      "desc": "거인 사냥용 강사! 피해를 {damage} 줍니다. 징표 +1. 🎯표적 +3 부여 및 표적 격발!",
       "classId": "ranger",
-      "subclassId": "hunter_conclave"
+      "subclassId": "hunter_conclave",
+      "quarry": 3
     },
     "ranger_hunter_conclave_2": {
       "id": "ranger_hunter_conclave_2",
@@ -3664,9 +3801,10 @@ window.GAME_DATA = {
       "upgradeDamage": 9,
       "target": "all",
       "resourceGain": 1,
-      "desc": "적 전체에게 동시에 화살을 쏘아 피해 {damage}를 줍니다.",
+      "desc": "적 전체에게 동시에 화살을 쏘아 피해 {damage}를 줍니다. 🎯표적 +3 부여 및 표적 격발!",
       "classId": "ranger",
-      "subclassId": "hunter_conclave"
+      "subclassId": "hunter_conclave",
+      "quarry": 3
     },
     "ranger_hunter_conclave_3": {
       "id": "ranger_hunter_conclave_3",
@@ -3677,9 +3815,10 @@ window.GAME_DATA = {
       "block": 7,
       "upgradeBlock": 10,
       "weak": 1,
-      "desc": "방어도 {block}을 얻고 대상에게 약화 1을 부여합니다.",
+      "desc": "방어도 {block}을 얻고 대상에게 약화 1을 부여합니다. 🪤전술 함정 +1개 매설!",
       "classId": "ranger",
-      "subclassId": "hunter_conclave"
+      "subclassId": "hunter_conclave",
+      "placeTrap": 1
     },
     "ranger_hunter_conclave_4": {
       "id": "ranger_hunter_conclave_4",
@@ -3691,9 +3830,10 @@ window.GAME_DATA = {
       "upgradeDamage": 5,
       "hits": 2,
       "resourceGain": 1,
-      "desc": "피해를 {damage}씩 2번 주고 징표 +1를 얻습니다.",
+      "desc": "피해를 {damage}씩 2번 주고 징표 +1를 얻습니다. 🎯표적 +3 부여 및 표적 격발!",
       "classId": "ranger",
-      "subclassId": "hunter_conclave"
+      "subclassId": "hunter_conclave",
+      "quarry": 3
     },
     "ranger_hunter_conclave_5": {
       "id": "ranger_hunter_conclave_5",
@@ -3705,9 +3845,10 @@ window.GAME_DATA = {
       "upgradeDamage": 11,
       "target": "all",
       "bonusPerResource": 2,
-      "desc": "적 전체 피해 {damage} + 보유한 징표 1당 추가 피해 +2!",
+      "desc": "적 전체 피해 {damage} + 보유한 징표 1당 추가 피해 +2! 🎯표적 +3 부여 및 표적 격발!",
       "classId": "ranger",
-      "subclassId": "hunter_conclave"
+      "subclassId": "hunter_conclave",
+      "quarry": 3
     },
     "ranger_hunter_conclave_6": {
       "id": "ranger_hunter_conclave_6",
@@ -3719,9 +3860,10 @@ window.GAME_DATA = {
       "upgradeDamage": 5,
       "hits": 3,
       "target": "all",
-      "desc": "적 전체에게 피해 {damage}씩 3번 연속 폭풍 참격을 가합니다!",
+      "desc": "적 전체에게 피해 {damage}씩 3번 연속 폭풍 참격을 가합니다! 🎯표적 +3 부여 및 표적 격발!",
       "classId": "ranger",
-      "subclassId": "hunter_conclave"
+      "subclassId": "hunter_conclave",
+      "quarry": 3
     },
     "ranger_hunter_conclave_7": {
       "id": "ranger_hunter_conclave_7",
@@ -3732,9 +3874,10 @@ window.GAME_DATA = {
       "block": 9,
       "upgradeBlock": 12,
       "vuln": 2,
-      "desc": "방어도 {block}을 얻고 적의 공격을 흘려 취약 2를 부여합니다.",
+      "desc": "방어도 {block}을 얻고 적의 공격을 흘려 취약 2를 부여합니다. 🪤전술 함정 +1개 매설!",
       "classId": "ranger",
-      "subclassId": "hunter_conclave"
+      "subclassId": "hunter_conclave",
+      "placeTrap": 1
     },
     "ranger_hunter_conclave_8": {
       "id": "ranger_hunter_conclave_8",
@@ -3759,9 +3902,10 @@ window.GAME_DATA = {
       "upgradeDamage": 19,
       "target": "all",
       "vuln": 2,
-      "desc": "적 전체에게 뇌전 화살 피해 {damage}와 취약 2를 부여합니다!",
+      "desc": "적 전체에게 뇌전 화살 피해 {damage}와 취약 2를 부여합니다! 🎯표적 +6 부여 및 표적 격발!",
       "classId": "ranger",
-      "subclassId": "hunter_conclave"
+      "subclassId": "hunter_conclave",
+      "quarry": 6
     },
     "ranger_hunter_conclave_10": {
       "id": "ranger_hunter_conclave_10",
@@ -3774,9 +3918,10 @@ window.GAME_DATA = {
       "target": "all",
       "consumeResourceAll": true,
       "bonusPerResource": 4,
-      "desc": "[전설] 하늘을 뒤덮는 화살비! 적 전체 피해 {damage}(징표 1당 +4)!",
+      "desc": "[전설] 하늘을 뒤덮는 화살비! 적 전체 피해 {damage}(징표 1당 +4)! 🎯표적 +6 부여 및 표적 격발!",
       "classId": "ranger",
-      "subclassId": "hunter_conclave"
+      "subclassId": "hunter_conclave",
+      "quarry": 6
     },
     "ranger_beast_master_1": {
       "id": "ranger_beast_master_1",
@@ -3787,9 +3932,10 @@ window.GAME_DATA = {
       "summonHeal": 8,
       "upgradeSummonHeal": 11,
       "summonAtkBoost": 2,
-      "desc": "전방에 [흑표범 동료] 체력 +{summonHeal}, 공격력 +3 강화!",
+      "desc": "전방에 [흑표범 동료] 체력 +{summonHeal}, 공격력 +3 강화! 🪤전술 함정 +1개 매설!",
       "classId": "ranger",
-      "subclassId": "beast_master"
+      "subclassId": "beast_master",
+      "placeTrap": 1
     },
     "ranger_beast_master_2": {
       "id": "ranger_beast_master_2",
@@ -3800,9 +3946,10 @@ window.GAME_DATA = {
       "damage": 5,
       "upgradeDamage": 8,
       "triggerSummonAttack": true,
-      "desc": "피해 {damage}를 주고 흑표범이 즉시 적을 물어뜯습니다!",
+      "desc": "피해 {damage}를 주고 흑표범이 즉시 적을 물어뜯습니다! 🎯표적 +3 부여 및 표적 격발!",
       "classId": "ranger",
-      "subclassId": "beast_master"
+      "subclassId": "beast_master",
+      "quarry": 3
     },
     "ranger_beast_master_3": {
       "id": "ranger_beast_master_3",
@@ -3813,9 +3960,10 @@ window.GAME_DATA = {
       "block": 5,
       "upgradeBlock": 8,
       "summonHeal": 5,
-      "desc": "내 방어도 +{block} 및 흑표범의 체력을 +8 회복합니다.",
+      "desc": "내 방어도 +{block} 및 흑표범의 체력을 +8 회복합니다. 🪤전술 함정 +1개 매설!",
       "classId": "ranger",
-      "subclassId": "beast_master"
+      "subclassId": "beast_master",
+      "placeTrap": 1
     },
     "ranger_beast_master_4": {
       "id": "ranger_beast_master_4",
@@ -3826,9 +3974,10 @@ window.GAME_DATA = {
       "damage": 4,
       "upgradeDamage": 6,
       "triggerSummonAttack": true,
-      "desc": "0코스트! 피해 {damage}를 주고 흑표범이 즉시 협공합니다.",
+      "desc": "0코스트! 피해 {damage}를 주고 흑표범이 즉시 협공합니다. 🎯표적 +3 부여 및 표적 격발!",
       "classId": "ranger",
-      "subclassId": "beast_master"
+      "subclassId": "beast_master",
+      "quarry": 3
     },
     "ranger_beast_master_5": {
       "id": "ranger_beast_master_5",
@@ -3841,9 +3990,10 @@ window.GAME_DATA = {
       "summonAtkBoost": 2,
       "triggerSummonAttack": true,
       "draw": 1,
-      "desc": "피해 {damage}, 흑표범 공격력 +4 후 협공, 카드 1장 드로우!",
+      "desc": "피해 {damage}, 흑표범 공격력 +4 후 협공, 카드 1장 드로우! 🎯표적 +3 부여 및 표적 격발!",
       "classId": "ranger",
-      "subclassId": "beast_master"
+      "subclassId": "beast_master",
+      "quarry": 3
     },
     "ranger_beast_master_6": {
       "id": "ranger_beast_master_6",
@@ -3854,9 +4004,10 @@ window.GAME_DATA = {
       "block": 8,
       "upgradeBlock": 11,
       "summonHeal": 8,
-      "desc": "나무껍질 피부로 내 방어도 +{block} 및 흑표범 체력 +12!",
+      "desc": "나무껍질 피부로 내 방어도 +{block} 및 흑표범 체력 +12! 🪤전술 함정 +1개 매설!",
       "classId": "ranger",
-      "subclassId": "beast_master"
+      "subclassId": "beast_master",
+      "placeTrap": 1
     },
     "ranger_beast_master_7": {
       "id": "ranger_beast_master_7",
@@ -3868,9 +4019,10 @@ window.GAME_DATA = {
       "upgradeDamage": 11,
       "vuln": 2,
       "triggerSummonAttack": true,
-      "desc": "피해 {damage}, 취약 2 부여 후 흑표범이 치명타 협공!",
+      "desc": "피해 {damage}, 취약 2 부여 후 흑표범이 치명타 협공! 🎯표적 +3 부여 및 표적 격발!",
       "classId": "ranger",
-      "subclassId": "beast_master"
+      "subclassId": "beast_master",
+      "quarry": 3
     },
     "ranger_beast_master_8": {
       "id": "ranger_beast_master_8",
@@ -3882,10 +4034,11 @@ window.GAME_DATA = {
       "healOnHit": 3,
       "summonHeal": 8,
       "draw": 1,
-      "desc": "방어도 10, 레인저 체력 +5, 흑표범 체력 +12, 카드 1장 드로우! (소멸)",
+      "desc": "방어도 10, 레인저 체력 +5, 흑표범 체력 +12, 카드 1장 드로우! (소멸) 🪤전술 함정 +2개 매설!",
       "classId": "ranger",
       "subclassId": "beast_master",
-      "exhaust": true
+      "exhaust": true,
+      "placeTrap": 2
     },
     "ranger_beast_master_9": {
       "id": "ranger_beast_master_9",
@@ -3911,9 +4064,10 @@ window.GAME_DATA = {
       "target": "all",
       "damagePlusSummonHp": true,
       "triggerSummonAttack": true,
-      "desc": "[전설] 적 전체 피해 {damage} + 야수 체력만큼 추가 피해 후 흑표범 협공!",
+      "desc": "[전설] 적 전체 피해 {damage} + 야수 체력만큼 추가 피해 후 흑표범 협공! 🎯표적 +6 부여 및 표적 격발!",
       "classId": "ranger",
-      "subclassId": "beast_master"
+      "subclassId": "beast_master",
+      "quarry": 6
     },
     "ranger_gloom_stalker_1": {
       "id": "ranger_gloom_stalker_1",
@@ -3925,9 +4079,10 @@ window.GAME_DATA = {
       "upgradeDamage": 8,
       "draw": 1,
       "resourceGain": 1,
-      "desc": "0코스트 기습! 피해 {damage}, 카드 1장 드로우, 징표 +1.",
+      "desc": "0코스트 기습! 피해 {damage}, 카드 1장 드로우, 징표 +1. 🎯표적 +3 부여 및 표적 격발!",
       "classId": "ranger",
-      "subclassId": "gloom_stalker"
+      "subclassId": "gloom_stalker",
+      "quarry": 3
     },
     "ranger_gloom_stalker_2": {
       "id": "ranger_gloom_stalker_2",
@@ -3939,9 +4094,10 @@ window.GAME_DATA = {
       "upgradeDamage": 10,
       "vuln": 1,
       "resourceGain": 1,
-      "desc": "어둠 속에서 저격해 피해 {damage}와 취약 1을 부여합니다.",
+      "desc": "어둠 속에서 저격해 피해 {damage}와 취약 1을 부여합니다. 🎯표적 +3 부여 및 표적 격발!",
       "classId": "ranger",
-      "subclassId": "gloom_stalker"
+      "subclassId": "gloom_stalker",
+      "quarry": 3
     },
     "ranger_gloom_stalker_3": {
       "id": "ranger_gloom_stalker_3",
@@ -3952,9 +4108,10 @@ window.GAME_DATA = {
       "block": 7,
       "upgradeBlock": 10,
       "resourceGain": 1,
-      "desc": "방어도 {block}을 얻고 사냥꾼의 징표 +1를 얻습니다.",
+      "desc": "방어도 {block}을 얻고 사냥꾼의 징표 +1를 얻습니다. 🪤전술 함정 +1개 매설!",
       "classId": "ranger",
-      "subclassId": "gloom_stalker"
+      "subclassId": "gloom_stalker",
+      "placeTrap": 1
     },
     "ranger_gloom_stalker_4": {
       "id": "ranger_gloom_stalker_4",
@@ -3965,9 +4122,10 @@ window.GAME_DATA = {
       "block": 6,
       "upgradeBlock": 8,
       "draw": 1,
-      "desc": "방어도 {block}을 얻고 카드를 1장 뽑습니다.",
+      "desc": "방어도 {block}을 얻고 카드를 1장 뽑습니다. 🪤전술 함정 +1개 매설!",
       "classId": "ranger",
-      "subclassId": "gloom_stalker"
+      "subclassId": "gloom_stalker",
+      "placeTrap": 1
     },
     "ranger_gloom_stalker_5": {
       "id": "ranger_gloom_stalker_5",
@@ -3979,9 +4137,10 @@ window.GAME_DATA = {
       "upgradeBlock": 11,
       "stance": "calm",
       "draw": 1,
-      "desc": "방어도 {block}, 카드 1장 드로우 및 [어둠 매복(해제 시 AP+2)] 돌입!",
+      "desc": "방어도 {block}, 카드 1장 드로우 및 [어둠 매복(해제 시 AP+2)] 돌입! 🪤전술 함정 +1개 매설!",
       "classId": "ranger",
-      "subclassId": "gloom_stalker"
+      "subclassId": "gloom_stalker",
+      "placeTrap": 1
     },
     "ranger_gloom_stalker_6": {
       "id": "ranger_gloom_stalker_6",
@@ -3993,9 +4152,10 @@ window.GAME_DATA = {
       "upgradeDamage": 5,
       "hits": 3,
       "resourceGain": 1,
-      "desc": "피해를 {damage}씩 3번 연속 퍼붓습니다! 징표 +1.",
+      "desc": "피해를 {damage}씩 3번 연속 퍼붓습니다! 징표 +1. 🎯표적 +3 부여 및 표적 격발!",
       "classId": "ranger",
-      "subclassId": "gloom_stalker"
+      "subclassId": "gloom_stalker",
+      "quarry": 3
     },
     "ranger_gloom_stalker_7": {
       "id": "ranger_gloom_stalker_7",
@@ -4007,9 +4167,10 @@ window.GAME_DATA = {
       "upgradeBlock": 11,
       "weak": 2,
       "target": "all",
-      "desc": "방어도 {block}을 얻고 적 전체에게 약화 2를 부여합니다.",
+      "desc": "방어도 {block}을 얻고 적 전체에게 약화 2를 부여합니다. 🪤전술 함정 +1개 매설!",
       "classId": "ranger",
-      "subclassId": "gloom_stalker"
+      "subclassId": "gloom_stalker",
+      "placeTrap": 1
     },
     "ranger_gloom_stalker_8": {
       "id": "ranger_gloom_stalker_8",
@@ -4021,9 +4182,10 @@ window.GAME_DATA = {
       "upgradeDamage": 12,
       "stance": "wrath",
       "draw": 1,
-      "desc": "피해 {damage}, 카드 1장 드로우 및 [광기/학살(피해 2배)] 돌입!",
+      "desc": "피해 {damage}, 카드 1장 드로우 및 [광기/학살(피해 2배)] 돌입! 🎯표적 +6 부여 및 표적 격발!",
       "classId": "ranger",
-      "subclassId": "gloom_stalker"
+      "subclassId": "gloom_stalker",
+      "quarry": 6
     },
     "ranger_gloom_stalker_9": {
       "id": "ranger_gloom_stalker_9",
@@ -4035,9 +4197,10 @@ window.GAME_DATA = {
       "upgradeDamage": 20,
       "target": "all",
       "resourceGain": 1,
-      "desc": "순간이동 참격! 적 전체에게 피해 {damage}를 주고 징표 +1.",
+      "desc": "순간이동 참격! 적 전체에게 피해 {damage}를 주고 징표 +1. 🎯표적 +6 부여 및 표적 격발!",
       "classId": "ranger",
-      "subclassId": "gloom_stalker"
+      "subclassId": "gloom_stalker",
+      "quarry": 6
     },
     "ranger_gloom_stalker_10": {
       "id": "ranger_gloom_stalker_10",
@@ -4050,9 +4213,10 @@ window.GAME_DATA = {
       "target": "all",
       "stance": "divinity",
       "draw": 1,
-      "desc": "[전설] 적 전체 피해 {damage}, 카드 1장 드로우 및 [초월(피해 3배)] 돌입!",
+      "desc": "[전설] 적 전체 피해 {damage}, 카드 1장 드로우 및 [초월(피해 3배)] 돌입! 🎯표적 +6 부여 및 표적 격발!",
       "classId": "ranger",
-      "subclassId": "gloom_stalker"
+      "subclassId": "gloom_stalker",
+      "quarry": 6
     },
     "ranger_fey_wanderer_1": {
       "id": "ranger_fey_wanderer_1",
@@ -4063,9 +4227,10 @@ window.GAME_DATA = {
       "damage": 6,
       "upgradeDamage": 9,
       "addDrone": 1,
-      "desc": "정신 피해 {damage}를 주고 [요정계 정령 구체] 1기를 소환합니다!",
+      "desc": "정신 피해 {damage}를 주고 [요정계 정령 구체] 1기를 소환합니다! 🎯표적 +3 부여 및 표적 격발!",
       "classId": "ranger",
-      "subclassId": "fey_wanderer"
+      "subclassId": "fey_wanderer",
+      "quarry": 3
     },
     "ranger_fey_wanderer_2": {
       "id": "ranger_fey_wanderer_2",
@@ -4077,9 +4242,10 @@ window.GAME_DATA = {
       "upgradeBlock": 8,
       "draw": 1,
       "addDrone": 1,
-      "desc": "방어도 {block}, 카드 1장 드로우, 요정 정령 구체 +1기 소환!",
+      "desc": "방어도 {block}, 카드 1장 드로우, 요정 정령 구체 +1기 소환! 🪤전술 함정 +1개 매설!",
       "classId": "ranger",
-      "subclassId": "fey_wanderer"
+      "subclassId": "fey_wanderer",
+      "placeTrap": 1
     },
     "ranger_fey_wanderer_3": {
       "id": "ranger_fey_wanderer_3",
@@ -4091,9 +4257,10 @@ window.GAME_DATA = {
       "upgradeBlock": 8,
       "weak": 2,
       "target": "all",
-      "desc": "방어도 {block}을 얻고 적 전체를 매혹해 약화 2를 부여합니다.",
+      "desc": "방어도 {block}을 얻고 적 전체를 매혹해 약화 2를 부여합니다. 🪤전술 함정 +1개 매설!",
       "classId": "ranger",
-      "subclassId": "fey_wanderer"
+      "subclassId": "fey_wanderer",
+      "placeTrap": 1
     },
     "ranger_fey_wanderer_4": {
       "id": "ranger_fey_wanderer_4",
@@ -4105,9 +4272,10 @@ window.GAME_DATA = {
       "upgradeDamage": 7,
       "poison": 2,
       "resourceGain": 1,
-      "desc": "피해 {damage}와 맹독 3을 부여합니다. 징표 +1.",
+      "desc": "피해 {damage}와 맹독 3을 부여합니다. 징표 +1. 🎯표적 +3 부여 및 표적 격발!",
       "classId": "ranger",
-      "subclassId": "fey_wanderer"
+      "subclassId": "fey_wanderer",
+      "quarry": 3
     },
     "ranger_fey_wanderer_5": {
       "id": "ranger_fey_wanderer_5",
@@ -4119,9 +4287,10 @@ window.GAME_DATA = {
       "vuln": 2,
       "poison": 4,
       "target": "all",
-      "desc": "적 전체에게 공포를 반사해 약화 2, 취약 2, 맹독 5 부여!",
+      "desc": "적 전체에게 공포를 반사해 약화 2, 취약 2, 맹독 5 부여! 🪤전술 함정 +1개 매설!",
       "classId": "ranger",
-      "subclassId": "fey_wanderer"
+      "subclassId": "fey_wanderer",
+      "placeTrap": 1
     },
     "ranger_fey_wanderer_6": {
       "id": "ranger_fey_wanderer_6",
@@ -4133,9 +4302,10 @@ window.GAME_DATA = {
       "upgradeDamage": 11,
       "triggerDronesNow": true,
       "draw": 1,
-      "desc": "피해 {damage}, 모든 요정 정령 구체 즉시 공격, 카드 1장 드로우!",
+      "desc": "피해 {damage}, 모든 요정 정령 구체 즉시 공격, 카드 1장 드로우! 🎯표적 +3 부여 및 표적 격발!",
       "classId": "ranger",
-      "subclassId": "fey_wanderer"
+      "subclassId": "fey_wanderer",
+      "quarry": 3
     },
     "ranger_fey_wanderer_7": {
       "id": "ranger_fey_wanderer_7",
@@ -4146,9 +4316,10 @@ window.GAME_DATA = {
       "block": 7,
       "upgradeBlock": 10,
       "blockPerDrone": 4,
-      "desc": "방어도 {block} + 소환된 요정 정령 구체 1기당 방어도 +4!",
+      "desc": "방어도 {block} + 소환된 요정 정령 구체 1기당 방어도 +4! 🪤전술 함정 +1개 매설!",
       "classId": "ranger",
-      "subclassId": "fey_wanderer"
+      "subclassId": "fey_wanderer",
+      "placeTrap": 1
     },
     "ranger_fey_wanderer_8": {
       "id": "ranger_fey_wanderer_8",
@@ -4173,9 +4344,10 @@ window.GAME_DATA = {
       "draw": 1,
       "addDrone": 1,
       "exhaust": true,
-      "desc": "0코스트! 행동력 +1, 카드 2장 드로우, 요정 구체 +1기 (소멸)",
+      "desc": "0코스트! 행동력 +1, 카드 2장 드로우, 요정 구체 +1기 (소멸) 🪤전술 함정 +2개 매설!",
       "classId": "ranger",
-      "subclassId": "fey_wanderer"
+      "subclassId": "fey_wanderer",
+      "placeTrap": 2
     },
     "ranger_fey_wanderer_10": {
       "id": "ranger_fey_wanderer_10",
@@ -4189,10 +4361,11 @@ window.GAME_DATA = {
       "addDrone": 2,
       "triggerDronesNow": true,
       "healOnHit": 4,
-      "desc": "[전설] 적 전체 피해 {damage}, 내 체력 +6, 요정 구체 2기 소환 및 총공격! (소멸)",
+      "desc": "[전설] 적 전체 피해 {damage}, 내 체력 +6, 요정 구체 2기 소환 및 총공격! (소멸) 🎯표적 +6 부여 및 표적 격발!",
       "classId": "ranger",
       "subclassId": "fey_wanderer",
-      "exhaust": true
+      "exhaust": true,
+      "quarry": 6
     },
     "wiz_sh_1": {
       "id": "wiz_sh_1",
@@ -4202,9 +4375,10 @@ window.GAME_DATA = {
       "cost": 1,
       "damage": 6,
       "upgradeDamage": 9,
-      "desc": "적에게 피해를 {damage} 줍니다.",
+      "desc": "적에게 피해를 {damage} 줍니다. ❄️동상 +2 부여.",
       "classId": "wizard",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "frostbite": 2
     },
     "wiz_sh_2": {
       "id": "wiz_sh_2",
@@ -4214,9 +4388,10 @@ window.GAME_DATA = {
       "cost": 1,
       "block": 5,
       "upgradeBlock": 8,
-      "desc": "방어도를 {block} 얻습니다.",
+      "desc": "방어도를 {block} 얻습니다. ❄️동상 +2 부여.",
       "classId": "wizard",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "frostbite": 2
     },
     "wiz_sh_3": {
       "id": "wiz_sh_3",
@@ -4228,9 +4403,10 @@ window.GAME_DATA = {
       "upgradeDamage": 5,
       "hits": 3,
       "addDrone": 1,
-      "desc": "필중 마력탄 피해 {damage}x3 및 [비전 구체] 1기를 생성합니다!",
+      "desc": "필중 마력탄 피해 {damage}x3 및 [비전 구체] 1기를 생성합니다! ❄️동상 +2 부여.",
       "classId": "wizard",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "frostbite": 2
     },
     "wiz_sh_4": {
       "id": "wiz_sh_4",
@@ -4242,9 +4418,10 @@ window.GAME_DATA = {
       "upgradeBlock": 10,
       "blockPerDrone": 3,
       "draw": 1,
-      "desc": "방어도 {block} + 비전 구체 1기당 방어도 +3! 카드 1장 드로우.",
+      "desc": "방어도 {block} + 비전 구체 1기당 방어도 +3! 카드 1장 드로우. ❄️동상 +4 부여.",
       "classId": "wizard",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "frostbite": 4
     },
     "wizard_evocation_1": {
       "id": "wizard_evocation_1",
@@ -4256,9 +4433,11 @@ window.GAME_DATA = {
       "upgradeDamage": 9,
       "target": "all",
       "resourceGain": 1,
-      "desc": "적 전체에게 화염 피해를 {damage} 줍니다. 주문력 +1.",
+      "desc": "적 전체에게 화염 피해를 {damage} 줍니다. 주문력 +1. 🔥[화염 구체] 영창!",
       "classId": "wizard",
-      "subclassId": "evocation"
+      "subclassId": "evocation",
+      "orbType": "fire",
+      "addDrone": 1
     },
     "wizard_evocation_2": {
       "id": "wizard_evocation_2",
@@ -4269,9 +4448,10 @@ window.GAME_DATA = {
       "damage": 7,
       "upgradeDamage": 10,
       "addDrone": 1,
-      "desc": "원소 구체를 던져 피해 {damage}를 주고 비전 구체 +1기 생성!",
+      "desc": "원소 구체를 던져 피해 {damage}를 주고 비전 구체 +1기 생성! 🔥[화염 구체] 영창!",
       "classId": "wizard",
-      "subclassId": "evocation"
+      "subclassId": "evocation",
+      "orbType": "fire"
     },
     "wizard_evocation_3": {
       "id": "wizard_evocation_3",
@@ -4283,9 +4463,11 @@ window.GAME_DATA = {
       "upgradeDamage": 5,
       "hits": 3,
       "resourceGain": 1,
-      "desc": "화염 광선 3줄기로 피해 {damage}x3을 줍니다. 주문력 +1.",
+      "desc": "화염 광선 3줄기로 피해 {damage}x3을 줍니다. 주문력 +1. 🔥[화염 구체] 영창!",
       "classId": "wizard",
-      "subclassId": "evocation"
+      "subclassId": "evocation",
+      "orbType": "fire",
+      "addDrone": 1
     },
     "wizard_evocation_4": {
       "id": "wizard_evocation_4",
@@ -4296,9 +4478,10 @@ window.GAME_DATA = {
       "block": 7,
       "upgradeBlock": 10,
       "resourceGain": 1,
-      "desc": "방어도 {block}을 얻고 비전 주문력 +1를 충전합니다.",
+      "desc": "방어도 {block}을 얻고 비전 주문력 +1를 충전합니다. 🔥[화염 구체] 영창!",
       "classId": "wizard",
-      "subclassId": "evocation"
+      "subclassId": "evocation",
+      "orbType": "fire"
     },
     "wizard_evocation_5": {
       "id": "wizard_evocation_5",
@@ -4310,9 +4493,11 @@ window.GAME_DATA = {
       "upgradeDamage": 17,
       "target": "all",
       "resourceGain": 1,
-      "desc": "대폭발! 적 전체에게 화염 피해를 {damage} 줍니다. 주문력 +1.",
+      "desc": "대폭발! 적 전체에게 화염 피해를 {damage} 줍니다. 주문력 +1. 🔥[화염 구체] 영창!",
       "classId": "wizard",
-      "subclassId": "evocation"
+      "subclassId": "evocation",
+      "orbType": "fire",
+      "addDrone": 1
     },
     "wizard_evocation_6": {
       "id": "wizard_evocation_6",
@@ -4324,9 +4509,11 @@ window.GAME_DATA = {
       "upgradeDamage": 12,
       "target": "all",
       "triggerDronesNow": true,
-      "desc": "적 전체 뇌전 피해 {damage} 및 모든 비전 구체 즉시 발사!",
+      "desc": "적 전체 뇌전 피해 {damage} 및 모든 비전 구체 즉시 발사! 🔥[화염 구체] 영창!",
       "classId": "wizard",
-      "subclassId": "evocation"
+      "subclassId": "evocation",
+      "orbType": "fire",
+      "addDrone": 1
     },
     "wizard_evocation_7": {
       "id": "wizard_evocation_7",
@@ -4339,9 +4526,11 @@ window.GAME_DATA = {
       "target": "all",
       "weak": 2,
       "vuln": 2,
-      "desc": "적 전체 냉기 피해 {damage} 및 약화 2, 취약 2 부여!",
+      "desc": "적 전체 냉기 피해 {damage} 및 약화 2, 취약 2 부여! 🔥[화염 구체] 영창!",
       "classId": "wizard",
-      "subclassId": "evocation"
+      "subclassId": "evocation",
+      "orbType": "fire",
+      "addDrone": 1
     },
     "wizard_evocation_8": {
       "id": "wizard_evocation_8",
@@ -4352,9 +4541,10 @@ window.GAME_DATA = {
       "strength": 2,
       "upgradeStrength": 3,
       "addDrone": 2,
-      "desc": "주문 공격력(힘) +{strength} 및 비전 구체 2기 즉시 생성!",
+      "desc": "주문 공격력(힘) +{strength} 및 비전 구체 2기 즉시 생성! 🔥[화염 구체] 영창!",
       "classId": "wizard",
-      "subclassId": "evocation"
+      "subclassId": "evocation",
+      "orbType": "fire"
     },
     "wizard_evocation_9": {
       "id": "wizard_evocation_9",
@@ -4365,9 +4555,11 @@ window.GAME_DATA = {
       "damage": 14,
       "upgradeDamage": 19,
       "bonusPerResource": 2,
-      "desc": "최대 위력 주문! 피해 {damage} + 보유한 주문력 1당 피해 +2!",
+      "desc": "최대 위력 주문! 피해 {damage} + 보유한 주문력 1당 피해 +2! 🔥[화염 구체] 영창!",
       "classId": "wizard",
-      "subclassId": "evocation"
+      "subclassId": "evocation",
+      "orbType": "fire",
+      "addDrone": 1
     },
     "wizard_evocation_10": {
       "id": "wizard_evocation_10",
@@ -4381,9 +4573,11 @@ window.GAME_DATA = {
       "consumeResourceAll": true,
       "bonusPerResource": 3,
       "triggerDronesNow": true,
-      "desc": "[전설] 적 전체 운석 폭격 {damage}(주문력당 +3) 및 모든 구체 일제 발사!",
+      "desc": "[전설] 적 전체 운석 폭격 {damage}(주문력당 +3) 및 모든 구체 일제 발사! 🔥[화염 구체] 영창!",
       "classId": "wizard",
-      "subclassId": "evocation"
+      "subclassId": "evocation",
+      "orbType": "fire",
+      "addDrone": 1
     },
     "wizard_abjuration_1": {
       "id": "wizard_abjuration_1",
@@ -4394,9 +4588,11 @@ window.GAME_DATA = {
       "block": 8,
       "upgradeBlock": 11,
       "addDrone": 1,
-      "desc": "방어도 {block}을 얻고 수호 구체 +1기를 생성합니다.",
+      "desc": "방어도 {block}을 얻고 수호 구체 +1기를 생성합니다. ❄️[냉기 구체] 영창 & 동상 +3!",
       "classId": "wizard",
-      "subclassId": "abjuration"
+      "subclassId": "abjuration",
+      "orbType": "frost",
+      "frostbite": 3
     },
     "wizard_abjuration_2": {
       "id": "wizard_abjuration_2",
@@ -4407,9 +4603,12 @@ window.GAME_DATA = {
       "block": 6,
       "upgradeBlock": 8,
       "weak": 2,
-      "desc": "적의 주문을 차단해 방어도 {block}과 약화 2를 부여합니다.",
+      "desc": "적의 주문을 차단해 방어도 {block}과 약화 2를 부여합니다. ❄️[냉기 구체] 영창 & 동상 +3!",
       "classId": "wizard",
-      "subclassId": "abjuration"
+      "subclassId": "abjuration",
+      "orbType": "frost",
+      "frostbite": 3,
+      "addDrone": 1
     },
     "wizard_abjuration_3": {
       "id": "wizard_abjuration_3",
@@ -4421,9 +4620,12 @@ window.GAME_DATA = {
       "upgradeDamage": 8,
       "block": 5,
       "upgradeBlock": 7,
-      "desc": "폭발 문양으로 피해 {damage}와 방어도 {block}을 동시에 얻습니다.",
+      "desc": "폭발 문양으로 피해 {damage}와 방어도 {block}을 동시에 얻습니다. ❄️[냉기 구체] 영창 & 동상 +3!",
       "classId": "wizard",
-      "subclassId": "abjuration"
+      "subclassId": "abjuration",
+      "orbType": "frost",
+      "frostbite": 3,
+      "addDrone": 1
     },
     "wizard_abjuration_4": {
       "id": "wizard_abjuration_4",
@@ -4435,9 +4637,12 @@ window.GAME_DATA = {
       "upgradeBlock": 8,
       "resourceGain": 1,
       "draw": 1,
-      "desc": "방어도 {block}, 주문력 +1, 카드 1장 드로우.",
+      "desc": "방어도 {block}, 주문력 +1, 카드 1장 드로우. ❄️[냉기 구체] 영창 & 동상 +3!",
       "classId": "wizard",
-      "subclassId": "abjuration"
+      "subclassId": "abjuration",
+      "orbType": "frost",
+      "frostbite": 3,
+      "addDrone": 1
     },
     "wizard_abjuration_5": {
       "id": "wizard_abjuration_5",
@@ -4448,10 +4653,13 @@ window.GAME_DATA = {
       "block": 8,
       "upgradeBlock": 11,
       "doubleBlock": true,
-      "desc": "방어도 {block}을 얻은 뒤 현재 방어도를 2배로 증폭합니다! (소멸)",
+      "desc": "방어도 {block}을 얻은 뒤 현재 방어도를 2배로 증폭합니다! (소멸) ❄️[냉기 구체] 영창 & 동상 +3!",
       "classId": "wizard",
       "subclassId": "abjuration",
-      "exhaust": true
+      "exhaust": true,
+      "orbType": "frost",
+      "frostbite": 3,
+      "addDrone": 1
     },
     "wizard_abjuration_6": {
       "id": "wizard_abjuration_6",
@@ -4462,9 +4670,12 @@ window.GAME_DATA = {
       "damage": 9,
       "upgradeDamage": 12,
       "damagePerBlock": true,
-      "desc": "피해 {damage} + 현재 내 방어도만큼 추가 반사 피해를 줍니다!",
+      "desc": "피해 {damage} + 현재 내 방어도만큼 추가 반사 피해를 줍니다! ❄️[냉기 구체] 영창 & 동상 +3!",
       "classId": "wizard",
-      "subclassId": "abjuration"
+      "subclassId": "abjuration",
+      "orbType": "frost",
+      "frostbite": 3,
+      "addDrone": 1
     },
     "wizard_abjuration_7": {
       "id": "wizard_abjuration_7",
@@ -4476,9 +4687,12 @@ window.GAME_DATA = {
       "vuln": 2,
       "block": 6,
       "exhaust": true,
-      "desc": "대상을 이차원으로 추방해 약화 3, 취약 2 부여 및 방어도 8 (소멸)",
+      "desc": "대상을 이차원으로 추방해 약화 3, 취약 2 부여 및 방어도 8 (소멸) ❄️[냉기 구체] 영창 & 동상 +3!",
       "classId": "wizard",
-      "subclassId": "abjuration"
+      "subclassId": "abjuration",
+      "orbType": "frost",
+      "frostbite": 3,
+      "addDrone": 1
     },
     "wizard_abjuration_8": {
       "id": "wizard_abjuration_8",
@@ -4489,9 +4703,12 @@ window.GAME_DATA = {
       "dexterity": 2,
       "upgradeDexterity": 3,
       "metallicize": 3,
-      "desc": "민첩 +{dexterity} 및 매 턴 종료 시 방어도 +5를 영구 획득합니다!",
+      "desc": "민첩 +{dexterity} 및 매 턴 종료 시 방어도 +5를 영구 획득합니다! ❄️[냉기 구체] 영창 & 동상 +5!",
       "classId": "wizard",
-      "subclassId": "abjuration"
+      "subclassId": "abjuration",
+      "orbType": "frost",
+      "frostbite": 5,
+      "addDrone": 1
     },
     "wizard_abjuration_9": {
       "id": "wizard_abjuration_9",
@@ -4503,9 +4720,12 @@ window.GAME_DATA = {
       "upgradeBlock": 23,
       "draw": 1,
       "stance": "calm",
-      "desc": "방어도 {block}, 카드 1장 드로우 및 [명경(해제 시 AP+2)] 돌입!",
+      "desc": "방어도 {block}, 카드 1장 드로우 및 [명경(해제 시 AP+2)] 돌입! ❄️[냉기 구체] 영창 & 동상 +5!",
       "classId": "wizard",
-      "subclassId": "abjuration"
+      "subclassId": "abjuration",
+      "orbType": "frost",
+      "frostbite": 5,
+      "addDrone": 1
     },
     "wizard_abjuration_10": {
       "id": "wizard_abjuration_10",
@@ -4519,9 +4739,12 @@ window.GAME_DATA = {
       "block": 15,
       "weak": 3,
       "vuln": 3,
-      "desc": "[전설] 방어도 +20 획득 및 적 전체에게 7색 광선 피해 {damage}, 약화 3, 취약 3!",
+      "desc": "[전설] 방어도 +20 획득 및 적 전체에게 7색 광선 피해 {damage}, 약화 3, 취약 3! ❄️[냉기 구체] 영창 & 동상 +5!",
       "classId": "wizard",
-      "subclassId": "abjuration"
+      "subclassId": "abjuration",
+      "orbType": "frost",
+      "frostbite": 5,
+      "addDrone": 1
     },
     "wizard_necromancy_1": {
       "id": "wizard_necromancy_1",
@@ -4532,9 +4755,10 @@ window.GAME_DATA = {
       "summonHeal": 8,
       "upgradeSummonHeal": 11,
       "summonAtkBoost": 2,
-      "desc": "전방에 [해골 기사]를 소환/체력 +{summonHeal}, 공격력 +3 강화!",
+      "desc": "전방에 [해골 기사]를 소환/체력 +{summonHeal}, 공격력 +3 강화! ❄️동상 +2 부여.",
       "classId": "wizard",
-      "subclassId": "necromancy"
+      "subclassId": "necromancy",
+      "frostbite": 2
     },
     "wizard_necromancy_2": {
       "id": "wizard_necromancy_2",
@@ -4545,9 +4769,10 @@ window.GAME_DATA = {
       "damage": 5,
       "upgradeDamage": 8,
       "triggerSummonAttack": true,
-      "desc": "사령의 손길로 피해 {damage}를 주고 해골 기사가 즉시 협공합니다!",
+      "desc": "사령의 손길로 피해 {damage}를 주고 해골 기사가 즉시 협공합니다! ❄️동상 +2 부여.",
       "classId": "wizard",
-      "subclassId": "necromancy"
+      "subclassId": "necromancy",
+      "frostbite": 2
     },
     "wizard_necromancy_3": {
       "id": "wizard_necromancy_3",
@@ -4558,9 +4783,10 @@ window.GAME_DATA = {
       "damage": 6,
       "upgradeDamage": 9,
       "poison": 2,
-      "desc": "사령의 종소리로 피해 {damage}와 부패(맹독) 3을 부여합니다.",
+      "desc": "사령의 종소리로 피해 {damage}와 부패(맹독) 3을 부여합니다. ❄️동상 +2 부여.",
       "classId": "wizard",
-      "subclassId": "necromancy"
+      "subclassId": "necromancy",
+      "frostbite": 2
     },
     "wizard_necromancy_4": {
       "id": "wizard_necromancy_4",
@@ -4571,9 +4797,10 @@ window.GAME_DATA = {
       "block": 5,
       "upgradeBlock": 8,
       "summonHeal": 5,
-      "desc": "내 방어도 +{block} 및 해골 기사의 체력을 +7 회복합니다.",
+      "desc": "내 방어도 +{block} 및 해골 기사의 체력을 +7 회복합니다. ❄️동상 +2 부여.",
       "classId": "wizard",
-      "subclassId": "necromancy"
+      "subclassId": "necromancy",
+      "frostbite": 2
     },
     "wizard_necromancy_5": {
       "id": "wizard_necromancy_5",
@@ -4585,10 +4812,11 @@ window.GAME_DATA = {
       "upgradeDamage": 11,
       "healOnHit": 2,
       "summonHeal": 4,
-      "desc": "피해 {damage}를 주고 내 체력 4, 해골 기사 체력 6을 회복합니다! (소멸)",
+      "desc": "피해 {damage}를 주고 내 체력 4, 해골 기사 체력 6을 회복합니다! (소멸) ❄️동상 +2 부여.",
       "classId": "wizard",
       "subclassId": "necromancy",
-      "exhaust": true
+      "exhaust": true,
+      "frostbite": 2
     },
     "wizard_necromancy_6": {
       "id": "wizard_necromancy_6",
@@ -4599,9 +4827,10 @@ window.GAME_DATA = {
       "weak": 3,
       "poison": 4,
       "target": "all",
-      "desc": "적 전체의 근력을 앗아가 약화 3과 부패 6을 부여합니다.",
+      "desc": "적 전체의 근력을 앗아가 약화 3과 부패 6을 부여합니다. ❄️동상 +2 부여.",
       "classId": "wizard",
-      "subclassId": "necromancy"
+      "subclassId": "necromancy",
+      "frostbite": 2
     },
     "wizard_necromancy_7": {
       "id": "wizard_necromancy_7",
@@ -4614,9 +4843,10 @@ window.GAME_DATA = {
       "summonAtkBoost": 2,
       "triggerSummonAttack": true,
       "draw": 1,
-      "desc": "피해 {damage}, 해골 기사 공격력 +4 후 즉시 협공, 카드 1장 드로우!",
+      "desc": "피해 {damage}, 해골 기사 공격력 +4 후 즉시 협공, 카드 1장 드로우! ❄️동상 +2 부여.",
       "classId": "wizard",
-      "subclassId": "necromancy"
+      "subclassId": "necromancy",
+      "frostbite": 2
     },
     "wizard_necromancy_8": {
       "id": "wizard_necromancy_8",
@@ -4627,9 +4857,10 @@ window.GAME_DATA = {
       "strength": 2,
       "summonHeal": 12,
       "summonAtkBoost": 3,
-      "desc": "주문력 +2, 해골 기사 체력 +18 및 공격력 +5 영구 강화!",
+      "desc": "주문력 +2, 해골 기사 체력 +18 및 공격력 +5 영구 강화! ❄️동상 +4 부여.",
       "classId": "wizard",
-      "subclassId": "necromancy"
+      "subclassId": "necromancy",
+      "frostbite": 4
     },
     "wizard_necromancy_9": {
       "id": "wizard_necromancy_9",
@@ -4642,9 +4873,10 @@ window.GAME_DATA = {
       "target": "all",
       "poison": 4,
       "triggerSummonAttack": true,
-      "desc": "적 전체에게 사령 피해 {damage}, 부패 6 부여 및 해골 기사 협공!",
+      "desc": "적 전체에게 사령 피해 {damage}, 부패 6 부여 및 해골 기사 협공! ❄️동상 +4 부여.",
       "classId": "wizard",
-      "subclassId": "necromancy"
+      "subclassId": "necromancy",
+      "frostbite": 4
     },
     "wizard_necromancy_10": {
       "id": "wizard_necromancy_10",
@@ -4656,10 +4888,11 @@ window.GAME_DATA = {
       "upgradeDamage": 30,
       "damagePlusSummonHp": true,
       "healOnHit": 5,
-      "desc": "[전설] 피해 {damage} + 해골 기사 체력만큼 즉사급 피해 및 내 체력 +8 회복! (소멸)",
+      "desc": "[전설] 피해 {damage} + 해골 기사 체력만큼 즉사급 피해 및 내 체력 +8 회복! (소멸) ❄️동상 +4 부여.",
       "classId": "wizard",
       "subclassId": "necromancy",
-      "exhaust": true
+      "exhaust": true,
+      "frostbite": 4
     },
     "wizard_divination_1": {
       "id": "wizard_divination_1",
@@ -4670,10 +4903,12 @@ window.GAME_DATA = {
       "draw": 1,
       "upgradeDraw": 2,
       "resourceGain": 1,
-      "desc": "0코스트! 미래를 엿보아 카드 {draw}장을 뽑고 주문력 +1. (소멸)",
+      "desc": "0코스트! 미래를 엿보아 카드 {draw}장을 뽑고 주문력 +1. (소멸) ⚡[번개 구체] 영창!",
       "classId": "wizard",
       "subclassId": "divination",
-      "exhaust": true
+      "exhaust": true,
+      "orbType": "lightning",
+      "addDrone": 1
     },
     "wizard_divination_2": {
       "id": "wizard_divination_2",
@@ -4685,9 +4920,11 @@ window.GAME_DATA = {
       "upgradeDamage": 9,
       "vuln": 1,
       "draw": 1,
-      "desc": "피해 {damage}, 취약 1 부여 후 카드를 1장 뽑습니다.",
+      "desc": "피해 {damage}, 취약 1 부여 후 카드를 1장 뽑습니다. ⚡[번개 구체] 영창!",
       "classId": "wizard",
-      "subclassId": "divination"
+      "subclassId": "divination",
+      "orbType": "lightning",
+      "addDrone": 1
     },
     "wizard_divination_3": {
       "id": "wizard_divination_3",
@@ -4699,9 +4936,11 @@ window.GAME_DATA = {
       "upgradeBlock": 8,
       "draw": 1,
       "resourceGain": 1,
-      "desc": "방어도 {block}, 카드 1장 드로우, 주문력 +1.",
+      "desc": "방어도 {block}, 카드 1장 드로우, 주문력 +1. ⚡[번개 구체] 영창!",
       "classId": "wizard",
-      "subclassId": "divination"
+      "subclassId": "divination",
+      "orbType": "lightning",
+      "addDrone": 1
     },
     "wizard_divination_4": {
       "id": "wizard_divination_4",
@@ -4713,9 +4952,11 @@ window.GAME_DATA = {
       "upgradeDamage": 8,
       "vuln": 2,
       "resourceGain": 1,
-      "desc": "약점을 꿰뚫어 피해 {damage}와 취약 2를 부여합니다. 주문력 +1.",
+      "desc": "약점을 꿰뚫어 피해 {damage}와 취약 2를 부여합니다. 주문력 +1. ⚡[번개 구체] 영창!",
       "classId": "wizard",
-      "subclassId": "divination"
+      "subclassId": "divination",
+      "orbType": "lightning",
+      "addDrone": 1
     },
     "wizard_divination_5": {
       "id": "wizard_divination_5",
@@ -4727,9 +4968,11 @@ window.GAME_DATA = {
       "upgradeBlock": 11,
       "stance": "calm",
       "draw": 1,
-      "desc": "방어도 {block}, 카드 1장 드로우 및 [예지/명경(해제 시 AP+2)] 돌입!",
+      "desc": "방어도 {block}, 카드 1장 드로우 및 [예지/명경(해제 시 AP+2)] 돌입! ⚡[번개 구체] 영창!",
       "classId": "wizard",
-      "subclassId": "divination"
+      "subclassId": "divination",
+      "orbType": "lightning",
+      "addDrone": 1
     },
     "wizard_divination_6": {
       "id": "wizard_divination_6",
@@ -4741,9 +4984,11 @@ window.GAME_DATA = {
       "draw": 1,
       "resourceGain": 1,
       "exhaust": true,
-      "desc": "0코스트! 주문 슬롯을 회수해 행동력 +1, 카드 2장 드로우, 주문력 +1 (소멸)",
+      "desc": "0코스트! 주문 슬롯을 회수해 행동력 +1, 카드 2장 드로우, 주문력 +1 (소멸) ⚡[번개 구체] 영창!",
       "classId": "wizard",
-      "subclassId": "divination"
+      "subclassId": "divination",
+      "orbType": "lightning",
+      "addDrone": 1
     },
     "wizard_divination_7": {
       "id": "wizard_divination_7",
@@ -4755,9 +5000,11 @@ window.GAME_DATA = {
       "upgradeDamage": 12,
       "weak": 2,
       "vuln": 2,
-      "desc": "피해 {damage}를 주고 대상의 운명을 비틀어 약화 2, 취약 2 부여!",
+      "desc": "피해 {damage}를 주고 대상의 운명을 비틀어 약화 2, 취약 2 부여! ⚡[번개 구체] 영창!",
       "classId": "wizard",
-      "subclassId": "divination"
+      "subclassId": "divination",
+      "orbType": "lightning",
+      "addDrone": 1
     },
     "wizard_divination_8": {
       "id": "wizard_divination_8",
@@ -4769,9 +5016,10 @@ window.GAME_DATA = {
       "dexterity": 2,
       "addDrone": 1,
       "draw": 2,
-      "desc": "힘 +3, 민첩 +3, 비전 구체 +1기 생성 및 카드 2장 드로우!",
+      "desc": "힘 +3, 민첩 +3, 비전 구체 +1기 생성 및 카드 2장 드로우! ⚡[번개 구체] 영창!",
       "classId": "wizard",
-      "subclassId": "divination"
+      "subclassId": "divination",
+      "orbType": "lightning"
     },
     "wizard_divination_9": {
       "id": "wizard_divination_9",
@@ -4782,9 +5030,11 @@ window.GAME_DATA = {
       "stance": "divinity",
       "block": 9,
       "draw": 1,
-      "desc": "미래를 완벽히 예측해 방어도 12, 2드로우 및 [초월(피해 3배)] 돌입!",
+      "desc": "미래를 완벽히 예측해 방어도 12, 2드로우 및 [초월(피해 3배)] 돌입! ⚡[번개 구체] 영창!",
       "classId": "wizard",
-      "subclassId": "divination"
+      "subclassId": "divination",
+      "orbType": "lightning",
+      "addDrone": 1
     },
     "wizard_divination_10": {
       "id": "wizard_divination_10",
@@ -4797,9 +5047,11 @@ window.GAME_DATA = {
       "target": "all",
       "gainEnergy": 2,
       "draw": 1,
-      "desc": "[전설] 시간을 멈춰 적 전체 피해 {damage} 후 행동력(AP) +2 및 카드 3장 드로우!",
+      "desc": "[전설] 시간을 멈춰 적 전체 피해 {damage} 후 행동력(AP) +2 및 카드 3장 드로우! ⚡[번개 구체] 영창!",
       "classId": "wizard",
-      "subclassId": "divination"
+      "subclassId": "divination",
+      "orbType": "lightning",
+      "addDrone": 1
     },
     "clr_sh_1": {
       "id": "clr_sh_1",
@@ -4809,9 +5061,11 @@ window.GAME_DATA = {
       "cost": 1,
       "damage": 6,
       "upgradeDamage": 9,
-      "desc": "적에게 피해를 {damage} 줍니다.",
+      "desc": "적에게 피해를 {damage} 줍니다. ☀️성스러운 낙인 +3 (신앙심 +2).",
       "classId": "cleric",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "devotionGain": 2,
+      "holyBrand": 3
     },
     "clr_sh_2": {
       "id": "clr_sh_2",
@@ -4821,9 +5075,11 @@ window.GAME_DATA = {
       "cost": 1,
       "block": 5,
       "upgradeBlock": 8,
-      "desc": "방어도를 {block} 얻습니다.",
+      "desc": "방어도를 {block} 얻습니다. 💛체력 +3 치유(초과치유 시 방어도 전환 & 낙인 적에게 광휘 반사!).",
       "classId": "cleric",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "devotionGain": 2,
+      "healOnHit": 3
     },
     "clr_sh_3": {
       "id": "clr_sh_3",
@@ -4835,9 +5091,11 @@ window.GAME_DATA = {
       "upgradeDamage": 11,
       "vuln": 2,
       "resourceGain": 1,
-      "desc": "광휘 피해 {damage}를 주고 취약 2를 부여합니다! 신성력 +1.",
+      "desc": "광휘 피해 {damage}를 주고 취약 2를 부여합니다! 신성력 +1. ☀️성스러운 낙인 +3 (신앙심 +2).",
       "classId": "cleric",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "devotionGain": 2,
+      "holyBrand": 3
     },
     "clr_sh_4": {
       "id": "clr_sh_4",
@@ -4849,9 +5107,11 @@ window.GAME_DATA = {
       "block": 5,
       "upgradeBlock": 8,
       "triggerDronesNow": true,
-      "desc": "방어도 {block}, [천상의 수호령 구체] 1기 소환 및 즉시 광휘 타격!",
+      "desc": "방어도 {block}, [천상의 수호령 구체] 1기 소환 및 즉시 광휘 타격! 💛체력 +5 치유(초과치유 시 방어도 전환 & 낙인 적에게 광휘 반사!).",
       "classId": "cleric",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "devotionGain": 3,
+      "healOnHit": 5
     },
     "cleric_life_domain_1": {
       "id": "cleric_life_domain_1",
@@ -4862,9 +5122,11 @@ window.GAME_DATA = {
       "block": 5,
       "upgradeBlock": 8,
       "resourceGain": 1,
-      "desc": "방어도 {block}을 얻고 내  신성력 +1.",
+      "desc": "방어도 {block}을 얻고 내  신성력 +1. 💛체력 +3 치유(초과치유 시 방어도 전환 & 낙인 적에게 광휘 반사!).",
       "classId": "cleric",
-      "subclassId": "life_domain"
+      "subclassId": "life_domain",
+      "devotionGain": 2,
+      "healOnHit": 3
     },
     "cleric_life_domain_2": {
       "id": "cleric_life_domain_2",
@@ -4874,9 +5136,11 @@ window.GAME_DATA = {
       "cost": 1,
       "damage": 6,
       "upgradeDamage": 9,
-      "desc": "광휘 피해 {damage}를 주고 내",
+      "desc": "광휘 피해 {damage}를 주고 내 ☀️성스러운 낙인 +3 (신앙심 +2).",
       "classId": "cleric",
-      "subclassId": "life_domain"
+      "subclassId": "life_domain",
+      "devotionGain": 2,
+      "holyBrand": 3
     },
     "cleric_life_domain_3": {
       "id": "cleric_life_domain_3",
@@ -4888,10 +5152,12 @@ window.GAME_DATA = {
       "upgradeStrength": 2,
       "block": 3,
       "draw": 1,
-      "desc": "0코스트! 힘 +{strength}, 방어도 4, 카드 1장 드로우. (소멸)",
+      "desc": "0코스트! 힘 +{strength}, 방어도 4, 카드 1장 드로우. (소멸) 💛체력 +3 치유(초과치유 시 방어도 전환 & 낙인 적에게 광휘 반사!).",
       "classId": "cleric",
       "subclassId": "life_domain",
-      "exhaust": true
+      "exhaust": true,
+      "devotionGain": 2,
+      "healOnHit": 3
     },
     "cleric_life_domain_4": {
       "id": "cleric_life_domain_4",
@@ -4902,9 +5168,11 @@ window.GAME_DATA = {
       "block": 8,
       "upgradeBlock": 11,
       "resourceGain": 1,
-      "desc": "방어도 {block}을 얻고 신성력 +1를 얻습니다.",
+      "desc": "방어도 {block}을 얻고 신성력 +1를 얻습니다. 💛체력 +3 치유(초과치유 시 방어도 전환 & 낙인 적에게 광휘 반사!).",
       "classId": "cleric",
-      "subclassId": "life_domain"
+      "subclassId": "life_domain",
+      "devotionGain": 2,
+      "healOnHit": 3
     },
     "cleric_life_domain_5": {
       "id": "cleric_life_domain_5",
@@ -4916,10 +5184,11 @@ window.GAME_DATA = {
       "upgradeBlock": 11,
       "healOnHit": 5,
       "summonHeal": 7,
-      "desc": "신성력 전달! 방어도 {block}, 내 체력 +8, 소환수 체력 +10 회복! (소멸)",
+      "desc": "신성력 전달! 방어도 {block}, 내 체력 +8, 소환수 체력 +10 회복! (소멸) 💛체력 +5 치유(초과치유 시 방어도 전환 & 낙인 적에게 광휘 반사!).",
       "classId": "cleric",
       "subclassId": "life_domain",
-      "exhaust": true
+      "exhaust": true,
+      "devotionGain": 2
     },
     "cleric_life_domain_6": {
       "id": "cleric_life_domain_6",
@@ -4931,10 +5200,11 @@ window.GAME_DATA = {
       "upgradeBlock": 10,
       "healOnHit": 3,
       "draw": 1,
-      "desc": "방어도 {block}, 내 체력 +5 회복 및 카드 1장 드로우! (소멸)",
+      "desc": "방어도 {block}, 내 체력 +5 회복 및 카드 1장 드로우! (소멸) 💛체력 +3 치유(초과치유 시 방어도 전환 & 낙인 적에게 광휘 반사!).",
       "classId": "cleric",
       "subclassId": "life_domain",
-      "exhaust": true
+      "exhaust": true,
+      "devotionGain": 2
     },
     "cleric_life_domain_7": {
       "id": "cleric_life_domain_7",
@@ -4946,9 +5216,11 @@ window.GAME_DATA = {
       "upgradeBlock": 12,
       "stance": "calm",
       "resourceGain": 1,
-      "desc": "방어도 {block}, 신성력 +1 및 [은총/명경(해제 시 AP+1)] 돌입!",
+      "desc": "방어도 {block}, 신성력 +1 및 [은총/명경(해제 시 AP+1)] 돌입! 💛체력 +3 치유(초과치유 시 방어도 전환 & 낙인 적에게 광휘 반사!).",
       "classId": "cleric",
-      "subclassId": "life_domain"
+      "subclassId": "life_domain",
+      "devotionGain": 2,
+      "healOnHit": 3
     },
     "cleric_life_domain_8": {
       "id": "cleric_life_domain_8",
@@ -4961,7 +5233,8 @@ window.GAME_DATA = {
       "metallicize": 3,
       "desc": "민첩 +3, 힘 +2 및 매 턴 종료 시 방어도 +5를 영구 획득합니다!",
       "classId": "cleric",
-      "subclassId": "life_domain"
+      "subclassId": "life_domain",
+      "devotionGain": 3
     },
     "cleric_life_domain_9": {
       "id": "cleric_life_domain_9",
@@ -4972,9 +5245,11 @@ window.GAME_DATA = {
       "damage": 12,
       "upgradeDamage": 17,
       "damagePerBlock": true,
-      "desc": "피해 {damage} + 현재 내 방어도만큼 추가 광휘 피해를 줍니다!",
+      "desc": "피해 {damage} + 현재 내 방어도만큼 추가 광휘 피해를 줍니다! ☀️성스러운 낙인 +5 (신앙심 +3).",
       "classId": "cleric",
-      "subclassId": "life_domain"
+      "subclassId": "life_domain",
+      "devotionGain": 3,
+      "holyBrand": 5
     },
     "cleric_life_domain_10": {
       "id": "cleric_life_domain_10",
@@ -4987,10 +5262,12 @@ window.GAME_DATA = {
       "target": "all",
       "healOnHit": 9,
       "block": 11,
-      "desc": "[전설] 내 체력 +15 회복, 방어도 +15 및 적 전체에게 정화의 빛 {damage} 피해! (소멸)",
+      "desc": "[전설] 내 체력 +15 회복, 방어도 +15 및 적 전체에게 정화의 빛 {damage} 피해! (소멸) ☀️성스러운 낙인 +5 (신앙심 +3).",
       "classId": "cleric",
       "subclassId": "life_domain",
-      "exhaust": true
+      "exhaust": true,
+      "devotionGain": 3,
+      "holyBrand": 5
     },
     "cleric_light_domain_1": {
       "id": "cleric_light_domain_1",
@@ -5001,9 +5278,11 @@ window.GAME_DATA = {
       "block": 6,
       "upgradeBlock": 8,
       "weak": 2,
-      "desc": "눈부신 섬광으로 방어도 {block}을 얻고 적에게 약화 2를 부여합니다.",
+      "desc": "눈부신 섬광으로 방어도 {block}을 얻고 적에게 약화 2를 부여합니다. 💛체력 +3 치유(초과치유 시 방어도 전환 & 낙인 적에게 광휘 반사!).",
       "classId": "cleric",
-      "subclassId": "light_domain"
+      "subclassId": "light_domain",
+      "devotionGain": 2,
+      "healOnHit": 3
     },
     "cleric_light_domain_2": {
       "id": "cleric_light_domain_2",
@@ -5015,9 +5294,11 @@ window.GAME_DATA = {
       "upgradeDamage": 9,
       "poison": 2,
       "addDrone": 1,
-      "desc": "피해 {damage}, 화상 3 부여 및 [태양 광휘 구체] 1기 소환!",
+      "desc": "피해 {damage}, 화상 3 부여 및 [태양 광휘 구체] 1기 소환! ☀️성스러운 낙인 +3 (신앙심 +2).",
       "classId": "cleric",
-      "subclassId": "light_domain"
+      "subclassId": "light_domain",
+      "devotionGain": 2,
+      "holyBrand": 3
     },
     "cleric_light_domain_3": {
       "id": "cleric_light_domain_3",
@@ -5029,9 +5310,11 @@ window.GAME_DATA = {
       "target": "all",
       "draw": 1,
       "resourceGain": 1,
-      "desc": "적 전체를 빛으로 감싸 취약 2를 부여하고 카드를 1장 뽑습니다.",
+      "desc": "적 전체를 빛으로 감싸 취약 2를 부여하고 카드를 1장 뽑습니다. 💛체력 +3 치유(초과치유 시 방어도 전환 & 낙인 적에게 광휘 반사!).",
       "classId": "cleric",
-      "subclassId": "light_domain"
+      "subclassId": "light_domain",
+      "devotionGain": 2,
+      "healOnHit": 3
     },
     "cleric_light_domain_4": {
       "id": "cleric_light_domain_4",
@@ -5042,9 +5325,11 @@ window.GAME_DATA = {
       "block": 5,
       "upgradeBlock": 8,
       "blockPerDrone": 3,
-      "desc": "방어도 {block} + 소환된 광휘 구체 1기당 방어도 +3!",
+      "desc": "방어도 {block} + 소환된 광휘 구체 1기당 방어도 +3! 💛체력 +3 치유(초과치유 시 방어도 전환 & 낙인 적에게 광휘 반사!).",
       "classId": "cleric",
-      "subclassId": "light_domain"
+      "subclassId": "light_domain",
+      "devotionGain": 2,
+      "healOnHit": 3
     },
     "cleric_light_domain_5": {
       "id": "cleric_light_domain_5",
@@ -5057,9 +5342,11 @@ window.GAME_DATA = {
       "target": "all",
       "poison": 3,
       "weak": 2,
-      "desc": "어둠을 걷어내는 태양빛! 적 전체 피해 {damage}, 화상 4, 약화 2!",
+      "desc": "어둠을 걷어내는 태양빛! 적 전체 피해 {damage}, 화상 4, 약화 2! ☀️성스러운 낙인 +3 (신앙심 +2).",
       "classId": "cleric",
-      "subclassId": "light_domain"
+      "subclassId": "light_domain",
+      "devotionGain": 2,
+      "holyBrand": 3
     },
     "cleric_light_domain_6": {
       "id": "cleric_light_domain_6",
@@ -5071,9 +5358,11 @@ window.GAME_DATA = {
       "upgradeDamage": 17,
       "target": "all",
       "triggerDronesNow": true,
-      "desc": "적 전체에게 태양 화염 피해 {damage}를 주고 모든 광휘 구체 발사!",
+      "desc": "적 전체에게 태양 화염 피해 {damage}를 주고 모든 광휘 구체 발사! ☀️성스러운 낙인 +3 (신앙심 +2).",
       "classId": "cleric",
-      "subclassId": "light_domain"
+      "subclassId": "light_domain",
+      "devotionGain": 2,
+      "holyBrand": 3
     },
     "cleric_light_domain_7": {
       "id": "cleric_light_domain_7",
@@ -5085,9 +5374,11 @@ window.GAME_DATA = {
       "upgradeBlock": 11,
       "poison": 4,
       "target": "all",
-      "desc": "방어도 {block}을 얻고 적 전체에게 화상(맹독) 6을 부여합니다.",
+      "desc": "방어도 {block}을 얻고 적 전체에게 화상(맹독) 6을 부여합니다. 💛체력 +3 치유(초과치유 시 방어도 전환 & 낙인 적에게 광휘 반사!).",
       "classId": "cleric",
-      "subclassId": "light_domain"
+      "subclassId": "light_domain",
+      "devotionGain": 2,
+      "healOnHit": 3
     },
     "cleric_light_domain_8": {
       "id": "cleric_light_domain_8",
@@ -5100,9 +5391,11 @@ window.GAME_DATA = {
       "target": "all",
       "vuln": 2,
       "triggerDronesNow": true,
-      "desc": "천상의 불기둥! 적 전체 피해 {damage}, 취약 2 및 구체 일제 폭격!",
+      "desc": "천상의 불기둥! 적 전체 피해 {damage}, 취약 2 및 구체 일제 폭격! ☀️성스러운 낙인 +5 (신앙심 +3).",
       "classId": "cleric",
-      "subclassId": "light_domain"
+      "subclassId": "light_domain",
+      "devotionGain": 3,
+      "holyBrand": 5
     },
     "cleric_light_domain_9": {
       "id": "cleric_light_domain_9",
@@ -5115,7 +5408,8 @@ window.GAME_DATA = {
       "dexterity": 2,
       "desc": "태양 광휘 구체 2기 소환 및 힘 +3, 민첩 +2 영구 획득!",
       "classId": "cleric",
-      "subclassId": "light_domain"
+      "subclassId": "light_domain",
+      "devotionGain": 3
     },
     "cleric_light_domain_10": {
       "id": "cleric_light_domain_10",
@@ -5129,9 +5423,11 @@ window.GAME_DATA = {
       "poison": 6,
       "weak": 3,
       "triggerDronesNow": true,
-      "desc": "[전설] 적 전체 태양 폭발 피해 {damage}, 화상 8, 실명(약화 3) 및 구체 총공격!",
+      "desc": "[전설] 적 전체 태양 폭발 피해 {damage}, 화상 8, 실명(약화 3) 및 구체 총공격! ☀️성스러운 낙인 +5 (신앙심 +3).",
       "classId": "cleric",
-      "subclassId": "light_domain"
+      "subclassId": "light_domain",
+      "devotionGain": 3,
+      "holyBrand": 5
     },
     "cleric_war_domain_1": {
       "id": "cleric_war_domain_1",
@@ -5143,9 +5439,11 @@ window.GAME_DATA = {
       "upgradeDamage": 5,
       "hits": 2,
       "resourceGain": 1,
-      "desc": "전쟁망치로 피해 {damage}x2를 주고 신성력 +1를 얻습니다.",
+      "desc": "전쟁망치로 피해 {damage}x2를 주고 신성력 +1를 얻습니다. ☀️성스러운 낙인 +3 (신앙심 +2).",
       "classId": "cleric",
-      "subclassId": "war_domain"
+      "subclassId": "war_domain",
+      "devotionGain": 2,
+      "holyBrand": 3
     },
     "cleric_war_domain_2": {
       "id": "cleric_war_domain_2",
@@ -5156,9 +5454,11 @@ window.GAME_DATA = {
       "summonHeal": 8,
       "upgradeSummonHeal": 11,
       "summonAtkBoost": 2,
-      "desc": "전방에 [영체 대검 수호자] 체력 +{summonHeal}, 공격력 +3 소환!",
+      "desc": "전방에 [영체 대검 수호자] 체력 +{summonHeal}, 공격력 +3 소환! 💛체력 +3 치유(초과치유 시 방어도 전환 & 낙인 적에게 광휘 반사!).",
       "classId": "cleric",
-      "subclassId": "war_domain"
+      "subclassId": "war_domain",
+      "devotionGain": 2,
+      "healOnHit": 3
     },
     "cleric_war_domain_3": {
       "id": "cleric_war_domain_3",
@@ -5169,9 +5469,11 @@ window.GAME_DATA = {
       "damage": 7,
       "upgradeDamage": 10,
       "triggerSummonAttack": true,
-      "desc": "명중률 보정! 피해 {damage}를 주고 영체 수호자가 즉시 협공합니다!",
+      "desc": "명중률 보정! 피해 {damage}를 주고 영체 수호자가 즉시 협공합니다! ☀️성스러운 낙인 +3 (신앙심 +2).",
       "classId": "cleric",
-      "subclassId": "war_domain"
+      "subclassId": "war_domain",
+      "devotionGain": 2,
+      "holyBrand": 3
     },
     "cleric_war_domain_4": {
       "id": "cleric_war_domain_4",
@@ -5182,9 +5484,11 @@ window.GAME_DATA = {
       "block": 6,
       "upgradeBlock": 8,
       "summonHeal": 4,
-      "desc": "내 방어도 +{block} 및 영체 수호자의 체력을 +6 회복합니다.",
+      "desc": "내 방어도 +{block} 및 영체 수호자의 체력을 +6 회복합니다. 💛체력 +3 치유(초과치유 시 방어도 전환 & 낙인 적에게 광휘 반사!).",
       "classId": "cleric",
-      "subclassId": "war_domain"
+      "subclassId": "war_domain",
+      "devotionGain": 2,
+      "healOnHit": 3
     },
     "cleric_war_domain_5": {
       "id": "cleric_war_domain_5",
@@ -5195,10 +5499,12 @@ window.GAME_DATA = {
       "strength": 1,
       "summonAtkBoost": 2,
       "block": 6,
-      "desc": "방어도 8, 내 힘 +2 및 영체 수호자 공격력을 +4 강화합니다! (소멸)",
+      "desc": "방어도 8, 내 힘 +2 및 영체 수호자 공격력을 +4 강화합니다! (소멸) 💛체력 +3 치유(초과치유 시 방어도 전환 & 낙인 적에게 광휘 반사!).",
       "classId": "cleric",
       "subclassId": "war_domain",
-      "exhaust": true
+      "exhaust": true,
+      "devotionGain": 2,
+      "healOnHit": 3
     },
     "cleric_war_domain_6": {
       "id": "cleric_war_domain_6",
@@ -5211,9 +5517,11 @@ window.GAME_DATA = {
       "vuln": 2,
       "triggerSummonAttack": true,
       "draw": 1,
-      "desc": "피해 {damage}, 취약 2 부여, 수호자 협공 및 카드 1장 드로우!",
+      "desc": "피해 {damage}, 취약 2 부여, 수호자 협공 및 카드 1장 드로우! ☀️성스러운 낙인 +3 (신앙심 +2).",
       "classId": "cleric",
-      "subclassId": "war_domain"
+      "subclassId": "war_domain",
+      "devotionGain": 2,
+      "holyBrand": 3
     },
     "cleric_war_domain_7": {
       "id": "cleric_war_domain_7",
@@ -5224,9 +5532,11 @@ window.GAME_DATA = {
       "damage": 5,
       "upgradeDamage": 7,
       "triggerSummonAttack": true,
-      "desc": "0코스트 보너스 행동! 피해 {damage} 및 영체 수호자 즉시 협공!",
+      "desc": "0코스트 보너스 행동! 피해 {damage} 및 영체 수호자 즉시 협공! ☀️성스러운 낙인 +3 (신앙심 +2).",
       "classId": "cleric",
-      "subclassId": "war_domain"
+      "subclassId": "war_domain",
+      "devotionGain": 2,
+      "holyBrand": 3
     },
     "cleric_war_domain_8": {
       "id": "cleric_war_domain_8",
@@ -5239,7 +5549,8 @@ window.GAME_DATA = {
       "summonAtkBoost": 3,
       "desc": "힘 +3, 영체 수호자의 체력 +18 및 공격력 +5 영구 강화!",
       "classId": "cleric",
-      "subclassId": "war_domain"
+      "subclassId": "war_domain",
+      "devotionGain": 3
     },
     "cleric_war_domain_9": {
       "id": "cleric_war_domain_9",
@@ -5250,9 +5561,11 @@ window.GAME_DATA = {
       "damage": 14,
       "upgradeDamage": 19,
       "damagePlusSummonHp": true,
-      "desc": "피해 {damage} + 영체 수호자의 현재 체력만큼 추가 피해!",
+      "desc": "피해 {damage} + 영체 수호자의 현재 체력만큼 추가 피해! ☀️성스러운 낙인 +5 (신앙심 +3).",
       "classId": "cleric",
-      "subclassId": "war_domain"
+      "subclassId": "war_domain",
+      "devotionGain": 3,
+      "holyBrand": 5
     },
     "cleric_war_domain_10": {
       "id": "cleric_war_domain_10",
@@ -5265,9 +5578,11 @@ window.GAME_DATA = {
       "target": "all",
       "stance": "divinity",
       "triggerSummonAttack": true,
-      "desc": "[전설] 적 전체 피해 {damage}, 영체 수호자 협공 및 [천상 강림(피해 3배)] 돌입!",
+      "desc": "[전설] 적 전체 피해 {damage}, 영체 수호자 협공 및 [천상 강림(피해 3배)] 돌입! ☀️성스러운 낙인 +5 (신앙심 +3).",
       "classId": "cleric",
-      "subclassId": "war_domain"
+      "subclassId": "war_domain",
+      "devotionGain": 3,
+      "holyBrand": 5
     },
     "cleric_grave_domain_1": {
       "id": "cleric_grave_domain_1",
@@ -5279,9 +5594,11 @@ window.GAME_DATA = {
       "upgradeDamage": 9,
       "poison": 2,
       "resourceGain": 1,
-      "desc": "피해 {damage}와 사령 저주(맹독) 3을 부여합니다. 신성력 +1.",
+      "desc": "피해 {damage}와 사령 저주(맹독) 3을 부여합니다. 신성력 +1. ☀️성스러운 낙인 +3 (신앙심 +2).",
       "classId": "cleric",
-      "subclassId": "grave_domain"
+      "subclassId": "grave_domain",
+      "devotionGain": 2,
+      "holyBrand": 3
     },
     "cleric_grave_domain_2": {
       "id": "cleric_grave_domain_2",
@@ -5292,9 +5609,11 @@ window.GAME_DATA = {
       "block": 5,
       "upgradeBlock": 8,
       "vuln": 2,
-      "desc": "방어도 {block}을 얻고 죽음의 그림자를 읽어 취약 2를 부여합니다.",
+      "desc": "방어도 {block}을 얻고 죽음의 그림자를 읽어 취약 2를 부여합니다. 💛체력 +3 치유(초과치유 시 방어도 전환 & 낙인 적에게 광휘 반사!).",
       "classId": "cleric",
-      "subclassId": "grave_domain"
+      "subclassId": "grave_domain",
+      "devotionGain": 2,
+      "healOnHit": 3
     },
     "cleric_grave_domain_3": {
       "id": "cleric_grave_domain_3",
@@ -5305,9 +5624,11 @@ window.GAME_DATA = {
       "weak": 2,
       "poison": 3,
       "target": "all",
-      "desc": "적 전체에게 약화 2와 사령 저주 4를 부여합니다.",
+      "desc": "적 전체에게 약화 2와 사령 저주 4를 부여합니다. 💛체력 +3 치유(초과치유 시 방어도 전환 & 낙인 적에게 광휘 반사!).",
       "classId": "cleric",
-      "subclassId": "grave_domain"
+      "subclassId": "grave_domain",
+      "devotionGain": 2,
+      "healOnHit": 3
     },
     "cleric_grave_domain_4": {
       "id": "cleric_grave_domain_4",
@@ -5318,10 +5639,12 @@ window.GAME_DATA = {
       "draw": 1,
       "upgradeDraw": 2,
       "resourceGain": 1,
-      "desc": "0코스트! 카드를 {draw}장 뽑고 신성력 +1를 얻습니다. (소멸)",
+      "desc": "0코스트! 카드를 {draw}장 뽑고 신성력 +1를 얻습니다. (소멸) 💛체력 +3 치유(초과치유 시 방어도 전환 & 낙인 적에게 광휘 반사!).",
       "classId": "cleric",
       "subclassId": "grave_domain",
-      "exhaust": true
+      "exhaust": true,
+      "devotionGain": 2,
+      "healOnHit": 3
     },
     "cleric_grave_domain_5": {
       "id": "cleric_grave_domain_5",
@@ -5332,9 +5655,11 @@ window.GAME_DATA = {
       "vuln": 3,
       "stance": "wrath",
       "draw": 2,
-      "desc": "대상에게 취약 3 부여, [심판(공격력 2배)] 태세 돌입, 카드 2장 드로우!",
+      "desc": "대상에게 취약 3 부여, [심판(공격력 2배)] 태세 돌입, 카드 2장 드로우! 💛체력 +3 치유(초과치유 시 방어도 전환 & 낙인 적에게 광휘 반사!).",
       "classId": "cleric",
-      "subclassId": "grave_domain"
+      "subclassId": "grave_domain",
+      "devotionGain": 2,
+      "healOnHit": 3
     },
     "cleric_grave_domain_6": {
       "id": "cleric_grave_domain_6",
@@ -5346,10 +5671,11 @@ window.GAME_DATA = {
       "upgradeBlock": 12,
       "healOnHit": 3,
       "stance": "calm",
-      "desc": "적의 치명타를 무효화해 방어도 {block}, 체력 +5, [명경(AP+2)] 돌입! (소멸)",
+      "desc": "적의 치명타를 무효화해 방어도 {block}, 체력 +5, [명경(AP+2)] 돌입! (소멸) 💛체력 +3 치유(초과치유 시 방어도 전환 & 낙인 적에게 광휘 반사!).",
       "classId": "cleric",
       "subclassId": "grave_domain",
-      "exhaust": true
+      "exhaust": true,
+      "devotionGain": 2
     },
     "cleric_grave_domain_7": {
       "id": "cleric_grave_domain_7",
@@ -5360,9 +5686,11 @@ window.GAME_DATA = {
       "damage": 8,
       "upgradeDamage": 11,
       "damagePerPoison": true,
-      "desc": "피해 {damage} + 대상의 현재 저주(맹독) 수치만큼 추가 피해!",
+      "desc": "피해 {damage} + 대상의 현재 저주(맹독) 수치만큼 추가 피해! ☀️성스러운 낙인 +3 (신앙심 +2).",
       "classId": "cleric",
-      "subclassId": "grave_domain"
+      "subclassId": "grave_domain",
+      "devotionGain": 2,
+      "holyBrand": 3
     },
     "cleric_grave_domain_8": {
       "id": "cleric_grave_domain_8",
@@ -5375,7 +5703,8 @@ window.GAME_DATA = {
       "resourceGain": 1,
       "desc": "힘 +1, 민첩 +1을 영구 획득하고 즉시 신성력 +1을 얻습니다!",
       "classId": "cleric",
-      "subclassId": "grave_domain"
+      "subclassId": "grave_domain",
+      "devotionGain": 3
     },
     "cleric_grave_domain_9": {
       "id": "cleric_grave_domain_9",
@@ -5387,10 +5716,12 @@ window.GAME_DATA = {
       "upgradeDamage": 19,
       "healOnHit": 5,
       "doublePoison": true,
-      "desc": "피해 {damage}, 대상의 저주(맹독) 2배 증폭 및 내 체력 +8 회복! (소멸)",
+      "desc": "피해 {damage}, 대상의 저주(맹독) 2배 증폭 및 내 체력 +8 회복! (소멸) ☀️성스러운 낙인 +5 (신앙심 +3).",
       "classId": "cleric",
       "subclassId": "grave_domain",
-      "exhaust": true
+      "exhaust": true,
+      "devotionGain": 3,
+      "holyBrand": 5
     },
     "cleric_grave_domain_10": {
       "id": "cleric_grave_domain_10",
@@ -5403,9 +5734,11 @@ window.GAME_DATA = {
       "target": "all",
       "stance": "divinity",
       "triggerPoisonNow": true,
-      "desc": "[전설] 적 전체 피해 {damage}, 모든 저주 즉시 폭발 및 [초월(피해 3배)] 돌입!",
+      "desc": "[전설] 적 전체 피해 {damage}, 모든 저주 즉시 폭발 및 [초월(피해 3배)] 돌입! ☀️성스러운 낙인 +5 (신앙심 +3).",
       "classId": "cleric",
-      "subclassId": "grave_domain"
+      "subclassId": "grave_domain",
+      "devotionGain": 3,
+      "holyBrand": 5
     },
     "pal_sh_1": {
       "id": "pal_sh_1",
@@ -5415,9 +5748,11 @@ window.GAME_DATA = {
       "cost": 1,
       "damage": 6,
       "upgradeDamage": 9,
-      "desc": "적에게 피해를 {damage} 줍니다.",
+      "desc": "적에게 피해를 {damage} 줍니다. ⚖️심판의 문장 +3 부여 및 문장 폭발(추가 광휘 피해+방어도)!",
       "classId": "paladin",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "seal": 3,
+      "detonateSeal": true
     },
     "pal_sh_2": {
       "id": "pal_sh_2",
@@ -5427,9 +5762,11 @@ window.GAME_DATA = {
       "cost": 1,
       "block": 5,
       "upgradeBlock": 8,
-      "desc": "방어도를 {block} 얻습니다.",
+      "desc": "방어도를 {block} 얻습니다. ⚜️모든 적에게 문장 +3 & 현재 성기사 오라 위력 +2 증폭!",
       "classId": "paladin",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "sealAll": 3,
+      "auraBoost": 2
     },
     "pal_sh_3": {
       "id": "pal_sh_3",
@@ -5441,9 +5778,11 @@ window.GAME_DATA = {
       "upgradeDamage": 11,
       "bonusPerResource": 2,
       "resourceGain": 1,
-      "desc": "피해 {damage} + 보유한 강타 충전 1당 추가 광휘 피해 +1!",
+      "desc": "피해 {damage} + 보유한 강타 충전 1당 추가 광휘 피해 +1! ⚖️심판의 문장 +3 부여 및 문장 폭발(추가 광휘 피해+방어도)!",
       "classId": "paladin",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "seal": 3,
+      "detonateSeal": true
     },
     "pal_sh_4": {
       "id": "pal_sh_4",
@@ -5455,10 +5794,12 @@ window.GAME_DATA = {
       "upgradeBlock": 10,
       "healOnHit": 4,
       "resourceGain": 1,
-      "desc": "방어도 {block}을 얻고 내 체력을 6 회복합니다. 강타 +1. (소멸)",
+      "desc": "방어도 {block}을 얻고 내 체력을 6 회복합니다. 강타 +1. (소멸) ⚜️모든 적에게 문장 +5 & 현재 성기사 오라 위력 +3 증폭!",
       "classId": "paladin",
       "subclassId": "shared",
-      "exhaust": true
+      "exhaust": true,
+      "sealAll": 5,
+      "auraBoost": 3
     },
     "paladin_devotion_1": {
       "id": "paladin_devotion_1",
@@ -5470,9 +5811,11 @@ window.GAME_DATA = {
       "upgradeDamage": 10,
       "vuln": 1,
       "resourceGain": 1,
-      "desc": "피해 {damage}를 주고 취약 1을 부여합니다. 강타 +1.",
+      "desc": "피해 {damage}를 주고 취약 1을 부여합니다. 강타 +1. ⚖️심판의 문장 +3 부여 및 문장 폭발(추가 광휘 피해+방어도)!",
       "classId": "paladin",
-      "subclassId": "devotion"
+      "subclassId": "devotion",
+      "seal": 3,
+      "detonateSeal": true
     },
     "paladin_devotion_2": {
       "id": "paladin_devotion_2",
@@ -5483,9 +5826,11 @@ window.GAME_DATA = {
       "block": 7,
       "upgradeBlock": 10,
       "resourceGain": 1,
-      "desc": "방어도 {block}과 신성한 강타 +1를 얻습니다.",
+      "desc": "방어도 {block}과 신성한 강타 +1를 얻습니다. ⚜️모든 적에게 문장 +3 & 현재 성기사 오라 위력 +2 증폭!",
       "classId": "paladin",
-      "subclassId": "devotion"
+      "subclassId": "devotion",
+      "sealAll": 3,
+      "auraBoost": 2
     },
     "paladin_devotion_3": {
       "id": "paladin_devotion_3",
@@ -5496,9 +5841,11 @@ window.GAME_DATA = {
       "weak": 2,
       "target": "all",
       "block": 5,
-      "desc": "방어도 6을 얻고 적 전체에게 약화 2를 부여합니다.",
+      "desc": "방어도 6을 얻고 적 전체에게 약화 2를 부여합니다. ⚜️모든 적에게 문장 +3 & 현재 성기사 오라 위력 +2 증폭!",
       "classId": "paladin",
-      "subclassId": "devotion"
+      "subclassId": "devotion",
+      "sealAll": 3,
+      "auraBoost": 2
     },
     "paladin_devotion_4": {
       "id": "paladin_devotion_4",
@@ -5510,9 +5857,11 @@ window.GAME_DATA = {
       "upgradeDamage": 5,
       "hits": 2,
       "resourceGain": 1,
-      "desc": "피해를 {damage}씩 2번 주고 신성한 강타 +1.",
+      "desc": "피해를 {damage}씩 2번 주고 신성한 강타 +1. ⚖️심판의 문장 +3 부여 및 문장 폭발(추가 광휘 피해+방어도)!",
       "classId": "paladin",
-      "subclassId": "devotion"
+      "subclassId": "devotion",
+      "seal": 3,
+      "detonateSeal": true
     },
     "paladin_devotion_5": {
       "id": "paladin_devotion_5",
@@ -5536,10 +5885,12 @@ window.GAME_DATA = {
       "block": 8,
       "upgradeBlock": 11,
       "doubleBlock": true,
-      "desc": "방어도 {block}을 얻고 현재 방어도를 2배로 증폭합니다! (소멸)",
+      "desc": "방어도 {block}을 얻고 현재 방어도를 2배로 증폭합니다! (소멸) ⚜️모든 적에게 문장 +3 & 현재 성기사 오라 위력 +2 증폭!",
       "classId": "paladin",
       "subclassId": "devotion",
-      "exhaust": true
+      "exhaust": true,
+      "sealAll": 3,
+      "auraBoost": 2
     },
     "paladin_devotion_7": {
       "id": "paladin_devotion_7",
@@ -5551,9 +5902,11 @@ window.GAME_DATA = {
       "upgradeDamage": 12,
       "weak": 2,
       "vuln": 2,
-      "desc": "피해 {damage}를 주고 대상에게 실명(약화 2, 취약 2)을 부여합니다.",
+      "desc": "피해 {damage}를 주고 대상에게 실명(약화 2, 취약 2)을 부여합니다. ⚖️심판의 문장 +3 부여 및 문장 폭발(추가 광휘 피해+방어도)!",
       "classId": "paladin",
-      "subclassId": "devotion"
+      "subclassId": "devotion",
+      "seal": 3,
+      "detonateSeal": true
     },
     "paladin_devotion_8": {
       "id": "paladin_devotion_8",
@@ -5565,10 +5918,12 @@ window.GAME_DATA = {
       "healOnHit": 4,
       "draw": 1,
       "stance": "calm",
-      "desc": "방어도 12, 체력 +7 회복, 2드로우 및 [헌신/명경(AP+2)] 돌입! (소멸)",
+      "desc": "방어도 12, 체력 +7 회복, 2드로우 및 [헌신/명경(AP+2)] 돌입! (소멸) ⚜️모든 적에게 문장 +5 & 현재 성기사 오라 위력 +3 증폭!",
       "classId": "paladin",
       "subclassId": "devotion",
-      "exhaust": true
+      "exhaust": true,
+      "sealAll": 5,
+      "auraBoost": 3
     },
     "paladin_devotion_9": {
       "id": "paladin_devotion_9",
@@ -5579,9 +5934,11 @@ window.GAME_DATA = {
       "damage": 12,
       "upgradeDamage": 17,
       "damagePerBlock": true,
-      "desc": "피해 {damage} + 현재 내 방어도만큼 추가 광휘 피해!",
+      "desc": "피해 {damage} + 현재 내 방어도만큼 추가 광휘 피해! ⚖️심판의 문장 +6 부여 및 문장 폭발(추가 광휘 피해+방어도)!",
       "classId": "paladin",
-      "subclassId": "devotion"
+      "subclassId": "devotion",
+      "seal": 6,
+      "detonateSeal": true
     },
     "paladin_devotion_10": {
       "id": "paladin_devotion_10",
@@ -5594,9 +5951,11 @@ window.GAME_DATA = {
       "target": "all",
       "block": 12,
       "stance": "divinity",
-      "desc": "[전설] 태양의 후광! 방어도 +16, 적 전체 피해 {damage} 및 [천상 강림(3배)]!",
+      "desc": "[전설] 태양의 후광! 방어도 +16, 적 전체 피해 {damage} 및 [천상 강림(3배)]! ⚖️심판의 문장 +6 부여 및 문장 폭발(추가 광휘 피해+방어도)!",
       "classId": "paladin",
-      "subclassId": "devotion"
+      "subclassId": "devotion",
+      "seal": 6,
+      "detonateSeal": true
     },
     "paladin_vengeance_1": {
       "id": "paladin_vengeance_1",
@@ -5607,9 +5966,11 @@ window.GAME_DATA = {
       "damage": 7,
       "upgradeDamage": 10,
       "resourceGain": 1,
-      "desc": "피해를 {damage} 주고 신성한 강타 +1를 얻습니다.",
+      "desc": "피해를 {damage} 주고 신성한 강타 +1를 얻습니다. ⚖️심판의 문장 +3 부여 및 문장 폭발(추가 광휘 피해+방어도)!",
       "classId": "paladin",
-      "subclassId": "vengeance"
+      "subclassId": "vengeance",
+      "seal": 3,
+      "detonateSeal": true
     },
     "paladin_vengeance_2": {
       "id": "paladin_vengeance_2",
@@ -5620,9 +5981,11 @@ window.GAME_DATA = {
       "damage": 6,
       "upgradeDamage": 9,
       "vuln": 2,
-      "desc": "피해를 {damage} 주고 대상에게 취약 2를 부여합니다.",
+      "desc": "피해를 {damage} 주고 대상에게 취약 2를 부여합니다. ⚖️심판의 문장 +3 부여 및 문장 폭발(추가 광휘 피해+방어도)!",
       "classId": "paladin",
-      "subclassId": "vengeance"
+      "subclassId": "vengeance",
+      "seal": 3,
+      "detonateSeal": true
     },
     "paladin_vengeance_3": {
       "id": "paladin_vengeance_3",
@@ -5633,10 +5996,12 @@ window.GAME_DATA = {
       "draw": 1,
       "upgradeDraw": 2,
       "resourceGain": 1,
-      "desc": "0코스트! 카드를 {draw}장 뽑고 강타 +1를 얻습니다. (소멸)",
+      "desc": "0코스트! 카드를 {draw}장 뽑고 강타 +1를 얻습니다. (소멸) ⚜️모든 적에게 문장 +3 & 현재 성기사 오라 위력 +2 증폭!",
       "classId": "paladin",
       "subclassId": "vengeance",
-      "exhaust": true
+      "exhaust": true,
+      "sealAll": 3,
+      "auraBoost": 2
     },
     "paladin_vengeance_4": {
       "id": "paladin_vengeance_4",
@@ -5647,10 +6012,12 @@ window.GAME_DATA = {
       "block": 6,
       "upgradeBlock": 8,
       "strength": 1,
-      "desc": "방어도 {block}과 힘 +1을 얻습니다. (소멸)",
+      "desc": "방어도 {block}과 힘 +1을 얻습니다. (소멸) ⚜️모든 적에게 문장 +3 & 현재 성기사 오라 위력 +2 증폭!",
       "classId": "paladin",
       "subclassId": "vengeance",
-      "exhaust": true
+      "exhaust": true,
+      "sealAll": 3,
+      "auraBoost": 2
     },
     "paladin_vengeance_5": {
       "id": "paladin_vengeance_5",
@@ -5662,9 +6029,11 @@ window.GAME_DATA = {
       "upgradeDamage": 11,
       "stance": "wrath",
       "vuln": 2,
-      "desc": "피해 {damage}, 취약 2 부여 후 [복수(공격력 2배)] 태세 돌입!",
+      "desc": "피해 {damage}, 취약 2 부여 후 [복수(공격력 2배)] 태세 돌입! ⚖️심판의 문장 +3 부여 및 문장 폭발(추가 광휘 피해+방어도)!",
       "classId": "paladin",
-      "subclassId": "vengeance"
+      "subclassId": "vengeance",
+      "seal": 3,
+      "detonateSeal": true
     },
     "paladin_vengeance_6": {
       "id": "paladin_vengeance_6",
@@ -5676,9 +6045,11 @@ window.GAME_DATA = {
       "upgradeDamage": 5,
       "hits": 3,
       "resourceGain": 1,
-      "desc": "피해를 {damage}씩 3번 연속 가합니다! 강타 +1.",
+      "desc": "피해를 {damage}씩 3번 연속 가합니다! 강타 +1. ⚖️심판의 문장 +3 부여 및 문장 폭발(추가 광휘 피해+방어도)!",
       "classId": "paladin",
-      "subclassId": "vengeance"
+      "subclassId": "vengeance",
+      "seal": 3,
+      "detonateSeal": true
     },
     "paladin_vengeance_7": {
       "id": "paladin_vengeance_7",
@@ -5690,9 +6061,11 @@ window.GAME_DATA = {
       "draw": 1,
       "strength": 1,
       "exhaust": true,
-      "desc": "0코스트! 행동력 +1, 힘 +1, 카드 2장 드로우 (소멸)",
+      "desc": "0코스트! 행동력 +1, 힘 +1, 카드 2장 드로우 (소멸) ⚜️모든 적에게 문장 +3 & 현재 성기사 오라 위력 +2 증폭!",
       "classId": "paladin",
-      "subclassId": "vengeance"
+      "subclassId": "vengeance",
+      "sealAll": 3,
+      "auraBoost": 2
     },
     "paladin_vengeance_8": {
       "id": "paladin_vengeance_8",
@@ -5716,9 +6089,11 @@ window.GAME_DATA = {
       "damage": 17,
       "upgradeDamage": 23,
       "bonusPerResource": 3,
-      "desc": "5레벨 최강 강타! 피해 {damage} + 보유한 강타 1당 피해 +3!",
+      "desc": "5레벨 최강 강타! 피해 {damage} + 보유한 강타 1당 피해 +3! ⚖️심판의 문장 +6 부여 및 문장 폭발(추가 광휘 피해+방어도)!",
       "classId": "paladin",
-      "subclassId": "vengeance"
+      "subclassId": "vengeance",
+      "seal": 6,
+      "detonateSeal": true
     },
     "paladin_vengeance_10": {
       "id": "paladin_vengeance_10",
@@ -5732,9 +6107,11 @@ window.GAME_DATA = {
       "stance": "divinity",
       "consumeResourceAll": true,
       "bonusPerResource": 3,
-      "desc": "[전설] 천사의 날개 개방! 적 전체 피해 {damage}(강타당 +3) 및 [초월(3배)]!",
+      "desc": "[전설] 천사의 날개 개방! 적 전체 피해 {damage}(강타당 +3) 및 [초월(3배)]! ⚖️심판의 문장 +6 부여 및 문장 폭발(추가 광휘 피해+방어도)!",
       "classId": "paladin",
-      "subclassId": "vengeance"
+      "subclassId": "vengeance",
+      "seal": 6,
+      "detonateSeal": true
     },
     "paladin_conquest_1": {
       "id": "paladin_conquest_1",
@@ -5745,9 +6122,11 @@ window.GAME_DATA = {
       "summonHeal": 8,
       "upgradeSummonHeal": 11,
       "summonAtkBoost": 2,
-      "desc": "전방에 [천상의 그리폰]을 소환/체력 +{summonHeal}, 공격력 +3 강화!",
+      "desc": "전방에 [천상의 그리폰]을 소환/체력 +{summonHeal}, 공격력 +3 강화! ⚜️모든 적에게 문장 +3 & 현재 성기사 오라 위력 +2 증폭!",
       "classId": "paladin",
-      "subclassId": "conquest"
+      "subclassId": "conquest",
+      "sealAll": 3,
+      "auraBoost": 2
     },
     "paladin_conquest_2": {
       "id": "paladin_conquest_2",
@@ -5758,9 +6137,11 @@ window.GAME_DATA = {
       "damage": 6,
       "upgradeDamage": 9,
       "triggerSummonAttack": true,
-      "desc": "피해 {damage}를 주고 그리폰 군마가 즉시 협동 타격합니다!",
+      "desc": "피해 {damage}를 주고 그리폰 군마가 즉시 협동 타격합니다! ⚖️심판의 문장 +3 부여 및 문장 폭발(추가 광휘 피해+방어도)!",
       "classId": "paladin",
-      "subclassId": "conquest"
+      "subclassId": "conquest",
+      "seal": 3,
+      "detonateSeal": true
     },
     "paladin_conquest_3": {
       "id": "paladin_conquest_3",
@@ -5772,9 +6153,11 @@ window.GAME_DATA = {
       "upgradeBlock": 8,
       "weak": 2,
       "target": "all",
-      "desc": "방어도 {block}을 얻고 적 전체를 위압해 약화 2를 부여합니다.",
+      "desc": "방어도 {block}을 얻고 적 전체를 위압해 약화 2를 부여합니다. ⚜️모든 적에게 문장 +3 & 현재 성기사 오라 위력 +2 증폭!",
       "classId": "paladin",
-      "subclassId": "conquest"
+      "subclassId": "conquest",
+      "sealAll": 3,
+      "auraBoost": 2
     },
     "paladin_conquest_4": {
       "id": "paladin_conquest_4",
@@ -5785,9 +6168,11 @@ window.GAME_DATA = {
       "block": 5,
       "upgradeBlock": 8,
       "summonHeal": 5,
-      "desc": "내 방어도 +{block} 및 그리폰 군마의 체력을 +7 회복합니다.",
+      "desc": "내 방어도 +{block} 및 그리폰 군마의 체력을 +7 회복합니다. ⚜️모든 적에게 문장 +3 & 현재 성기사 오라 위력 +2 증폭!",
       "classId": "paladin",
-      "subclassId": "conquest"
+      "subclassId": "conquest",
+      "sealAll": 3,
+      "auraBoost": 2
     },
     "paladin_conquest_5": {
       "id": "paladin_conquest_5",
@@ -5800,9 +6185,11 @@ window.GAME_DATA = {
       "target": "all",
       "weak": 2,
       "triggerSummonAttack": true,
-      "desc": "적 전체 피해 {damage}, 약화 2 부여 후 그리폰 군마가 협공합니다!",
+      "desc": "적 전체 피해 {damage}, 약화 2 부여 후 그리폰 군마가 협공합니다! ⚖️심판의 문장 +3 부여 및 문장 폭발(추가 광휘 피해+방어도)!",
       "classId": "paladin",
-      "subclassId": "conquest"
+      "subclassId": "conquest",
+      "seal": 3,
+      "detonateSeal": true
     },
     "paladin_conquest_6": {
       "id": "paladin_conquest_6",
@@ -5814,9 +6201,11 @@ window.GAME_DATA = {
       "upgradeDamage": 12,
       "summonAtkBoost": 2,
       "triggerSummonAttack": true,
-      "desc": "피해 {damage}, 그리폰 공격력 +4 강화 후 즉시 그리폰 협공!",
+      "desc": "피해 {damage}, 그리폰 공격력 +4 강화 후 즉시 그리폰 협공! ⚖️심판의 문장 +3 부여 및 문장 폭발(추가 광휘 피해+방어도)!",
       "classId": "paladin",
-      "subclassId": "conquest"
+      "subclassId": "conquest",
+      "seal": 3,
+      "detonateSeal": true
     },
     "paladin_conquest_7": {
       "id": "paladin_conquest_7",
@@ -5828,9 +6217,11 @@ window.GAME_DATA = {
       "upgradeBlock": 12,
       "summonHeal": 7,
       "draw": 1,
-      "desc": "내 방어도 +{block}, 그리폰 체력 +10, 카드 1장 드로우!",
+      "desc": "내 방어도 +{block}, 그리폰 체력 +10, 카드 1장 드로우! ⚜️모든 적에게 문장 +3 & 현재 성기사 오라 위력 +2 증폭!",
       "classId": "paladin",
-      "subclassId": "conquest"
+      "subclassId": "conquest",
+      "sealAll": 3,
+      "auraBoost": 2
     },
     "paladin_conquest_8": {
       "id": "paladin_conquest_8",
@@ -5854,9 +6245,11 @@ window.GAME_DATA = {
       "damage": 14,
       "upgradeDamage": 19,
       "damagePlusSummonHp": true,
-      "desc": "피해 {damage} + 그리폰 군마의 현재 체력만큼 추가 피해!",
+      "desc": "피해 {damage} + 그리폰 군마의 현재 체력만큼 추가 피해! ⚖️심판의 문장 +6 부여 및 문장 폭발(추가 광휘 피해+방어도)!",
       "classId": "paladin",
-      "subclassId": "conquest"
+      "subclassId": "conquest",
+      "seal": 6,
+      "detonateSeal": true
     },
     "paladin_conquest_10": {
       "id": "paladin_conquest_10",
@@ -5870,10 +6263,12 @@ window.GAME_DATA = {
       "triggerSummonAttack": true,
       "healOnHit": 5,
       "block": 11,
-      "desc": "[전설] 적 전체 피해 {damage}, 방어도 +14, 내 체력 +8 및 그리폰 협공! (소멸)",
+      "desc": "[전설] 적 전체 피해 {damage}, 방어도 +14, 내 체력 +8 및 그리폰 협공! (소멸) ⚖️심판의 문장 +6 부여 및 문장 폭발(추가 광휘 피해+방어도)!",
       "classId": "paladin",
       "subclassId": "conquest",
-      "exhaust": true
+      "exhaust": true,
+      "seal": 6,
+      "detonateSeal": true
     },
     "paladin_oathbreaker_1": {
       "id": "paladin_oathbreaker_1",
@@ -5884,9 +6279,11 @@ window.GAME_DATA = {
       "summonHeal": 8,
       "upgradeSummonHeal": 11,
       "summonAtkBoost": 2,
-      "desc": "전방에 [타락 데스나이트] 체력 +{summonHeal}, 공격력 +3 소환!",
+      "desc": "전방에 [타락 데스나이트] 체력 +{summonHeal}, 공격력 +3 소환! ⚜️모든 적에게 문장 +3 & 현재 성기사 오라 위력 +2 증폭!",
       "classId": "paladin",
-      "subclassId": "oathbreaker"
+      "subclassId": "oathbreaker",
+      "sealAll": 3,
+      "auraBoost": 2
     },
     "paladin_oathbreaker_2": {
       "id": "paladin_oathbreaker_2",
@@ -5898,9 +6295,11 @@ window.GAME_DATA = {
       "upgradeDamage": 9,
       "poison": 2,
       "triggerSummonAttack": true,
-      "desc": "피해 {damage}, 암흑 저주 3 부여 후 데스나이트가 즉시 협공!",
+      "desc": "피해 {damage}, 암흑 저주 3 부여 후 데스나이트가 즉시 협공! ⚖️심판의 문장 +3 부여 및 문장 폭발(추가 광휘 피해+방어도)!",
       "classId": "paladin",
-      "subclassId": "oathbreaker"
+      "subclassId": "oathbreaker",
+      "seal": 3,
+      "detonateSeal": true
     },
     "paladin_oathbreaker_3": {
       "id": "paladin_oathbreaker_3",
@@ -5912,9 +6311,11 @@ window.GAME_DATA = {
       "upgradeBlock": 8,
       "vuln": 2,
       "target": "all",
-      "desc": "방어도 {block}을 얻고 적 전체에게 공포(취약 2)를 부여합니다.",
+      "desc": "방어도 {block}을 얻고 적 전체에게 공포(취약 2)를 부여합니다. ⚜️모든 적에게 문장 +3 & 현재 성기사 오라 위력 +2 증폭!",
       "classId": "paladin",
-      "subclassId": "oathbreaker"
+      "subclassId": "oathbreaker",
+      "sealAll": 3,
+      "auraBoost": 2
     },
     "paladin_oathbreaker_4": {
       "id": "paladin_oathbreaker_4",
@@ -5925,9 +6326,11 @@ window.GAME_DATA = {
       "damage": 7,
       "upgradeDamage": 10,
       "poison": 3,
-      "desc": "암흑 에너지를 꽂아 피해 {damage}와 부패 저주 4를 부여합니다.",
+      "desc": "암흑 에너지를 꽂아 피해 {damage}와 부패 저주 4를 부여합니다. ⚖️심판의 문장 +3 부여 및 문장 폭발(추가 광휘 피해+방어도)!",
       "classId": "paladin",
-      "subclassId": "oathbreaker"
+      "subclassId": "oathbreaker",
+      "seal": 3,
+      "detonateSeal": true
     },
     "paladin_oathbreaker_5": {
       "id": "paladin_oathbreaker_5",
@@ -5952,10 +6355,12 @@ window.GAME_DATA = {
       "upgradeDamage": 11,
       "healOnHit": 2,
       "summonHeal": 4,
-      "desc": "피해 {damage}를 주고 내 체력 4, 데스나이트 체력 6을 회복합니다. (소멸)",
+      "desc": "피해 {damage}를 주고 내 체력 4, 데스나이트 체력 6을 회복합니다. (소멸) ⚖️심판의 문장 +3 부여 및 문장 폭발(추가 광휘 피해+방어도)!",
       "classId": "paladin",
       "subclassId": "oathbreaker",
-      "exhaust": true
+      "exhaust": true,
+      "seal": 3,
+      "detonateSeal": true
     },
     "paladin_oathbreaker_7": {
       "id": "paladin_oathbreaker_7",
@@ -5967,9 +6372,11 @@ window.GAME_DATA = {
       "upgradeDamage": 12,
       "damagePerPoison": true,
       "triggerSummonAttack": true,
-      "desc": "피해 {damage} + 대상의 현재 저주 수치만큼 추가 피해 후 데스나이트 협공!",
+      "desc": "피해 {damage} + 대상의 현재 저주 수치만큼 추가 피해 후 데스나이트 협공! ⚖️심판의 문장 +3 부여 및 문장 폭발(추가 광휘 피해+방어도)!",
       "classId": "paladin",
-      "subclassId": "oathbreaker"
+      "subclassId": "oathbreaker",
+      "seal": 3,
+      "detonateSeal": true
     },
     "paladin_oathbreaker_8": {
       "id": "paladin_oathbreaker_8",
@@ -5981,9 +6388,11 @@ window.GAME_DATA = {
       "target": "all",
       "summonHeal": 10,
       "draw": 2,
-      "desc": "적 전체 암흑 저주 8 부여, 데스나이트 체력 +15, 카드 2장 드로우!",
+      "desc": "적 전체 암흑 저주 8 부여, 데스나이트 체력 +15, 카드 2장 드로우! ⚜️모든 적에게 문장 +5 & 현재 성기사 오라 위력 +3 증폭!",
       "classId": "paladin",
-      "subclassId": "oathbreaker"
+      "subclassId": "oathbreaker",
+      "sealAll": 5,
+      "auraBoost": 3
     },
     "paladin_oathbreaker_9": {
       "id": "paladin_oathbreaker_9",
@@ -5996,9 +6405,11 @@ window.GAME_DATA = {
       "target": "all",
       "vuln": 2,
       "triggerSummonAttack": true,
-      "desc": "적 전체에게 암흑 충격파 피해 {damage}, 취약 2 및 데스나이트 협공!",
+      "desc": "적 전체에게 암흑 충격파 피해 {damage}, 취약 2 및 데스나이트 협공! ⚖️심판의 문장 +6 부여 및 문장 폭발(추가 광휘 피해+방어도)!",
       "classId": "paladin",
-      "subclassId": "oathbreaker"
+      "subclassId": "oathbreaker",
+      "seal": 6,
+      "detonateSeal": true
     },
     "paladin_oathbreaker_10": {
       "id": "paladin_oathbreaker_10",
@@ -6011,9 +6422,11 @@ window.GAME_DATA = {
       "target": "all",
       "damagePlusSummonHp": true,
       "triggerSummonAttack": true,
-      "desc": "[전설] 적 전체 피해 {damage} + 데스나이트 체력만큼 추가 피해 및 협공!",
+      "desc": "[전설] 적 전체 피해 {damage} + 데스나이트 체력만큼 추가 피해 및 협공! ⚖️심판의 문장 +6 부여 및 문장 폭발(추가 광휘 피해+방어도)!",
       "classId": "paladin",
-      "subclassId": "oathbreaker"
+      "subclassId": "oathbreaker",
+      "seal": 6,
+      "detonateSeal": true
     },
     "wlk_sh_1": {
       "id": "wlk_sh_1",
@@ -6024,9 +6437,10 @@ window.GAME_DATA = {
       "damage": 6,
       "upgradeDamage": 9,
       "hits": 2,
-      "desc": "적에게 피해를 {damage} 줍니다.",
+      "desc": "적에게 피해를 {damage} 줍니다. 💀파멸(Doom) +7 부여 (적 체력이 파멸 이하 시 즉사 처형!).",
       "classId": "warlock",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "doom": 7
     },
     "wlk_sh_2": {
       "id": "wlk_sh_2",
@@ -6037,9 +6451,10 @@ window.GAME_DATA = {
       "block": 5,
       "upgradeBlock": 8,
       "summonHeal": 3,
-      "desc": "방어도를 {block} 얻습니다.",
+      "desc": "방어도를 {block} 얻습니다. 💀적 전체에 파멸(Doom) +5 부여!",
       "classId": "warlock",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "doomAll": 5
     },
     "wlk_sh_3": {
       "id": "wlk_sh_3",
@@ -6052,9 +6467,10 @@ window.GAME_DATA = {
       "vuln": 1,
       "draw": 1,
       "resourceGain": 1,
-      "desc": "0코스트! 대상에게 주술(맹독) {poison}, 취약 1 부여 및 1장 드로우.",
+      "desc": "0코스트! 대상에게 주술(맹독) {poison}, 취약 1 부여 및 1장 드로우. 💀적 전체에 파멸(Doom) +5 부여!",
       "classId": "warlock",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "doomAll": 5
     },
     "wlk_sh_4": {
       "id": "wlk_sh_4",
@@ -6066,9 +6482,10 @@ window.GAME_DATA = {
       "upgradeBlock": 11,
       "summonHeal": 7,
       "resourceGain": 1,
-      "desc": "내 냉기 방어도 +{block} 및 계약 악마 체력 +10!",
+      "desc": "내 냉기 방어도 +{block} 및 계약 악마 체력 +10! 💀적 전체에 파멸(Doom) +10 부여!",
       "classId": "warlock",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "doomAll": 10
     },
     "warlock_fiend_patron_1": {
       "id": "warlock_fiend_patron_1",
@@ -6079,9 +6496,10 @@ window.GAME_DATA = {
       "damage": 6,
       "upgradeDamage": 9,
       "block": 3,
-      "desc": "피해 {damage}를 주고 내 체력 +3 회복 및 방어도 4를 얻습니다.",
+      "desc": "피해 {damage}를 주고 내 체력 +3 회복 및 방어도 4를 얻습니다. 💀파멸(Doom) +7 부여 (적 체력이 파멸 이하 시 즉사 처형!).",
       "classId": "warlock",
-      "subclassId": "fiend_patron"
+      "subclassId": "fiend_patron",
+      "doom": 7
     },
     "warlock_fiend_patron_2": {
       "id": "warlock_fiend_patron_2",
@@ -6093,9 +6511,10 @@ window.GAME_DATA = {
       "upgradeDamage": 9,
       "target": "all",
       "resourceGain": 1,
-      "desc": "적 전체에게 지옥불 피해 {damage}를 줍니다. 영혼 조각 +1.",
+      "desc": "적 전체에게 지옥불 피해 {damage}를 줍니다. 영혼 조각 +1. 💀파멸(Doom) +7 부여 (적 체력이 파멸 이하 시 즉사 처형!).",
       "classId": "warlock",
-      "subclassId": "fiend_patron"
+      "subclassId": "fiend_patron",
+      "doom": 7
     },
     "warlock_fiend_patron_3": {
       "id": "warlock_fiend_patron_3",
@@ -6106,9 +6525,10 @@ window.GAME_DATA = {
       "summonHeal": 8,
       "upgradeSummonHeal": 11,
       "summonAtkBoost": 2,
-      "desc": "계약 악마 [지옥마신 핀드] 체력 +{summonHeal}, 공격력 +3 강화!",
+      "desc": "계약 악마 [지옥마신 핀드] 체력 +{summonHeal}, 공격력 +3 강화! 💀적 전체에 파멸(Doom) +5 부여!",
       "classId": "warlock",
-      "subclassId": "fiend_patron"
+      "subclassId": "fiend_patron",
+      "doomAll": 5
     },
     "warlock_fiend_patron_4": {
       "id": "warlock_fiend_patron_4",
@@ -6119,9 +6539,10 @@ window.GAME_DATA = {
       "damage": 5,
       "upgradeDamage": 8,
       "triggerSummonAttack": true,
-      "desc": "피해 {damage}를 주고 지옥마신 핀드가 즉시 화염 협공을 가합니다!",
+      "desc": "피해 {damage}를 주고 지옥마신 핀드가 즉시 화염 협공을 가합니다! 💀파멸(Doom) +7 부여 (적 체력이 파멸 이하 시 즉사 처형!).",
       "classId": "warlock",
-      "subclassId": "fiend_patron"
+      "subclassId": "fiend_patron",
+      "doom": 7
     },
     "warlock_fiend_patron_5": {
       "id": "warlock_fiend_patron_5",
@@ -6134,9 +6555,10 @@ window.GAME_DATA = {
       "target": "all",
       "poison": 3,
       "triggerSummonAttack": true,
-      "desc": "적 전체 화염 피해 {damage}, 화상 4 부여 및 핀드 협공!",
+      "desc": "적 전체 화염 피해 {damage}, 화상 4 부여 및 핀드 협공! 💀파멸(Doom) +7 부여 (적 체력이 파멸 이하 시 즉사 처형!).",
       "classId": "warlock",
-      "subclassId": "fiend_patron"
+      "subclassId": "fiend_patron",
+      "doom": 7
     },
     "warlock_fiend_patron_6": {
       "id": "warlock_fiend_patron_6",
@@ -6148,10 +6570,11 @@ window.GAME_DATA = {
       "upgradeDraw": 2,
       "summonHeal": 5,
       "resourceGain": 1,
-      "desc": "0코스트! 카드 {draw}장 드로우, 핀드 체력 +8, 영혼 조각 +1. (소멸)",
+      "desc": "0코스트! 카드 {draw}장 드로우, 핀드 체력 +8, 영혼 조각 +1. (소멸) 💀적 전체에 파멸(Doom) +5 부여!",
       "classId": "warlock",
       "subclassId": "fiend_patron",
-      "exhaust": true
+      "exhaust": true,
+      "doomAll": 5
     },
     "warlock_fiend_patron_7": {
       "id": "warlock_fiend_patron_7",
@@ -6163,9 +6586,10 @@ window.GAME_DATA = {
       "upgradeBlock": 11,
       "poison": 4,
       "target": "all",
-      "desc": "방어도 {block}을 얻고 적 전체에게 지옥불 화상 6을 부여합니다.",
+      "desc": "방어도 {block}을 얻고 적 전체에게 지옥불 화상 6을 부여합니다. 💀적 전체에 파멸(Doom) +5 부여!",
       "classId": "warlock",
-      "subclassId": "fiend_patron"
+      "subclassId": "fiend_patron",
+      "doomAll": 5
     },
     "warlock_fiend_patron_8": {
       "id": "warlock_fiend_patron_8",
@@ -6176,9 +6600,10 @@ window.GAME_DATA = {
       "strength": 2,
       "summonHeal": 10,
       "summonAtkBoost": 3,
-      "desc": "힘 +3, 지옥마신 핀드의 체력 +16 및 공격력 +5 영구 강화!",
+      "desc": "힘 +3, 지옥마신 핀드의 체력 +16 및 공격력 +5 영구 강화! 💀적 전체에 파멸(Doom) +10 부여!",
       "classId": "warlock",
-      "subclassId": "fiend_patron"
+      "subclassId": "fiend_patron",
+      "doomAll": 10
     },
     "warlock_fiend_patron_9": {
       "id": "warlock_fiend_patron_9",
@@ -6190,10 +6615,11 @@ window.GAME_DATA = {
       "upgradeDamage": 20,
       "bonusPerResource": 3,
       "healOnHit": 3,
-      "desc": "피해 {damage}(영혼 조각당 +3) 및 내 체력을 5 회복합니다! (소멸)",
+      "desc": "피해 {damage}(영혼 조각당 +3) 및 내 체력을 5 회복합니다! (소멸) 💀파멸(Doom) +14 부여 (적 체력이 파멸 이하 시 즉사 처형!).",
       "classId": "warlock",
       "subclassId": "fiend_patron",
-      "exhaust": true
+      "exhaust": true,
+      "doom": 14
     },
     "warlock_fiend_patron_10": {
       "id": "warlock_fiend_patron_10",
@@ -6206,10 +6632,11 @@ window.GAME_DATA = {
       "damagePlusSummonHp": true,
       "triggerSummonAttack": true,
       "healOnHit": 5,
-      "desc": "[전설] 지옥 차원 추방! 피해 {damage} + 핀드 체력만큼 추가 피해 및 체력 +8! (소멸)",
+      "desc": "[전설] 지옥 차원 추방! 피해 {damage} + 핀드 체력만큼 추가 피해 및 체력 +8! (소멸) 💀파멸(Doom) +14 부여 (적 체력이 파멸 이하 시 즉사 처형!).",
       "classId": "warlock",
       "subclassId": "fiend_patron",
-      "exhaust": true
+      "exhaust": true,
+      "doom": 14
     },
     "warlock_hexblade_1": {
       "id": "warlock_hexblade_1",
@@ -6221,9 +6648,10 @@ window.GAME_DATA = {
       "upgradePoison": 6,
       "vuln": 2,
       "resourceGain": 1,
-      "desc": "0코스트! 대상에게 저주 {poison}과 취약 2를 부여합니다. 조각 +1.",
+      "desc": "0코스트! 대상에게 저주 {poison}과 취약 2를 부여합니다. 조각 +1. 💀적 전체에 파멸(Doom) +5 부여!",
       "classId": "warlock",
-      "subclassId": "hexblade"
+      "subclassId": "hexblade",
+      "doomAll": 5
     },
     "warlock_hexblade_2": {
       "id": "warlock_hexblade_2",
@@ -6234,9 +6662,10 @@ window.GAME_DATA = {
       "damage": 7,
       "upgradeDamage": 10,
       "poison": 2,
-      "desc": "저주받은 마검으로 피해 {damage}와 저주 3을 부여합니다.",
+      "desc": "저주받은 마검으로 피해 {damage}와 저주 3을 부여합니다. 💀파멸(Doom) +7 부여 (적 체력이 파멸 이하 시 즉사 처형!).",
       "classId": "warlock",
-      "subclassId": "hexblade"
+      "subclassId": "hexblade",
+      "doom": 7
     },
     "warlock_hexblade_3": {
       "id": "warlock_hexblade_3",
@@ -6247,9 +6676,10 @@ window.GAME_DATA = {
       "block": 7,
       "upgradeBlock": 10,
       "resourceGain": 1,
-      "desc": "방어도를 {block} 얻습니다. 영혼 조각 +1.",
+      "desc": "방어도를 {block} 얻습니다. 영혼 조각 +1. 💀적 전체에 파멸(Doom) +5 부여!",
       "classId": "warlock",
-      "subclassId": "hexblade"
+      "subclassId": "hexblade",
+      "doomAll": 5
     },
     "warlock_hexblade_4": {
       "id": "warlock_hexblade_4",
@@ -6261,9 +6691,10 @@ window.GAME_DATA = {
       "upgradeDamage": 5,
       "hits": 2,
       "resourceGain": 1,
-      "desc": "마검으로 2회 연속 베어 피해 {damage}x2를 줍니다. 조각 +1.",
+      "desc": "마검으로 2회 연속 베어 피해 {damage}x2를 줍니다. 조각 +1. 💀파멸(Doom) +7 부여 (적 체력이 파멸 이하 시 즉사 처형!).",
       "classId": "warlock",
-      "subclassId": "hexblade"
+      "subclassId": "hexblade",
+      "doom": 7
     },
     "warlock_hexblade_5": {
       "id": "warlock_hexblade_5",
@@ -6275,9 +6706,10 @@ window.GAME_DATA = {
       "upgradeDamage": 12,
       "weak": 2,
       "poison": 3,
-      "desc": "피해 {damage}를 주고 공포(약화 2)와 저주 4를 부여합니다.",
+      "desc": "피해 {damage}를 주고 공포(약화 2)와 저주 4를 부여합니다. 💀파멸(Doom) +7 부여 (적 체력이 파멸 이하 시 즉사 처형!).",
       "classId": "warlock",
-      "subclassId": "hexblade"
+      "subclassId": "hexblade",
+      "doom": 7
     },
     "warlock_hexblade_6": {
       "id": "warlock_hexblade_6",
@@ -6289,9 +6721,10 @@ window.GAME_DATA = {
       "upgradeDamage": 10,
       "summonHeal": 8,
       "triggerSummonAttack": true,
-      "desc": "피해 {damage}, 망령 소환수 체력 +12 및 즉시 망령 협공!",
+      "desc": "피해 {damage}, 망령 소환수 체력 +12 및 즉시 망령 협공! 💀파멸(Doom) +7 부여 (적 체력이 파멸 이하 시 즉사 처형!).",
       "classId": "warlock",
-      "subclassId": "hexblade"
+      "subclassId": "hexblade",
+      "doom": 7
     },
     "warlock_hexblade_7": {
       "id": "warlock_hexblade_7",
@@ -6302,10 +6735,11 @@ window.GAME_DATA = {
       "block": 9,
       "upgradeBlock": 12,
       "doublePoison": true,
-      "desc": "방어도 {block}을 얻고 대상의 저주(맹독)를 2배로 증폭합니다! (소멸)",
+      "desc": "방어도 {block}을 얻고 대상의 저주(맹독)를 2배로 증폭합니다! (소멸) 💀적 전체에 파멸(Doom) +5 부여!",
       "classId": "warlock",
       "subclassId": "hexblade",
-      "exhaust": true
+      "exhaust": true,
+      "doomAll": 5
     },
     "warlock_hexblade_8": {
       "id": "warlock_hexblade_8",
@@ -6317,10 +6751,11 @@ window.GAME_DATA = {
       "upgradeDamage": 12,
       "damagePerPoison": true,
       "healOnHit": 3,
-      "desc": "피해 {damage} + 대상의 현재 저주 수치만큼 추가 피해 및 체력 +5 회복! (소멸)",
+      "desc": "피해 {damage} + 대상의 현재 저주 수치만큼 추가 피해 및 체력 +5 회복! (소멸) 💀파멸(Doom) +14 부여 (적 체력이 파멸 이하 시 즉사 처형!).",
       "classId": "warlock",
       "subclassId": "hexblade",
-      "exhaust": true
+      "exhaust": true,
+      "doom": 14
     },
     "warlock_hexblade_9": {
       "id": "warlock_hexblade_9",
@@ -6331,9 +6766,10 @@ window.GAME_DATA = {
       "strength": 2,
       "upgradeStrength": 3,
       "dexterity": 2,
-      "desc": "마검과 일체화하여 힘 +{strength} 및 민첩 +2를 영구 획득합니다!",
+      "desc": "마검과 일체화하여 힘 +{strength} 및 민첩 +2를 영구 획득합니다! 💀적 전체에 파멸(Doom) +10 부여!",
       "classId": "warlock",
-      "subclassId": "hexblade"
+      "subclassId": "hexblade",
+      "doomAll": 10
     },
     "warlock_hexblade_10": {
       "id": "warlock_hexblade_10",
@@ -6346,10 +6782,11 @@ window.GAME_DATA = {
       "target": "all",
       "doublePoison": true,
       "triggerPoisonNow": true,
-      "desc": "[전설] 적 전체 피해 {damage} 후 모든 적의 저주를 2배로 증폭하고 즉시 폭발! (소멸)",
+      "desc": "[전설] 적 전체 피해 {damage} 후 모든 적의 저주를 2배로 증폭하고 즉시 폭발! (소멸) 💀파멸(Doom) +14 부여 (적 체력이 파멸 이하 시 즉사 처형!).",
       "classId": "warlock",
       "subclassId": "hexblade",
-      "exhaust": true
+      "exhaust": true,
+      "doom": 14
     },
     "warlock_great_old_one_1": {
       "id": "warlock_great_old_one_1",
@@ -6360,9 +6797,10 @@ window.GAME_DATA = {
       "damage": 6,
       "upgradeDamage": 9,
       "addDrone": 1,
-      "desc": "정신 충격 피해 {damage}를 주고 [공허의 촉수 구체] 1기를 소환합니다!",
+      "desc": "정신 충격 피해 {damage}를 주고 [공허의 촉수 구체] 1기를 소환합니다! 💀파멸(Doom) +7 부여 (적 체력이 파멸 이하 시 즉사 처형!).",
       "classId": "warlock",
-      "subclassId": "great_old_one"
+      "subclassId": "great_old_one",
+      "doom": 7
     },
     "warlock_great_old_one_2": {
       "id": "warlock_great_old_one_2",
@@ -6374,9 +6812,10 @@ window.GAME_DATA = {
       "upgradeDamage": 9,
       "weak": 2,
       "resourceGain": 1,
-      "desc": "광기의 속삭임으로 피해 {damage}와 약화 2를 부여합니다.",
+      "desc": "광기의 속삭임으로 피해 {damage}와 약화 2를 부여합니다. 💀파멸(Doom) +7 부여 (적 체력이 파멸 이하 시 즉사 처형!).",
       "classId": "warlock",
-      "subclassId": "great_old_one"
+      "subclassId": "great_old_one",
+      "doom": 7
     },
     "warlock_great_old_one_3": {
       "id": "warlock_great_old_one_3",
@@ -6387,9 +6826,10 @@ window.GAME_DATA = {
       "block": 6,
       "upgradeBlock": 8,
       "blockPerDrone": 3,
-      "desc": "방어도 {block} + 소환된 촉수 구체 1기당 방어도 +3!",
+      "desc": "방어도 {block} + 소환된 촉수 구체 1기당 방어도 +3! 💀적 전체에 파멸(Doom) +5 부여!",
       "classId": "warlock",
-      "subclassId": "great_old_one"
+      "subclassId": "great_old_one",
+      "doomAll": 5
     },
     "warlock_great_old_one_4": {
       "id": "warlock_great_old_one_4",
@@ -6400,10 +6840,11 @@ window.GAME_DATA = {
       "draw": 1,
       "upgradeDraw": 2,
       "resourceGain": 1,
-      "desc": "0코스트! 카드를 {draw}장 뽑고 영혼 조각 +1를 얻습니다. (소멸)",
+      "desc": "0코스트! 카드를 {draw}장 뽑고 영혼 조각 +1를 얻습니다. (소멸) 💀적 전체에 파멸(Doom) +5 부여!",
       "classId": "warlock",
       "subclassId": "great_old_one",
-      "exhaust": true
+      "exhaust": true,
+      "doomAll": 5
     },
     "warlock_great_old_one_5": {
       "id": "warlock_great_old_one_5",
@@ -6415,9 +6856,10 @@ window.GAME_DATA = {
       "upgradeDamage": 10,
       "target": "all",
       "triggerDronesNow": true,
-      "desc": "적 전체 피해 {damage}를 주고 모든 공허의 촉수 구체가 일제 타격!",
+      "desc": "적 전체 피해 {damage}를 주고 모든 공허의 촉수 구체가 일제 타격! 💀파멸(Doom) +7 부여 (적 체력이 파멸 이하 시 즉사 처형!).",
       "classId": "warlock",
-      "subclassId": "great_old_one"
+      "subclassId": "great_old_one",
+      "doom": 7
     },
     "warlock_great_old_one_6": {
       "id": "warlock_great_old_one_6",
@@ -6431,9 +6873,10 @@ window.GAME_DATA = {
       "weak": 2,
       "target": "all",
       "addDrone": 1,
-      "desc": "적 전체 피해 {damage}, 저주 6, 약화 2 부여 및 촉수 구체 +1기 소환!",
+      "desc": "적 전체 피해 {damage}, 저주 6, 약화 2 부여 및 촉수 구체 +1기 소환! 💀파멸(Doom) +7 부여 (적 체력이 파멸 이하 시 즉사 처형!).",
       "classId": "warlock",
-      "subclassId": "great_old_one"
+      "subclassId": "great_old_one",
+      "doom": 7
     },
     "warlock_great_old_one_7": {
       "id": "warlock_great_old_one_7",
@@ -6445,9 +6888,10 @@ window.GAME_DATA = {
       "upgradeBlock": 11,
       "vuln": 2,
       "target": "all",
-      "desc": "방어도 {block}을 얻고 정신 파동을 반사해 적 전체에 취약 2 부여!",
+      "desc": "방어도 {block}을 얻고 정신 파동을 반사해 적 전체에 취약 2 부여! 💀적 전체에 파멸(Doom) +5 부여!",
       "classId": "warlock",
-      "subclassId": "great_old_one"
+      "subclassId": "great_old_one",
+      "doomAll": 5
     },
     "warlock_great_old_one_8": {
       "id": "warlock_great_old_one_8",
@@ -6458,9 +6902,10 @@ window.GAME_DATA = {
       "addDrone": 2,
       "strength": 2,
       "dexterity": 2,
-      "desc": "공허의 촉수 구체 2기 소환 및 힘 +3, 민첩 +2 영구 획득!",
+      "desc": "공허의 촉수 구체 2기 소환 및 힘 +3, 민첩 +2 영구 획득! 💀적 전체에 파멸(Doom) +10 부여!",
       "classId": "warlock",
-      "subclassId": "great_old_one"
+      "subclassId": "great_old_one",
+      "doomAll": 10
     },
     "warlock_great_old_one_9": {
       "id": "warlock_great_old_one_9",
@@ -6473,9 +6918,10 @@ window.GAME_DATA = {
       "target": "all",
       "stance": "calm",
       "draw": 2,
-      "desc": "적 전체 약화 3, 취약 3, 카드 2장 드로우 및 [명경(AP+2)] 돌입!",
+      "desc": "적 전체 약화 3, 취약 3, 카드 2장 드로우 및 [명경(AP+2)] 돌입! 💀적 전체에 파멸(Doom) +10 부여!",
       "classId": "warlock",
-      "subclassId": "great_old_one"
+      "subclassId": "great_old_one",
+      "doomAll": 10
     },
     "warlock_great_old_one_10": {
       "id": "warlock_great_old_one_10",
@@ -6489,9 +6935,10 @@ window.GAME_DATA = {
       "addDrone": 2,
       "triggerDronesNow": true,
       "stance": "divinity",
-      "desc": "[전설] 적 전체 정신 붕괴 피해 {damage}, 촉수 2기 소환&폭격 및 [초월(3배)]!",
+      "desc": "[전설] 적 전체 정신 붕괴 피해 {damage}, 촉수 2기 소환&폭격 및 [초월(3배)]! 💀파멸(Doom) +14 부여 (적 체력이 파멸 이하 시 즉사 처형!).",
       "classId": "warlock",
-      "subclassId": "great_old_one"
+      "subclassId": "great_old_one",
+      "doom": 14
     },
     "warlock_archfey_chain_1": {
       "id": "warlock_archfey_chain_1",
@@ -6502,9 +6949,10 @@ window.GAME_DATA = {
       "summonHeal": 8,
       "upgradeSummonHeal": 12,
       "summonAtkBoost": 2,
-      "desc": "전방 사역마의 체력 +{summonHeal}, 공격력을 +3 강화합니다!",
+      "desc": "전방 사역마의 체력 +{summonHeal}, 공격력을 +3 강화합니다! 💀적 전체에 파멸(Doom) +5 부여!",
       "classId": "warlock",
-      "subclassId": "archfey_chain"
+      "subclassId": "archfey_chain",
+      "doomAll": 5
     },
     "warlock_archfey_chain_2": {
       "id": "warlock_archfey_chain_2",
@@ -6516,9 +6964,10 @@ window.GAME_DATA = {
       "upgradeDamage": 8,
       "triggerSummonAttack": true,
       "draw": 1,
-      "desc": "피해 {damage}, 사역마 즉시 협공 및 카드 1장 드로우!",
+      "desc": "피해 {damage}, 사역마 즉시 협공 및 카드 1장 드로우! 💀파멸(Doom) +7 부여 (적 체력이 파멸 이하 시 즉사 처형!).",
       "classId": "warlock",
-      "subclassId": "archfey_chain"
+      "subclassId": "archfey_chain",
+      "doom": 7
     },
     "warlock_archfey_chain_3": {
       "id": "warlock_archfey_chain_3",
@@ -6529,9 +6978,10 @@ window.GAME_DATA = {
       "block": 6,
       "upgradeBlock": 8,
       "summonHeal": 5,
-      "desc": "내 방어도 +{block} 및 사역마의 체력을 +7 회복합니다.",
+      "desc": "내 방어도 +{block} 및 사역마의 체력을 +7 회복합니다. 💀적 전체에 파멸(Doom) +5 부여!",
       "classId": "warlock",
-      "subclassId": "archfey_chain"
+      "subclassId": "archfey_chain",
+      "doomAll": 5
     },
     "warlock_archfey_chain_4": {
       "id": "warlock_archfey_chain_4",
@@ -6543,9 +6993,10 @@ window.GAME_DATA = {
       "upgradeDamage": 6,
       "poison": 2,
       "triggerSummonAttack": true,
-      "desc": "0코스트! 피해 {damage}, 맹독 3 부여 후 사역마 즉시 협공!",
+      "desc": "0코스트! 피해 {damage}, 맹독 3 부여 후 사역마 즉시 협공! 💀파멸(Doom) +7 부여 (적 체력이 파멸 이하 시 즉사 처형!).",
       "classId": "warlock",
-      "subclassId": "archfey_chain"
+      "subclassId": "archfey_chain",
+      "doom": 7
     },
     "warlock_archfey_chain_5": {
       "id": "warlock_archfey_chain_5",
@@ -6556,10 +7007,11 @@ window.GAME_DATA = {
       "block": 8,
       "healOnHit": 4,
       "summonHeal": 8,
-      "desc": "사역마가 있을 때 최대 회복! 방어도 10, 내 체력 +6, 사역마 체력 +12! (소멸)",
+      "desc": "사역마가 있을 때 최대 회복! 방어도 10, 내 체력 +6, 사역마 체력 +12! (소멸) 💀적 전체에 파멸(Doom) +5 부여!",
       "classId": "warlock",
       "subclassId": "archfey_chain",
-      "exhaust": true
+      "exhaust": true,
+      "doomAll": 5
     },
     "warlock_archfey_chain_6": {
       "id": "warlock_archfey_chain_6",
@@ -6572,9 +7024,10 @@ window.GAME_DATA = {
       "summonAtkBoost": 2,
       "weak": 2,
       "triggerSummonAttack": true,
-      "desc": "피해 {damage}, 약화 2, 사역마 공격력 +4 강화 후 즉시 협공!",
+      "desc": "피해 {damage}, 약화 2, 사역마 공격력 +4 강화 후 즉시 협공! 💀파멸(Doom) +7 부여 (적 체력이 파멸 이하 시 즉사 처형!).",
       "classId": "warlock",
-      "subclassId": "archfey_chain"
+      "subclassId": "archfey_chain",
+      "doom": 7
     },
     "warlock_archfey_chain_7": {
       "id": "warlock_archfey_chain_7",
@@ -6587,9 +7040,10 @@ window.GAME_DATA = {
       "weak": 2,
       "vuln": 2,
       "target": "all",
-      "desc": "방어도 {block}을 얻고 적 전체에게 약화 2, 취약 2를 부여합니다.",
+      "desc": "방어도 {block}을 얻고 적 전체에게 약화 2, 취약 2를 부여합니다. 💀적 전체에 파멸(Doom) +5 부여!",
       "classId": "warlock",
-      "subclassId": "archfey_chain"
+      "subclassId": "archfey_chain",
+      "doomAll": 5
     },
     "warlock_archfey_chain_8": {
       "id": "warlock_archfey_chain_8",
@@ -6600,9 +7054,10 @@ window.GAME_DATA = {
       "strength": 2,
       "summonHeal": 13,
       "summonAtkBoost": 4,
-      "desc": "힘 +2, 사역마의 체력 +20 및 공격력 +6 영구 초월 강화!",
+      "desc": "힘 +2, 사역마의 체력 +20 및 공격력 +6 영구 초월 강화! 💀적 전체에 파멸(Doom) +10 부여!",
       "classId": "warlock",
-      "subclassId": "archfey_chain"
+      "subclassId": "archfey_chain",
+      "doomAll": 10
     },
     "warlock_archfey_chain_9": {
       "id": "warlock_archfey_chain_9",
@@ -6613,9 +7068,10 @@ window.GAME_DATA = {
       "damage": 14,
       "upgradeDamage": 19,
       "damagePlusSummonHp": true,
-      "desc": "피해 {damage} + 사역마의 현재 체력만큼 추가 피해를 줍니다!",
+      "desc": "피해 {damage} + 사역마의 현재 체력만큼 추가 피해를 줍니다! 💀파멸(Doom) +14 부여 (적 체력이 파멸 이하 시 즉사 처형!).",
       "classId": "warlock",
-      "subclassId": "archfey_chain"
+      "subclassId": "archfey_chain",
+      "doom": 14
     },
     "warlock_archfey_chain_10": {
       "id": "warlock_archfey_chain_10",
@@ -6629,9 +7085,10 @@ window.GAME_DATA = {
       "damagePlusSummonHp": true,
       "triggerSummonAttack": true,
       "draw": 1,
-      "desc": "[전설] 적 전체 피해 {damage} + 사역마 체력만큼 추가 피해, 협공 및 2드로우!",
+      "desc": "[전설] 적 전체 피해 {damage} + 사역마 체력만큼 추가 피해, 협공 및 2드로우! 💀파멸(Doom) +14 부여 (적 체력이 파멸 이하 시 즉사 처형!).",
       "classId": "warlock",
-      "subclassId": "archfey_chain"
+      "subclassId": "archfey_chain",
+      "doom": 14
     },
     "status_slimed": {
       "id": "status_slimed",
@@ -6683,6 +7140,36 @@ window.GAME_DATA = {
       "exhaust": true,
       "endTurnBurn": 3,
       "desc": "[저주] 턴 종료 시 손에 있으면 암흑 피해 3을 입습니다. (상점 카드 제거로 영구 정화 가능)"
+    },
+    "token_shiv": {
+      "id": "token_shiv",
+      "name": "비장의 투척 단검 (Shiv)",
+      "type": "attack",
+      "rarity": "common",
+      "classId": "rogue",
+      "subclassId": "shared",
+      "cost": 0,
+      "damage": 5,
+      "upgradeDamage": 8,
+      "poison": 2,
+      "comboPoint": 1,
+      "exhaust": true,
+      "desc": "0코스트 토큰! 피해 {damage}, 신경독 +2, 연계 점수 +1점 획득. (소멸)"
+    },
+    "token_smite_wave": {
+      "id": "token_smite_wave",
+      "name": "빛의 성검 파동",
+      "type": "attack",
+      "rarity": "common",
+      "classId": "paladin",
+      "subclassId": "shared",
+      "cost": 0,
+      "damage": 7,
+      "upgradeDamage": 10,
+      "seal": 3,
+      "detonateSeal": true,
+      "exhaust": true,
+      "desc": "0코스트 토큰! 피해 {damage}, 심판의 문장 +3 부여 후 즉시 문장 폭발! (소멸)"
     }
   },
   "mutations": [

@@ -517,7 +517,7 @@ const Game = {
         <span class="char-star-badge">Lv.${stats.hunterLv}</span>
         <div class="char-avatar-wrap">${ch.avatarSvg}</div>
         <h3>${ch.name.split(' ')[0]}</h3>
-        <div class="char-archetype">${ch.secondaryResourceIcon} 44종 카드 풀</div>
+        <div class="char-archetype" style="font-size:0.65rem;">${ch.uniqueStatusName || `${ch.secondaryResourceIcon} 44종 카드 풀`}</div>
         <div class="char-roster-stats">
           <span>❤️ ${stats.totalMaxHp}</span>
           <span>⚔️ +${stats.bonusStr}</span>
@@ -1627,6 +1627,15 @@ const Game = {
         weak: 0,
         vuln: 0,
         poison: 0,
+        // 8 Class-Unique Status Effects on Enemies!
+        sunder: 0,      // Fighter: +1 physical damage taken per stack & shatters armor
+        bleed: 0,       // Barbarian: DoT + bursts for 50% of bleed on every hit
+        comboPoints: 0, // Rogue: 1~5 Combo Points -> at 5, auto-triggers Eviscerate Execution!
+        quarry: 0,      // Ranger: Hunter's Quarry mark -> bursts on hit for bonus crit damage
+        frostbite: 0,   // Wizard: Reduces enemy attack damage; at 8+ stacks, Freezes (-50% dmg)!
+        holyBrand: 0,   // Cleric: Takes radiant damage whenever Cleric heals or gains block!
+        seal: 0,        // Paladin: Judgement Seals -> detonated by attacks for radiant dmg + player block!
+        doom: 0,        // Warlock (STS2 Necrobinder): Instant Execution when Enemy HP <= Doom!
         svg: t.svg,
         moves: scaledMoves,
         moveIndex: i % scaledMoves.length
@@ -1662,11 +1671,20 @@ const Game = {
       stance: 'neutral',
       targetIndex: 0,
       firstAttackUsedThisTurn: false,
+      // Class-Unique Combat State Systems!
+      comboCount: 0,               // Fighter: Turn Combo Chain (+15% dmg per combo, every 3 combos -> +1 AP & 1 Draw)
+      traps: 0,                    // Ranger: Tactical Traps (triggers when enemy attacks, dealing damage & reducing attack by 30%)
+      beastMode: 'assault',        // Ranger: Beast Stance ('assault' = 1.6x attack, 'guard' = tanks + generates block)
+      orbList: [],                 // Wizard: Elemental Orbs Queue ('fire', 'frost', 'lightning')
+      devotion: 0,                 // Cleric: Devotion Mantra (at 10 -> auto Miracle Divinity + AoE Radiant blast)
+      paladinAura: 'retribution',  // Paladin: 'retribution' (Thorns reflect), 'devotion' (-20% dmg taken & block), 'crusader' (+30% atk)
+      auraPower: 5,
       player: {
         block: pStats.firstTurnBlock || 0,
         strength: pStats.bonusStr + rStats.str,
         dexterity: pStats.bonusDex + rStats.dex,
         metallicize: 0,
+        parry: 0,                  // Fighter: Counter-attack damage when hit while blocking
         weak: 0,
         vuln: 0,
         frail: 0
@@ -1686,7 +1704,7 @@ const Game = {
       discardPile: [],
       exhaustPile: [],
       enemies,
-      log: `[${ch.name} - ${this.run.subclassObj.name}] 전투 개시!`
+      log: `[${ch.name}] 고유 전투 시스템 개시!`
     };
 
     this.applyStartOfCombatEffects();
@@ -1701,31 +1719,46 @@ const Game = {
     const pStats = this.run.permStats;
     const rStats = this.run.allocatedStats;
 
-    // Class base passives (modest Slay the Spire starter relic effects)
-    if (cid === 'fighter') this.combat.secondaryResource += 1;
+    // 8 Distinct Class Start-of-Combat Systems!
+    if (cid === 'fighter') {
+      this.combat.secondaryResource += 1;
+      this.combat.player.parry += 4;
+    }
     if (cid === 'barbarian') {
       this.combat.secondaryResource += 2;
+      this.combat.enemies.forEach(en => (en.bleed += 3));
     }
     if (cid === 'rogue') {
       this.combat.enemies.forEach(en => {
         this.applyDebuffToEnemy(en, 'poison', 2);
+        en.comboPoints = 1;
       });
+      // Generate 1 free 0-cost Shiv in opening hand!
+      this.combat.hand.push(this.createCardInstance('token_shiv', 777));
     }
     if (cid === 'ranger') {
       this.combat.secondaryResource += 2;
+      this.combat.traps += 2;
+      this.combat.enemies.forEach(en => (en.quarry += 3));
     }
     if (cid === 'wizard') {
-      this.combat.drones += 1;
+      this.channelElementalOrb('frost');
+      this.channelElementalOrb('lightning');
     }
     if (cid === 'cleric') {
       this.combat.drones += 1;
+      this.combat.devotion += 2;
+      this.combat.enemies.forEach(en => (en.holyBrand += 3));
     }
     if (cid === 'paladin') {
       this.combat.player.block += 4;
       this.combat.secondaryResource += 1;
+      this.combat.paladinAura = 'retribution';
+      this.combat.enemies.forEach(en => (en.seal += 2));
     }
     if (cid === 'warlock') {
-      this.summonOrBuffCompanion(10 + pStats.summonBoost, 4 + pStats.summonBoost + rStats.mana);
+      this.summonOrBuffCompanion(12 + pStats.summonBoost, 5 + pStats.summonBoost + rStats.mana);
+      this.combat.enemies.forEach(en => (en.doom += 10));
     }
 
     // Dynamic Archetype Synergy: Count how many cards of each subclass archetype are in the player's current deck!
@@ -1826,12 +1859,123 @@ const Game = {
     }
   },
 
+  // Helper: Barbarian Missing HP Bloodlust Multiplier
+  getBarbarianBloodlustMult() {
+    if (!this.run || this.run.charId !== 'barbarian') return 1;
+    const missingPct = Math.max(0, (this.run.maxHp - this.run.hp) / this.run.maxHp);
+    // +12% damage per 10% missing HP (up to +108% at 10% HP!)
+    return 1 + Math.floor(missingPct * 10) * 0.12;
+  },
+
+  // Helper: Wizard 3-Elemental Orb Channel & Evoke System (Fire / Frost / Lightning)
+  channelElementalOrb(orbType = 'fire') {
+    if (!this.combat) return;
+    const cap = this.combat.maxDrones || 4;
+    if (!this.combat.orbList) this.combat.orbList = [];
+    if (this.combat.orbList.length >= cap) {
+      // Evoke oldest orb for 2x effect!
+      const oldest = this.combat.orbList.shift();
+      this.evokeElementalOrb(oldest);
+    }
+    this.combat.orbList.push(orbType);
+    this.combat.drones = this.combat.orbList.length;
+  },
+
+  evokeElementalOrb(orbType) {
+    if (!this.combat) return;
+    const alive = this.combat.enemies.filter(e => e.hp > 0);
+    if (alive.length === 0) return;
+    const pwr = 8 + Math.max(0, this.combat.player.strength);
+    if (orbType === 'fire') {
+      alive.forEach(en => this.dealDamageToEnemy(en, pwr, true));
+      this.logCombat(`🔥 [화염 구체 발현(Evoke)!] 적 전체에게 화염 폭발 ${pwr} 피해!`);
+    } else if (orbType === 'frost') {
+      this.combat.player.block += 9 + Math.max(0, this.combat.player.dexterity);
+      alive.forEach(en => (en.frostbite = (en.frostbite || 0) + 3));
+      this.logCombat(`❄️ [냉기 구체 발현(Evoke)!] 방어도 획득 및 적 전체에 동상 +3 부여!`);
+    } else {
+      const t = alive[Math.floor(Math.random() * alive.length)];
+      this.dealDamageToEnemy(t, pwr + 5, true);
+      this.drawCards(1);
+      this.logCombat(`⚡ [번개 구체 발현(Evoke)!] ${t.name}에게 낙뢰 ${pwr + 5} 피해 및 카드 1장 드로우!`);
+    }
+  },
+
+  // Helper: Cleric Overheal Barrier & Holy Brand Radiant Reflection
+  healPlayerWithClericMechanics(amount) {
+    if (!this.run || amount <= 0) return;
+    const missing = this.run.maxHp - this.run.hp;
+    const actualHeal = Math.min(missing, amount);
+    const overheal = Math.max(0, amount - missing);
+    this.run.hp += actualHeal;
+
+    if (this.run.charId === 'cleric' && this.combat) {
+      if (overheal > 0) {
+        this.combat.player.block += overheal;
+      }
+      this.triggerClericHolyBrandReflection(amount);
+    }
+  },
+
+  triggerClericHolyBrandReflection(healOrBlockAmt) {
+    if (!this.combat || this.run.charId !== 'cleric') return;
+    this.combat.enemies.forEach(en => {
+      if (en.hp > 0 && (en.holyBrand || 0) > 0) {
+        const radDmg = Math.max(2, Math.round(healOrBlockAmt * 0.5) + en.holyBrand);
+        this.dealDamageToEnemy(en, radDmg, true);
+      }
+    });
+  },
+
+  // Helper: Paladin Aura Cycling & Ranger Beast Mode Toggle
+  cyclePaladinAura() {
+    if (!this.combat || this.run.charId !== 'paladin') return;
+    const order = ['retribution', 'devotion', 'crusader'];
+    const idx = order.indexOf(this.combat.paladinAura || 'retribution');
+    this.combat.paladinAura = order[(idx + 1) % order.length];
+    const names = {
+      retribution: '🔥 응보의 오라 (피격 시 적에게 광휘 반사)',
+      devotion: '🛡️ 헌신의 오라 (받는 피해 20% 감소 & 매 턴 방어도)',
+      crusader: '⚔️ 성전의 오라 (모든 공격 피해량 +25% & 문장 추가)'
+    };
+    this.logCombat(`⚜️ 성기사 오라 전환: [${names[this.combat.paladinAura]}]`);
+    this.renderCombat();
+  },
+
+  toggleRangerBeastMode() {
+    if (!this.combat || this.run.charId !== 'ranger') return;
+    this.combat.beastMode = this.combat.beastMode === 'assault' ? 'guard' : 'assault';
+    this.logCombat(
+      this.combat.beastMode === 'assault'
+        ? '🐾 야수 동료 태세: [포식 태세 (협공 피해량 1.6배)]'
+        : '🛡️ 야수 동료 태세: [호위 태세 (피해 대신 흡수 & 매 턴 방어도 +5)]'
+    );
+    this.renderCombat();
+  },
+
+  // Helper: Warlock STS2 Doom Instant Execution Check
+  checkWarlockDoomExecutions() {
+    if (!this.combat) return;
+    this.combat.enemies.forEach(en => {
+      if (en.hp > 0 && (en.doom || 0) > 0 && en.hp <= en.doom) {
+        en.hp = 0;
+        this.logCombat(`💀 [파멸(Doom) 처형 발동!] ${en.name}의 체력이 파멸(${en.doom}) 이하가 되어 즉시 처형되었습니다!`);
+        if (this.run.charId === 'warlock') {
+          this.combat.energy += 1;
+          if (this.combat.summon.active) this.summonOrBuffCompanion(6, 2);
+        }
+      }
+    });
+  },
+
   startPlayerTurn(isFirstTurn = false) {
     if (!this.combat) return;
     const subId = this.run.subclassId;
     this.combat.firstAttackUsedThisTurn = false;
     this.combat.burstUsedThisTurn = false;
     this.combat.cardsPlayedThisTurn = 0;
+    this.combat.comboCount = 0; // Reset Fighter Turn Combo Chain
+    this.combat.player.parry = this.run.charId === 'fighter' ? 3 : 0;
 
     if (!isFirstTurn) {
       this.combat.turn += 1;
@@ -1921,12 +2065,32 @@ const Game = {
         if (tpl.bonusPerResource) baseDamage += this.combat.secondaryResource * tpl.bonusPerResource;
         if (cardInst.mutation === 'vampiric_cell') baseDamage += 4;
 
+        // 1) Fighter Turn Combo Chain Bonus (+15% per combo card played this turn, plus +4 per combo on Finisher cards!)
+        if (this.run && this.run.charId === 'fighter' && (this.combat.comboCount || 0) > 0) {
+          if (tpl.comboScaling) baseDamage += this.combat.comboCount * 4;
+          baseDamage = Math.round(baseDamage * (1 + this.combat.comboCount * 0.15));
+        }
+
+        // 2) Barbarian Missing HP Bloodlust Multiplier (+12% per 10% missing HP!)
+        if (this.run && this.run.charId === 'barbarian') {
+          baseDamage = Math.round(baseDamage * this.getBarbarianBloodlustMult());
+        }
+
+        // 3) Paladin Crusader Aura (+25% attack damage!)
+        if (this.run && this.run.charId === 'paladin' && this.combat.paladinAura === 'crusader') {
+          baseDamage = Math.round(baseDamage * 1.25);
+        }
+
         if (this.combat.stance === 'wrath') baseDamage = Math.round(baseDamage * 2);
         if (this.combat.stance === 'divinity') baseDamage = Math.round(baseDamage * 3);
       }
       if (baseBlock > 0) {
         baseBlock += this.combat.player.dexterity;
         if (tpl.blockPerDrone) baseBlock += this.combat.drones * tpl.blockPerDrone;
+        // Barbarian Bloodied Bonus Block (<60% HP)
+        if (this.run && this.run.charId === 'barbarian' && this.run.hp <= this.run.maxHp * 0.6) {
+          baseBlock += 4;
+        }
         // Slay the Spire Frail (손상) Debuff: 25% less block gained from cards!
         if (this.combat.player.frail > 0) baseBlock = Math.floor(baseBlock * 0.75);
       }
@@ -2013,19 +2177,99 @@ const Game = {
 
     if (tpl.selfDamage) this.run.hp = Math.max(1, this.run.hp - tpl.selfDamage);
     if (tpl.gainEnergy) this.combat.energy += tpl.gainEnergy;
-    if (stats.block > 0) this.combat.player.block += stats.block;
+    if (stats.block > 0) {
+      this.combat.player.block += stats.block;
+      // Cleric Holy Brand triggers radiant damage whenever Cleric gains block!
+      if (this.run.charId === 'cleric') {
+        this.triggerClericHolyBrandReflection(stats.block);
+      }
+    }
     if (tpl.doubleBlock) this.combat.player.block *= 2;
     if (stats.strength > 0) this.combat.player.strength += stats.strength;
     if (stats.dexterity > 0) this.combat.player.dexterity += stats.dexterity;
     if (tpl.metallicize) this.combat.player.metallicize += tpl.metallicize;
     if (tpl.stance) this.changeStance(tpl.stance);
 
+    // --- 8 CLASS-UNIQUE CARD MECHANICS ---
+    const cid = this.run.charId;
+
+    // 1) FIGHTER: Combo Chain (+1 AP & +1 Draw every 3 combos!) & Parry
+    if (cid === 'fighter') {
+      this.combat.comboCount = (this.combat.comboCount || 0) + 1;
+      if (tpl.parry) this.combat.player.parry = (this.combat.player.parry || 0) + tpl.parry;
+      if (this.combat.comboCount % 3 === 0) {
+        this.combat.energy += 1;
+        this.drawCards(1);
+        this.logCombat(`⚔️ [${this.combat.comboCount}연격 콤보 달성!] 행동력(AP) +1 및 카드 1장 자동 드로우!`);
+      }
+    }
+
+    // 2) BARBARIAN: Bloodied (<60% HP) bonus Strength on skills
+    if (cid === 'barbarian' && tpl.enrageBoost && this.run.hp <= this.run.maxHp * 0.6) {
+      this.combat.player.strength += tpl.enrageBoost;
+    }
+
+    // 3) ROGUE: Generate 0-cost Shivs in hand on skills
+    if (tpl.addShiv) {
+      for (let s = 0; s < tpl.addShiv; s++) {
+        if (this.combat.hand.length < 10) {
+          const shiv = this.createCardInstance('token_shiv', Date.now() + s);
+          if (cardInst.upgraded) shiv.upgraded = true;
+          this.combat.hand.push(shiv);
+        }
+      }
+    }
+
+    // 4) RANGER: Place Tactical Traps on skills
+    if (tpl.placeTrap) {
+      this.combat.traps = (this.combat.traps || 0) + tpl.placeTrap;
+    }
+
+    // 5) WIZARD: Channel Elemental Orbs (Fire / Frost / Lightning)
     if (stats.summonHeal > 0 || stats.summonAtkBoost > 0) {
       this.summonOrBuffCompanion(stats.summonHeal, stats.summonAtkBoost);
     }
     if (tpl.addDrone) {
-      const cap = this.combat.maxDrones || 3;
-      this.combat.drones = Math.min(cap, this.combat.drones + tpl.addDrone);
+      if (cid === 'wizard') {
+        const oType = tpl.orbType || (tpl.type === 'attack' ? 'fire' : 'frost');
+        for (let d = 0; d < tpl.addDrone; d++) {
+          this.channelElementalOrb(oType);
+        }
+      } else {
+        const cap = this.combat.maxDrones || 3;
+        this.combat.drones = Math.min(cap, this.combat.drones + tpl.addDrone);
+      }
+    }
+
+    // 6) CLERIC: Devotion Mantra (At 10 -> Miracle Divinity + AoE Radiant judgement!)
+    if (tpl.devotionGain) {
+      this.combat.devotion = (this.combat.devotion || 0) + tpl.devotionGain;
+      if (this.combat.devotion >= 10) {
+        this.combat.devotion -= 10;
+        this.changeStance('divinity');
+        this.combat.enemies.forEach(en => {
+          if (en.hp > 0) this.dealDamageToEnemy(en, 16, true);
+        });
+        this.logCombat('🌟 [신앙심 10 달성: 천상 기적 강림!] 모든 공격 피해 3배, AP+2 및 적 전체에 광휘 심판 16 피해!');
+      }
+    }
+
+    // 7) PALADIN: Seal All & Aura Power Boost
+    if (tpl.sealAll) {
+      this.combat.enemies.forEach(en => {
+        if (en.hp > 0) en.seal = (en.seal || 0) + tpl.sealAll;
+      });
+    }
+    if (tpl.auraBoost) {
+      this.combat.auraPower = (this.combat.auraPower || 5) + tpl.auraBoost;
+    }
+
+    // 8) WARLOCK: Doom All (STS2 Necrobinder curse)
+    if (tpl.doomAll) {
+      this.combat.enemies.forEach(en => {
+        if (en.hp > 0) en.doom = (en.doom || 0) + tpl.doomAll + (cardInst.upgraded ? 3 : 0);
+      });
+      this.checkWarlockDoomExecutions();
     }
 
     const targets = tpl.target === 'all' ? this.combat.enemies.filter(e => e.hp > 0) : [target];
@@ -2062,7 +2306,27 @@ const Game = {
             let dmg = stats.damage;
             if (tpl.damagePerPoison) dmg += en.poison;
             if (subId === 'gloom_stalker' && this.combat.turn === 1) dmg = Math.round(dmg * 1.4);
+
+            // Fighter Sunder Bonus (+1 physical damage per Sunder stack on enemy!)
+            if (en.sunder > 0) dmg += en.sunder;
+
+            // Ranger Quarry Crit Burst (Consumes Quarry on hit for +1.5x Quarry bonus damage!)
+            if (en.quarry > 0 && cid === 'ranger') {
+              dmg += Math.round(en.quarry * 1.5);
+              en.quarry = Math.max(0, en.quarry - 2);
+            }
+
             this.dealDamageToEnemy(en, dmg);
+
+            // Barbarian Bleed Burst on every hit + Bloodied Lifesteal!
+            if (cid === 'barbarian' && en.hp > 0 && (en.bleed || 0) > 0) {
+              const bleedBurst = Math.max(2, Math.ceil(en.bleed * 0.5));
+              this.dealDamageToEnemy(en, bleedBurst, true);
+              if (this.run.hp <= this.run.maxHp * 0.6) {
+                this.run.hp = Math.min(this.run.maxHp, this.run.hp + 2);
+              }
+            }
+
             // Slay the Spire Thorns: Attacking an enemy with Thorns deals counter-damage back per hit!
             if (en.thorns > 0) {
               this.applyEnemyDamageToPlayerOrSummon(en.thorns, false);
@@ -2081,9 +2345,55 @@ const Game = {
       if (tpl.triggerPoisonNow && en.poison > 0) {
         this.dealDamageToEnemy(en, en.poison, true);
       }
+
+      // Apply Class-Unique Status Effects to Target(s)
+      if (tpl.sunder) {
+        en.sunder = (en.sunder || 0) + tpl.sunder;
+        en.block = Math.max(0, en.block - tpl.sunder * 2); // Sunder shatters enemy armor!
+      }
+      if (tpl.bleed) {
+        en.bleed = (en.bleed || 0) + tpl.bleed;
+      }
+      if (tpl.comboPoint && en.hp > 0) {
+        en.comboPoints = (en.comboPoints || 0) + tpl.comboPoint;
+        if (en.comboPoints >= 5) {
+          en.comboPoints -= 5;
+          const evisDmg = 18 + this.run.act * 4 + this.combat.player.strength;
+          this.dealDamageToEnemy(en, evisDmg, true);
+          if (en.poison > 0 && en.hp > 0) this.dealDamageToEnemy(en, en.poison, true);
+          this.combat.energy += 1;
+          this.logCombat(`💀 [5연계 마무리 일격(Eviscerate) 폭발!] ${en.name}에게 고정 피해 ${evisDmg} + 맹독 격발 + 행동력(AP) +1!`);
+        }
+      }
+      if (tpl.quarry) {
+        en.quarry = (en.quarry || 0) + tpl.quarry;
+      }
+      if (tpl.frostbite) {
+        en.frostbite = (en.frostbite || 0) + tpl.frostbite;
+      }
+      if (tpl.holyBrand) {
+        en.holyBrand = (en.holyBrand || 0) + tpl.holyBrand;
+      }
+      if (tpl.seal) {
+        const extraSeal = cid === 'paladin' && this.combat.paladinAura === 'crusader' ? 2 : 0;
+        en.seal = (en.seal || 0) + tpl.seal + extraSeal;
+      }
+      if (tpl.detonateSeal && (en.seal || 0) > 0 && en.hp > 0) {
+        const sealCnt = en.seal;
+        en.seal = 0;
+        this.dealDamageToEnemy(en, sealCnt * 3, true);
+        this.combat.player.block += sealCnt * 2;
+        this.logCombat(`⚖️ [심판의 문장 ${sealCnt}개 폭발!] 추가 광휘 피해 +${sealCnt * 3} 및 내 방어도 +${sealCnt * 2}!`);
+      }
+      if (tpl.doom) {
+        en.doom = (en.doom || 0) + tpl.doom + (cardInst.upgraded ? 4 : 0);
+      }
     });
 
-    if (tpl.healOnHit) this.run.hp = Math.min(this.run.maxHp, this.run.hp + tpl.healOnHit);
+    if (tpl.healOnHit) {
+      this.healPlayerWithClericMechanics(tpl.healOnHit);
+    }
+    this.checkWarlockDoomExecutions();
     if (tpl.consumeResourceAll) this.combat.secondaryResource = 0;
     if (tpl.resourceGain) this.gainSecondaryResource(tpl.resourceGain);
 
@@ -2160,51 +2470,73 @@ const Game = {
 
     if (cid === 'fighter') {
       this.combat.energy += 1;
-      this.combat.player.strength += 1;
+      this.combat.comboCount = (this.combat.comboCount || 0) + 2;
+      this.combat.player.parry = (this.combat.player.parry || 0) + 6;
       this.drawCards(2);
-      this.logCombat('⚔️ [행동 연쇄(Action Surge) 개방] 행동력 +1, 힘 +1, 카드 2장 드로우!');
+      this.logCombat('⚔️ [행동 연쇄(Action Surge) 개방] 행동력 +1, 연격 콤보 +2, 반격 +6, 카드 2장 드로우!');
     } else if (cid === 'barbarian') {
       this.combat.player.strength += 2;
-      this.combat.player.block += 8;
-      this.logCombat('💢 [광란의 격노 폭발] 힘 +2 및 방어도 +8 획득!');
+      this.combat.enemies.forEach(en => {
+        if (en.hp > 0) {
+          en.bleed = (en.bleed || 0) + 6;
+          this.dealDamageToEnemy(en, en.bleed, true);
+        }
+      });
+      this.logCombat('💢 [혈투 광폭화 폭발] 힘 +2 및 모든 적에게 출혈 +6 부여 후 즉시 출혈 폭발!');
     } else if (cid === 'rogue') {
+      for (let s = 0; s < 2; s++) {
+        if (this.combat.hand.length < 10) this.combat.hand.push(this.createCardInstance('token_shiv', Date.now() + s));
+      }
       this.combat.enemies.forEach(en => {
         if (en.hp > 0) {
           en.poison += 4;
-          this.dealDamageToEnemy(en, en.poison, true);
+          en.comboPoints = (en.comboPoints || 0) + 2;
         }
       });
-      this.drawCards(1);
-      this.logCombat('🗡️ [급소 맹독 격발] 모든 적에게 맹독 +4 부여 및 즉시 맹독 피해 폭발!');
+      this.logCombat('🗡️ [암기 난사 개방] 손패에 0코스트 [투척 단검] 2장 생성 및 모든 적 연계 +2점, 맹독 +4!');
     } else if (cid === 'ranger') {
+      this.combat.traps = (this.combat.traps || 0) + 2;
+      this.toggleRangerBeastMode();
       this.combat.enemies.forEach(en => {
-        if (en.hp > 0) this.dealDamageToEnemy(en, 11 + this.combat.player.strength, true);
+        if (en.hp > 0) {
+          en.quarry = (en.quarry || 0) + 4;
+          this.dealDamageToEnemy(en, 10 + this.combat.player.strength, true);
+        }
       });
-      const target = this.combat.enemies.find(e => e.hp > 0);
-      if (target && this.combat.summon.active) this.triggerSummonCoopAttack(target);
-      this.logCombat('🏹 [사냥꾼의 일제 사격] 적 전체 관통 화살 및 야수 동료 협공!');
+      this.logCombat('🏹 [전술 함정망 & 야수 태세 전환] 함정 +2개 매설, 적 전체 표적 +4 및 관통 사격!');
     } else if (cid === 'wizard') {
       this.combat.energy += 1;
-      this.combat.drones = Math.min(this.combat.maxDrones || 4, this.combat.drones + 1);
-      this.triggerDronesAction();
-      this.logCombat('🔮 [비전 회복(Arcane Recovery)] 행동력 +1, 비전 구체 소환 및 일제 폭격!');
+      this.channelElementalOrb('fire');
+      this.channelElementalOrb('lightning');
+      if (this.combat.orbList && this.combat.orbList.length > 0) {
+        this.evokeElementalOrb(this.combat.orbList[0]);
+      }
+      this.logCombat('🔮 [3원소 대발현(Evoke)] 행동력 +1, 화염/번개 구체 영창 및 최전방 구체 즉시 2배 발현!');
     } else if (cid === 'cleric') {
-      this.run.hp = Math.min(this.run.maxHp, this.run.hp + 6);
-      this.combat.enemies.forEach(en => {
-        if (en.hp > 0) this.dealDamageToEnemy(en, 13, true);
-      });
-      this.logCombat('☀️ [신성력 전달(Channel Divinity)] 내 체력 +6 회복 및 적 전체에 광휘 심판 13 피해!');
+      this.combat.devotion = (this.combat.devotion || 0) + 4;
+      this.healPlayerWithClericMechanics(10);
+      this.logCombat('☀️ [신성력 전달: 초과치유 방벽] 체력 +10 치유(초과분 방어도 전환 & 낙인 적 광휘 반사) 및 신앙심 +4!');
     } else if (cid === 'paladin') {
-      this.combat.player.strength += 1;
+      this.cyclePaladinAura();
       this.combat.player.block += 10;
-      const target = this.combat.enemies.find(e => e.hp > 0);
-      if (target) this.dealDamageToEnemy(target, 15 + this.combat.player.strength, true);
-      this.logCombat('✨ [천벌의 신성한 강타] 힘 +1, 방어도 +10 및 적에게 심판의 성검 강타!');
+      if (this.combat.hand.length < 10) {
+        this.combat.hand.push(this.createCardInstance('token_smite_wave', Date.now()));
+      }
+      this.logCombat('✨ [성기사 오라 전환 & 성검 파동] 오라 전환, 방어도 +10 및 0코스트 [빛의 성검 파동] 생성!');
     } else if (cid === 'warlock') {
-      this.summonOrBuffCompanion(10, 3);
-      const target = this.combat.enemies.find(e => e.hp > 0);
-      if (target) this.triggerSummonCoopAttack(target);
-      this.logCombat('🟣 [후원자의 권능 개방] 계약 악마 강화 및 즉시 협공!');
+      if (this.combat.summon.active && this.combat.summon.hp > 6) {
+        this.combat.summon.hp -= 6;
+        this.combat.summon.atk += 4;
+      } else {
+        this.summonOrBuffCompanion(12, 4);
+      }
+      this.combat.energy += 1;
+      this.drawCards(2);
+      this.combat.enemies.forEach(en => {
+        if (en.hp > 0) en.doom = (en.doom || 0) + 12;
+      });
+      this.checkWarlockDoomExecutions();
+      this.logCombat('🟣 [사역마 혈맹 제물 & 파멸 증폭] 행동력 +1, 카드 2장 드로우 및 적 전체에 파멸(Doom) +12 부여!');
     }
 
     this.checkCombatEnd();
@@ -2215,8 +2547,22 @@ const Game = {
     if (!this.combat.summon.active) return;
     const t = target && target.hp > 0 ? target : this.combat.enemies.find(e => e.hp > 0);
     if (!t) return;
-    this.dealDamageToEnemy(t, this.combat.summon.atk, true);
-    this.logCombat(`${this.combat.summon.name} 협동 공격! (${this.combat.summon.atk} 피해)`);
+    let atkDmg = this.combat.summon.atk;
+    // Ranger Beast Mode: Assault deals 1.6x damage, Guard generates +5 Block for Ranger!
+    if (this.run.charId === 'ranger') {
+      if (this.combat.beastMode === 'assault') {
+        atkDmg = Math.round(atkDmg * 1.6);
+      } else {
+        this.combat.player.block += 5;
+      }
+    }
+    this.dealDamageToEnemy(t, atkDmg, true);
+    // Warlock Summon also inflicts +4 Doom on every attack!
+    if (this.run.charId === 'warlock' && t.hp > 0) {
+      t.doom = (t.doom || 0) + 4;
+      this.checkWarlockDoomExecutions();
+    }
+    this.logCombat(`${this.combat.summon.name} 협동 공격! (${atkDmg} 피해)`);
   },
 
   triggerDronesAction() {
@@ -2231,10 +2577,32 @@ const Game = {
       (this.run.relics.includes('wiz_rank_s') ? 3 : 0);
     const blockPerDrone = 2;
 
+    // Wizard 3-Elemental Orbs (Fire = AoE dmg, Frost = Block + Frostbite, Lightning = High Single Dmg)
+    if (this.run.charId === 'wizard' && this.combat.orbList && this.combat.orbList.length > 0) {
+      this.combat.orbList.forEach((orbType, i) => {
+        if (orbType === 'fire') {
+          alive.forEach(en => {
+            if (en.hp > 0) this.dealDamageToEnemy(en, dmgPerDrone, true);
+          });
+        } else if (orbType === 'frost') {
+          this.combat.player.block += blockPerDrone + 2;
+          const t = alive[i % alive.length];
+          if (t && t.hp > 0) t.frostbite = (t.frostbite || 0) + 2;
+        } else {
+          const t = alive[i % alive.length];
+          if (t && t.hp > 0) this.dealDamageToEnemy(t, dmgPerDrone + 3, true);
+        }
+      });
+      return;
+    }
+
     for (let i = 0; i < this.combat.drones; i++) {
       const t = alive[i % alive.length];
       this.dealDamageToEnemy(t, dmgPerDrone, true);
       this.combat.player.block += blockPerDrone;
+      if (this.run.charId === 'cleric' && t.hp > 0) {
+        t.holyBrand = (t.holyBrand || 0) + 1;
+      }
     }
   },
 
@@ -2291,11 +2659,15 @@ const Game = {
     if (this.combat.player.metallicize > 0) {
       this.combat.player.block += this.combat.player.metallicize;
     }
+    // Paladin Devotion Aura: Automatic Block at end of turn!
+    if (this.run.charId === 'paladin' && this.combat.paladinAura === 'devotion') {
+      this.combat.player.block += 6 + Math.floor((this.combat.auraPower || 5) * 0.5);
+    }
     if (this.run.relics.includes('orichalcum_relic') && this.combat.player.block === 0) {
       this.combat.player.block += 6;
     }
     if (this.run.relics.includes('clr_rank_s')) {
-      this.run.hp = Math.min(this.run.maxHp, this.run.hp + 2);
+      this.healPlayerWithClericMechanics(2);
     }
     if (subId === 'hunter_conclave') {
       this.combat.enemies.forEach(en => {
@@ -2314,6 +2686,7 @@ const Game = {
     if (this.combat.drones > 0) {
       this.triggerDronesAction();
     }
+    this.checkWarlockDoomExecutions();
 
     if (this.checkCombatEnd()) return;
 
@@ -2325,6 +2698,12 @@ const Game = {
         en.hp = Math.max(0, en.hp - en.poison);
         en.poison = Math.max(0, en.poison - 1);
       }
+      // Barbarian Bleed DoT ticks at start of enemy turn!
+      if ((en.bleed || 0) > 0 && en.hp > 0) {
+        en.hp = Math.max(0, en.hp - en.bleed);
+        en.bleed = Math.max(0, en.bleed - 1);
+      }
+      this.checkWarlockDoomExecutions();
       if (en.hp <= 0) return;
 
       // Slay the Spire Regeneration trait (Troll, Ochre Jelly, Otyugh, Vampire, Tiamat)
@@ -2338,15 +2717,42 @@ const Game = {
       if (move.intent === 'attack' || move.intent === 'attack_debuff' || move.intent === 'multi_attack') {
         const hits = move.hits || 1;
         const isCleaveBreath = (en.isBoss || en.isElite) && move.intent === 'attack_debuff';
+
+        // Ranger Tactical Trap Trigger! (Springs BEFORE enemy attacks, dealing damage & cutting enemy attack by 30%!)
+        let trapTriggered = false;
+        if (this.run.charId === 'ranger' && (this.combat.traps || 0) > 0) {
+          this.combat.traps -= 1;
+          trapTriggered = true;
+          const trapDmg = 10 + Math.max(0, this.combat.player.dexterity) * 2;
+          this.dealDamageToEnemy(en, trapDmg, true);
+          en.quarry = (en.quarry || 0) + 2;
+          this.logCombat(`🪤 [전술 함정 격발!] 공격하려던 ${en.name}에게 ${trapDmg} 피해 & 공격력 30% 감소!`);
+          if (en.hp <= 0) return;
+        }
+
         for (let h = 0; h < hits; h++) {
           let dmg = move.dmg + en.strength;
+          // Wizard Frostbite reduces enemy attack damage; 8+ stacks Freezes (-50% damage)!
+          if ((en.frostbite || 0) > 0) {
+            dmg = Math.max(1, dmg - Math.ceil(en.frostbite * 0.5));
+            if (en.frostbite >= 8) dmg = Math.floor(dmg * 0.5);
+          }
+          if (trapTriggered) dmg = Math.floor(dmg * 0.7);
           if (en.weak > 0) dmg = Math.floor(dmg * 0.75);
           if (this.combat.player.vuln > 0) dmg = Math.floor(dmg * 1.5);
           if (this.combat.stance === 'wrath') dmg = Math.floor(dmg * 2);
-          this.applyEnemyDamageToPlayerOrSummon(dmg, isCleaveBreath);
+          // Paladin Devotion Aura reduces incoming damage by 20%!
+          if (this.run.charId === 'paladin' && this.combat.paladinAura === 'devotion') {
+            dmg = Math.floor(dmg * 0.8);
+          }
+
+          this.applyEnemyDamageToPlayerOrSummon(dmg, isCleaveBreath, en);
           if (move.lifesteal && dmg > 0) {
             en.hp = Math.min(en.maxHp, en.hp + Math.round(dmg * 0.5));
           }
+        }
+        if ((en.frostbite || 0) >= 8) {
+          en.frostbite = Math.max(0, en.frostbite - 4); // Thaw after frozen turn
         }
       }
 
@@ -2391,14 +2797,36 @@ const Game = {
     this.startPlayerTurn(false);
   },
 
-  applyEnemyDamageToPlayerOrSummon(dmg, isCleaveBreath = false) {
+  applyEnemyDamageToPlayerOrSummon(dmg, isCleaveBreath = false, attackerEnemy = null) {
     let remaining = dmg;
     if (this.combat.player.block > 0) {
       const blocked = Math.min(this.combat.player.block, remaining);
       this.combat.player.block -= blocked;
       remaining -= blocked;
+
+      // Fighter Parry Counter-Attack! When blocking enemy attack, strike back immediately!
+      if (blocked > 0 && (this.combat.player.parry || 0) > 0 && attackerEnemy && attackerEnemy.hp > 0) {
+        const counterDmg = this.combat.player.parry + Math.max(0, this.combat.player.strength);
+        this.dealDamageToEnemy(attackerEnemy, counterDmg, true);
+        attackerEnemy.sunder = (attackerEnemy.sunder || 0) + 1;
+        this.logCombat(`🛡️ [패링 반격(Parry)!] ${attackerEnemy.name}에게 카운터 참격 ${counterDmg} 피해 & 파쇄 +1!`);
+      }
     }
-    if (remaining > 0 && this.combat.summon.active && this.combat.summon.hp > 0) {
+
+    // Paladin Retribution Aura: Reflects Radiant Thorns damage back to attacker on every hit!
+    if (this.run.charId === 'paladin' && this.combat.paladinAura === 'retribution' && attackerEnemy && attackerEnemy.hp > 0) {
+      const reflectDmg = (this.combat.auraPower || 5) + Math.max(0, this.combat.player.strength);
+      this.dealDamageToEnemy(attackerEnemy, reflectDmg, true);
+      attackerEnemy.seal = (attackerEnemy.seal || 0) + 1;
+    }
+
+    // Ranger Beast Guard Mode: Summon only tanks when in Guard Mode (or for non-Rangers, always tanks)
+    const canSummonTank =
+      this.combat.summon.active &&
+      this.combat.summon.hp > 0 &&
+      (this.run.charId !== 'ranger' || this.combat.beastMode === 'guard');
+
+    if (remaining > 0 && canSummonTank) {
       const tanked = Math.min(this.combat.summon.hp, remaining);
       this.combat.summon.hp -= tanked;
       remaining -= tanked;
@@ -2409,6 +2837,10 @@ const Game = {
     }
     if (remaining > 0) {
       this.run.hp = Math.max(0, this.run.hp - remaining);
+      // Barbarian gains +1 Rage whenever taking unblocked HP damage!
+      if (this.run.charId === 'barbarian') {
+        this.combat.secondaryResource += 1;
+      }
     }
   },
 
@@ -2560,12 +2992,40 @@ const Game = {
     document.getElementById('player-hp-text').textContent = `${this.run.hp} / ${this.run.maxHp}`;
 
     const pBuffs = [];
+    const cid = this.run.charId;
     if (this.combat.player.strength > 0) pBuffs.push(`⚔️ 힘 +${this.combat.player.strength}`);
     if (this.combat.player.dexterity > 0) pBuffs.push(`🛡️ 민첩 +${this.combat.player.dexterity}`);
     if (this.combat.player.metallicize > 0) pBuffs.push(`✨ 수호오라 +${this.combat.player.metallicize}`);
     if (this.combat.player.weak > 0) pBuffs.push(`💫 약화 ${this.combat.player.weak}`);
     if (this.combat.player.vuln > 0) pBuffs.push(`💔 취약 ${this.combat.player.vuln}`);
     if (this.combat.player.frail > 0) pBuffs.push(`🦴 손상 ${this.combat.player.frail}`);
+
+    // Class-Unique Player Buff & Mechanic Badges!
+    if (cid === 'fighter') {
+      pBuffs.push(`🔥 연격 ${this.combat.comboCount || 0}콤보 (+${(this.combat.comboCount || 0) * 15}%)`);
+      if (this.combat.player.parry > 0) pBuffs.push(`🛡️ 반격 ${this.combat.player.parry}`);
+    } else if (cid === 'barbarian') {
+      const multPct = Math.round((this.getBarbarianBloodlustMult() - 1) * 100);
+      pBuffs.push(`💢 혈투 증폭 +${multPct}%`);
+      if (this.run.hp <= this.run.maxHp * 0.6) pBuffs.push(`🩸 혈전(흡혈+강화)`);
+    } else if (cid === 'rogue') {
+      pBuffs.push(`🗡️ 5연계 시 자동 처형`);
+    } else if (cid === 'ranger') {
+      pBuffs.push(`🪤 매설 함정 ${this.combat.traps || 0}개`);
+    } else if (cid === 'cleric') {
+      pBuffs.push(`☀️ 신앙심 ${this.combat.devotion || 0}/10`);
+      pBuffs.push(`💛 초과치유=방어도`);
+    } else if (cid === 'paladin') {
+      const auraNames = {
+        retribution: `🔥 응보오라(반사+${this.combat.auraPower || 5})`,
+        devotion: `🛡️ 헌신오라(감소20%)`,
+        crusader: `⚔️ 성전오라(공격+25%)`
+      };
+      pBuffs.push(auraNames[this.combat.paladinAura || 'retribution']);
+    } else if (cid === 'warlock') {
+      pBuffs.push(`💀 파멸(체력이하시 즉사)`);
+    }
+
     document.getElementById('player-buffs-row').innerHTML = pBuffs
       .map(b => `<span class="buff-pill">${b}</span>`)
       .join('');
@@ -2575,26 +3035,57 @@ const Game = {
     if (this.combat.summon.active) {
       const s = this.combat.summon;
       const sPct = Math.round((s.hp / s.maxHp) * 100);
+      // Warlock Demon 3-Stage Evolution title
+      let displayTitle = s.name;
+      if (cid === 'warlock') {
+        displayTitle = s.atk >= 18 ? '👑 심연의 대악마 군주' : s.atk >= 11 ? '😈 지옥마신 핀드' : '👿 계약 임프 사역마';
+      }
+      const rangerModeBtn =
+        cid === 'ranger'
+          ? `<button class="hud-btn" style="margin-top:5px; width:100%; font-size:0.7rem; padding:3px 6px; border-color:#55efc4;" onclick="Game.toggleRangerBeastMode()">
+              ${this.combat.beastMode === 'assault' ? '🐾 현재: 포식 태세(공격 1.6배) [터치 전환]' : '🛡️ 현재: 호위 태세(탱킹+방어) [터치 전환]'}
+            </button>`
+          : '';
       compHtml += `
         <div class="summon-unit-card" title="슬더스 2 소환수 시스템: 플레이어가 받을 피해를 대신 방어하고 매 턴 종료 시 적을 자동 공격합니다!">
-          <div class="summon-title">${s.name}</div>
+          <div class="summon-title">${displayTitle}</div>
           <div style="font-size:0.75rem; color:#dfe6e9; margin-bottom:5px;">⚔️ 협공 위력: ${s.atk} | 🛡️ 피해 대신 흡수</div>
           <div class="hp-bar-outer" style="height:15px;">
             <div class="hp-bar-fill" style="width:${sPct}%; background:linear-gradient(90deg, #9b59b6, #e056fd);"></div>
             <span class="hp-bar-text">${s.hp} / ${s.maxHp}</span>
           </div>
+          ${rangerModeBtn}
         </div>
       `;
     }
+    if (cid === 'paladin') {
+      compHtml += `
+        <button class="hud-btn" style="border-color:#f1c40f; color:#ffeaa7; font-size:0.75rem; padding:6px 10px;" onclick="Game.cyclePaladinAura()">
+          ⚜️ 성기사 오라 전환 (현재: ${this.combat.paladinAura === 'retribution' ? '🔥응보' : this.combat.paladinAura === 'devotion' ? '🛡️헌신' : '⚔️성전'})
+        </button>
+      `;
+    }
     if (this.combat.drones > 0) {
-      const dmgPerDrone = 5 + Math.max(0, this.combat.player.strength) + (this.run.permStats.summonBoost || 0);
+      const dmgPerDrone = 4 + Math.floor(Math.max(0, this.combat.player.strength) * 0.5) + (this.run.permStats.summonBoost || 0);
       compHtml += `<div class="drone-orbs-container">`;
-      for (let i = 0; i < this.combat.drones; i++) {
-        compHtml += `
-          <div class="drone-orb-chip">
-            🔮 비전/수호령 구체 #${i + 1} (⚡${dmgPerDrone} / 🛡️3)
-          </div>
-        `;
+      if (cid === 'wizard' && this.combat.orbList && this.combat.orbList.length > 0) {
+        this.combat.orbList.forEach((oType, i) => {
+          const orbLabel =
+            oType === 'fire'
+              ? `🔥 화염 구체 #${i + 1} (전체 ${dmgPerDrone})`
+              : oType === 'frost'
+              ? `❄️ 냉기 구체 #${i + 1} (🛡️4 / 동상+2)`
+              : `⚡ 번개 구체 #${i + 1} (낙뢰 ${dmgPerDrone + 3})`;
+          compHtml += `<div class="drone-orb-chip">${orbLabel}</div>`;
+        });
+      } else {
+        for (let i = 0; i < this.combat.drones; i++) {
+          compHtml += `
+            <div class="drone-orb-chip">
+              🔮 수호령 구체 #${i + 1} (⚡${dmgPerDrone} / 🛡️2)
+            </div>
+          `;
+        }
       }
       compHtml += `</div>`;
     }
@@ -2617,9 +3108,21 @@ const Game = {
       if (en.artifact > 0) enBuffs.push(`🛡️ 마법저항 ${en.artifact}`);
       if (en.metallicize > 0) enBuffs.push(`🔩 철갑 +${en.metallicize}`);
       if (en.curlUp > 0) enBuffs.push(`🐚 웅크리기 ${en.curlUp}`);
-      if (en.poison > 0) enBuffs.push(`🧪 맹독/저주 ${en.poison}`);
+      if (en.poison > 0) enBuffs.push(`🧪 맹독 ${en.poison}`);
       if (en.weak > 0) enBuffs.push(`💫 약화 ${en.weak}`);
       if (en.vuln > 0) enBuffs.push(`💔 취약 ${en.vuln}`);
+
+      // Display the 8 Class-Unique Status Effects on Enemies!
+      if ((en.sunder || 0) > 0) enBuffs.push(`💥 파쇄 +${en.sunder}`);
+      if ((en.bleed || 0) > 0) enBuffs.push(`🩸 출혈 ${en.bleed}`);
+      if ((en.comboPoints || 0) > 0) enBuffs.push(`⚪ 연계 ${'●'.repeat(en.comboPoints)}${'○'.repeat(Math.max(0, 5 - en.comboPoints))}`);
+      if ((en.quarry || 0) > 0) enBuffs.push(`🎯 표적 ${en.quarry}`);
+      if ((en.frostbite || 0) > 0) {
+        enBuffs.push(en.frostbite >= 8 ? `🧊 빙결(${en.frostbite})` : `❄️ 동상 ${en.frostbite}`);
+      }
+      if ((en.holyBrand || 0) > 0) enBuffs.push(`☀️ 성스러운낙인 ${en.holyBrand}`);
+      if ((en.seal || 0) > 0) enBuffs.push(`⚖️ 심판문장 ${en.seal}`);
+      if ((en.doom || 0) > 0) enBuffs.push(`💀 파멸(Doom) ${en.doom}/${en.hp}`);
 
       // Compute Live Scaled Intent Text (STS2 style accurate damage prediction!)
       let liveIntentDesc = move.desc;
