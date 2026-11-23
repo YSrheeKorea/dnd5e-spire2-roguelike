@@ -55,7 +55,7 @@ window.GAME_DATA = {
     {
       "act": 1,
       "name": "제1계층: 언더마운틴 입구 & 고블린 성채",
-      "subtitle": "워터딥 하품하는 포털 주점 지하의 첫 번째 미궁 (Stage 1 ~ 30)",
+      "subtitle": "워터딥 하품하는 포털 주점 지하의 첫 번째 미궁 (Stage 1 ~ 15)",
       "themeColor": "#27ae60",
       "normalPool": [
         "goblin_skirmisher",
@@ -87,7 +87,7 @@ window.GAME_DATA = {
     {
       "act": 2,
       "name": "제2계층: 언더다크 & 롤스의 거미 신전",
-      "subtitle": "빛이 닿지 않는 지하 세계와 드로우 엘프들의 본거지 (Stage 1 ~ 30)",
+      "subtitle": "빛이 닿지 않는 지하 세계와 드로우 엘프들의 본거지 (Stage 1 ~ 15)",
       "themeColor": "#8e44ad",
       "normalPool": [
         "drow_assassin",
@@ -119,7 +119,7 @@ window.GAME_DATA = {
     {
       "act": 3,
       "name": "제3계층: 일리시드(마인드 플레이어) 생체 군락",
-      "subtitle": "정신을 지배하는 촉수 괴물들과 기스양키 사냥꾼들의 격전지 (Stage 1 ~ 30)",
+      "subtitle": "정신을 지배하는 촉수 괴물들과 기스양키 사냥꾼들의 격전지 (Stage 1 ~ 15)",
       "themeColor": "#2980b9",
       "normalPool": [
         "intellect_devourer",
@@ -151,7 +151,7 @@ window.GAME_DATA = {
     {
       "act": 4,
       "name": "제4계층: 섀도우펠 & 아세라락의 공포의 무덤",
-      "subtitle": "죽음의 안개가 드리운 불사의 요새와 영혼 포식자 (Stage 1 ~ 30)",
+      "subtitle": "죽음의 안개가 드리운 불사의 요새와 영혼 포식자 (Stage 1 ~ 15)",
       "themeColor": "#c0392b",
       "normalPool": [
         "wight_executioner",
@@ -183,7 +183,7 @@ window.GAME_DATA = {
     {
       "act": 5,
       "name": "제5계층: 나인 헬 아베르누스 & 티아마트의 신전",
-      "subtitle": "타락한 천사와 고룡들이 지배하는 지옥의 심연 (Stage 1 ~ 30)",
+      "subtitle": "타락한 천사와 고룡들이 지배하는 지옥의 심연 (Stage 1 ~ 15)",
       "themeColor": "#e67e22",
       "normalPool": [
         "bearded_devil",

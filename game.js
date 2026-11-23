@@ -497,7 +497,7 @@ const Game = {
 
     const bestRecEl = document.getElementById('hub-best-record');
     if (bestRecEl) {
-      bestRecEl.textContent = `제${this.meta.bestAct || 1}층 - Stage ${this.meta.bestStage || 1} / 30 (총 ${this.meta.totalClimbs || 0}회 등반)`;
+      bestRecEl.textContent = `제${this.meta.bestAct || 1}층 - Stage ${this.meta.bestStage || 1} / 15 (총 ${this.meta.totalClimbs || 0}회 등반)`;
     }
 
     Object.values(GAME_DATA.characters).forEach(ch => {
@@ -963,8 +963,8 @@ const Game = {
       gold: 80 + stats.bonusGoldStart,
       act: 1, // Act 1 ~ 5 (총 5개 층)
       maxActs: 5,
-      stage: 1, // Stage 1 ~ 30 per Act (1개 층당 30개 스테이지)
-      stagesPerAct: 30,
+      stage: 1, // Stage 1 ~ 15 per Act (슬더스 표준: 1개 층당 15개 스테이지!)
+      stagesPerAct: 15,
       currentLane: null,
       neowLamentCharges: 0, // Neow's Lament: First 3 combats have 1 HP enemies
       penNibCounter: 0, // Pen Nib relic counter (every 7th attack deals double damage)
@@ -1032,8 +1032,11 @@ const Game = {
     this.renderMap();
   },
 
-  // Generates 30 Stages where each stage is a single randomly-assigned encounter!
-  // No meaningless 3-way choice clutter: each stage rolls 1 clear event/encounter (Combat, Elite, Event, Shop, Rest, Treasure, Midboss, Boss).
+  // Generates 15 Stages per Act (Slay the Spire Standard Pacing!):
+  // - Normal Combats: 5~6 per floor
+  // - Elites / Midboss: 2 per floor (Stage 8 Midboss + 1 random Elite)
+  // - Events (?), Shop, Campfire Rest, Treasure Chest: 6~7 per floor
+  // - Act Boss: Stage 15
   generate30StageActMap(actNum) {
     const stages = [];
     const bossId = this.run && this.run.selectedBosses ? this.run.selectedBosses[actNum] : GAME_DATA.acts[actNum - 1].bossPool[0];
@@ -1042,24 +1045,19 @@ const Game = {
     const bossObj = GAME_DATA.enemies[bossId];
     const midObj = GAME_DATA.enemies[midBossId];
 
-    // Pick 1 random rest spot in first half (4..12) and 1 in second half (17..26), plus guaranteed pre-boss rest (14, 29)
-    // Pick 2 random shop spots (1 in first half, 1 in second half)
-    const firstHalfShop = 5 + Math.floor(Math.random() * 6); // 5..10
-    const secondHalfShop = 18 + Math.floor(Math.random() * 8); // 18..25
-    let firstHalfRest = 6 + Math.floor(Math.random() * 6); // 6..11
-    if (firstHalfRest === firstHalfShop || firstHalfRest === 9) firstHalfRest = 7;
-    let secondHalfRest = 19 + Math.floor(Math.random() * 7); // 19..25
-    if (secondHalfRest === secondHalfShop || secondHalfRest === 23) secondHalfRest = 21;
+    const shopStage = Math.random() < 0.5 ? 5 : 11;
+    const earlyRestStage = 6;
+    const eliteStage = shopStage === 5 ? 11 : 12;
 
     const makeNode = (s, type) => {
       if (type === 'boss') {
-        return { id: `a${actNum}_s${s}_boss`, type, label: `👑 [계층 보스] ${bossObj ? bossObj.name : '계층 지배자'}` };
+        return { id: `a${actNum}_s${s}_boss`, type, label: `👑 [15F 계층 보스] ${bossObj ? bossObj.name : '계층 지배자'}` };
       }
       if (type === 'midboss') {
-        return { id: `a${actNum}_s${s}_midboss`, type, label: `🩸 [중간 보스] ${midObj ? midObj.name : '계층 수문장'}` };
+        return { id: `a${actNum}_s${s}_midboss`, type, label: `🩸 [8F 중간 보스] ${midObj ? midObj.name : '계층 수문장'}` };
       }
       if (type === 'treasure') {
-        return { id: `a${actNum}_s${s}_treasure`, type, label: `🎁 [고대 보물상자] 마법 유물 & 금화 획득` };
+        return { id: `a${actNum}_s${s}_treasure`, type, label: `🎁 [9F 고대 보물상자] 마법 유물 & 금화 획득` };
       }
       if (type === 'rest') {
         return { id: `a${actNum}_s${s}_rest`, type, label: `🔥 [모닥불 휴식처] 긴 휴식(30% 회복) 또는 카드 단련(+)` };
@@ -1076,35 +1074,38 @@ const Game = {
       return { id: `a${actNum}_s${s}_combat`, type: 'combat', label: `⚔️ [몬스터 교전] 미궁 수호 몬스터와 전투` };
     };
 
-    let lastType = null;
-    for (let s = 1; s <= 30; s++) {
+    let combatCount = 0;
+    for (let s = 1; s <= 15; s++) {
       let type = 'combat';
 
-      if (s === 30) {
+      if (s === 15) {
         type = 'boss';
-      } else if (s === 15) {
-        type = 'midboss';
-      } else if (s === 9 || s === 23) {
-        type = 'treasure';
-      } else if (s === 14 || s === 29 || s === firstHalfRest || s === secondHalfRest) {
+      } else if (s === 14 || s === earlyRestStage) {
         type = 'rest';
-      } else if (s === firstHalfShop || s === secondHalfShop) {
+      } else if (s === 9) {
+        type = 'treasure';
+      } else if (s === 8) {
+        type = 'midboss';
+      } else if (s === shopStage) {
         type = 'shop';
+      } else if (s === eliteStage) {
+        type = 'elite';
       } else if (s <= 2) {
+        // First 2 floors are warm-up normal combats (Slay the Spire Easy Pool)
         type = 'combat';
+        combatCount += 1;
       } else {
-        // Randomly roll 1 encounter type for this stage (avoid back-to-back elites or events)
-        const r = Math.random();
-        if (s >= 5 && lastType !== 'elite' && r < 0.22) {
-          type = 'elite';
-        } else if (lastType !== 'event' && r < 0.44) {
+        // Remaining 6 flexible slots (stages 3, 4, 5/11, 7, 10, 12/13): cap normal combats at 5~6 total!
+        if (combatCount >= 6) {
+          type = 'event';
+        } else if (s === 3 || s === 7 || (Math.random() < 0.48 && combatCount >= 4)) {
           type = 'event';
         } else {
           type = 'combat';
+          combatCount += 1;
         }
       }
 
-      lastType = type;
       stages.push({
         stage: s,
         completed: false,
@@ -1120,9 +1121,9 @@ const Game = {
     const currentBossId = this.run.selectedBosses[this.run.act];
     const currentBossObj = GAME_DATA.enemies[currentBossId];
 
-    document.getElementById('map-act-title').textContent = `🏰 ${actInfo.name} (Stage ${this.run.stage} / 30)`;
-    document.getElementById('map-act-subtitle').innerHTML = `${actInfo.subtitle} — <strong style="color:#ff7675">30층 보스 예고: ${currentBossObj ? currentBossObj.name : ''
-      }</strong> | <span style="color:#f6c967">🎲 각 층의 조우(전투/엘리트/이벤트/상점/휴식처)가 무작위로 배정됩니다!</span>`;
+    document.getElementById('map-act-title').textContent = `🏰 ${actInfo.name} (Stage ${this.run.stage} / 15)`;
+    document.getElementById('map-act-subtitle').innerHTML = `${actInfo.subtitle} — <strong style="color:#ff7675">15F 보스 예고: ${currentBossObj ? currentBossObj.name : ''
+      }</strong> | <span style="color:#f6c967">🎲 슬더스 표준 15스테이지 (전투 5~6회 + 엘리트/이벤트/상점/휴식/보물/보스)</span>`;
 
     const spCountEl = document.getElementById('map-sp-count');
     if (spCountEl) spCountEl.textContent = this.run.sp;
@@ -1134,7 +1135,7 @@ const Game = {
         const cls = a.act === this.run.act ? 'active-act' : a.act < this.run.act ? 'cleared-act' : '';
         return `
           <div class="act-pill ${cls}">
-            ${a.act < this.run.act ? '✔ ' : a.act === this.run.act ? '📍 ' : ''}제${a.act}계층 (30 스테이지)
+            ${a.act < this.run.act ? '✔ ' : a.act === this.run.act ? '📍 ' : ''}제${a.act}계층 (15 스테이지)
           </div>
         `;
       })
@@ -1162,7 +1163,7 @@ const Game = {
         .join('');
 
       rowEl.innerHTML = `
-        <div class="floor-label">${this.run.act}층 - STAGE ${row.stage}/30</div>
+        <div class="floor-label">${this.run.act}층 - STAGE ${row.stage}/15</div>
         <div class="floor-nodes-group">${nodesHtml}</div>
       `;
       wrap.appendChild(rowEl);
@@ -1210,8 +1211,8 @@ const Game = {
   // Record highest tower floor/stage reached
   recordTowerProgress() {
     if (!this.run) return;
-    const curScore = (this.run.act - 1) * 30 + this.run.stage;
-    const bestScore = ((this.meta.bestAct || 1) - 1) * 30 + (this.meta.bestStage || 1);
+    const curScore = (this.run.act - 1) * 15 + this.run.stage;
+    const bestScore = ((this.meta.bestAct || 1) - 1) * 15 + (this.meta.bestStage || 1);
     if (curScore >= bestScore) {
       this.meta.bestAct = this.run.act;
       this.meta.bestStage = this.run.stage;
@@ -1231,37 +1232,38 @@ const Game = {
       this.recordTowerProgress();
       this.switchScreen('screen-map');
       this.renderMap();
+    } else {
+      // Completed Stage 15 Boss of current Act! Advance to next Act (1..5)
+      if (this.run.act < this.run.maxActs) {
+        this.run.act += 1;
+        this.run.stage = 1;
+        this.recordTowerProgress();
+        // Heal 50% of missing HP between Acts
+        const missingHp = this.run.maxHp - this.run.hp;
+        this.run.hp = Math.min(this.run.maxHp, this.run.hp + Math.round(missingHp * 0.5));
+        this.run.actMap = this.generate30StageActMap(this.run.act);
+        alert(
+          `🎉 제${this.run.act - 1}층(15 스테이지) 보스를 토벌했습니다!\n잃은 체력의 50%를 회복하며 다음 층 [${GAME_DATA.acts[this.run.act - 1].name
+          }] (Stage 1/15) 등반을 시작합니다!`
+        );
+        this.switchScreen('screen-map');
+        this.renderMap();
       } else {
-        // Completed Stage 30 Boss of current Act! Advance to next Act (1..5)
-        if (this.run.act < this.run.maxActs) {
-          this.run.act += 1;
-          this.run.stage = 1;
-          this.recordTowerProgress();
-          // Hardcore Spire Climb: Heal only 40% of missing HP between Acts
-          const missingHp = this.run.maxHp - this.run.hp;
-          this.run.hp = Math.min(this.run.maxHp, this.run.hp + Math.round(missingHp * 0.4));
-          this.run.actMap = this.generate30StageActMap(this.run.act);
-          alert(
-            `🎉 제${this.run.act - 1}층(30 스테이지) 보스를 토벌했습니다!\n잃은 체력의 40%를 회복하며 다음 층 [${GAME_DATA.acts[this.run.act - 1].name
-            }] (Stage 1/30) 등반을 시작합니다!`
-          );
-          this.switchScreen('screen-map');
-          this.renderMap();
-        } else {
-          this.recordTowerProgress();
-          this.showGameOverModal(true);
-        }
+        this.recordTowerProgress();
+        this.showGameOverModal(true);
       }
-    },
+    }
+  },
 
-    // --------------------------------------------------------------------------
-    // IN-RUN EXP, LEVEL-UP CARD REWARD & D&D ABILITY SCORE IMPROVEMENT (Lv.1 -> Lv.20)
-    // --------------------------------------------------------------------------
-    gainRunExp(rawExp) {
-      if (!this.run) return { gained: 0, leveledUp: 0 };
-      const mult = 1 + (this.run.permStats.expMultPct || 0) / 100;
-      const gained = Math.round(rawExp * mult);
-      this.run.runExp += gained;
+  // --------------------------------------------------------------------------
+  // IN-RUN EXP, LEVEL-UP CARD REWARD & D&D ABILITY SCORE IMPROVEMENT (Lv.1 -> Lv.20)
+  // Adjusted for 15-stage Acts so players level up smoothly across 5-6 combats per floor!
+  // --------------------------------------------------------------------------
+  gainRunExp(rawExp) {
+    if (!this.run) return { gained: 0, leveledUp: 0 };
+    const mult = 1 + (this.run.permStats.expMultPct || 0) / 100;
+    const gained = Math.round(rawExp * 1.45 * mult);
+    this.run.runExp += gained;
 
       let leveledUp = 0;
       while (this.run.runExp >= this.run.runNextExp && this.run.runLv < 20) {
@@ -1479,7 +1481,7 @@ const Game = {
     }
 
     document.getElementById('hud-gold').textContent = this.run.gold;
-    document.getElementById('hud-floor').textContent = `${this.run.act}층 - ${this.run.stage}/30`;
+    document.getElementById('hud-floor').textContent = `${this.run.act}층 - ${this.run.stage}/15`;
     document.getElementById('hud-deck-count').textContent = this.run.deck.length;
 
     const relicsBox = document.getElementById('hud-relics');
@@ -1570,8 +1572,8 @@ const Game = {
       const e1 = GAME_DATA.enemies[pool[this.run.stage % pool.length]];
       const e2 = GAME_DATA.enemies[pool[(this.run.stage + 1) % pool.length]];
       const e3 = GAME_DATA.enemies[pool[(this.run.stage + 2) % pool.length]];
-      // Slay the Spire 1 "Easy Pool" (First 3 floors of Act 1 are single-monster warm-up encounters, then full Hard Pool!)
-      if (this.run.stage <= 3 && this.run.act === 1) {
+      // Slay the Spire 1 "Easy Pool" (First 2 floors of Act 1 are single-monster warm-up encounters)
+      if (this.run.stage <= 2 && this.run.act === 1) {
         enemyTemplates = [e1];
       } else if (this.run.stage >= 10 && this.run.stage % 3 === 1) {
         enemyTemplates = [e1, e2, e3];
@@ -1580,16 +1582,15 @@ const Game = {
       }
     }
 
-    // Slay the Spire 2 Hardcore Difficulty Scaling across 5 Acts x 30 Stages:
-    // Enemies hit harder, have sturdier HP/Armor, and scale aggressively as you climb!
-    const hpScale = 1.22 + (this.run.act - 1) * 0.65 + (this.run.stage - 1) * 0.038;
-    const dmgScale = 1.25 + (this.run.act - 1) * 0.45 + (this.run.stage - 1) * 0.026;
+    // Slay the Spire 2 Difficulty Scaling across 5 Acts x 15 Stages:
+    const hpScale = 1.15 + (this.run.act - 1) * 0.55 + (this.run.stage - 1) * 0.045;
+    const dmgScale = 1.15 + (this.run.act - 1) * 0.38 + (this.run.stage - 1) * 0.032;
     const enragePerTurn =
       encounterType === 'boss'
         ? Math.max(2, Math.floor(this.run.act * 1.2))
         : encounterType === 'elite' || encounterType === 'midboss'
           ? Math.max(1, Math.floor(this.run.act * 0.8))
-          : this.run.stage >= 16
+          : this.run.stage >= 11
             ? 1
             : 0;
 
@@ -3837,11 +3838,11 @@ const Game = {
     const desc = document.getElementById('gameover-desc');
 
     if (isVictory) {
-      title.textContent = '👑 언더마운틴 5계층(150 스테이지) & 오색룡의 여신 티아마트 토벌 완료!';
+      title.textContent = '👑 언더마운틴 5계층(75 스테이지) & 오색룡의 여신 티아마트 토벌 완료!';
       desc.textContent =
         '포가튼 렐름의 전설이 되었습니다! 클리어 보상으로 등반 마석 +800개가 지급되었습니다. 다른 클래스와 32가지 하위 직업 빌드로 새로운 모험에 도전해보세요!';
     } else {
-      title.textContent = `💀 모험 실패 (제${this.run.act}계층 Stage ${this.run.stage}/30)`;
+      title.textContent = `💀 모험 실패 (제${this.run.act}계층 Stage ${this.run.stage}/15)`;
       desc.textContent =
         '미궁에서 쓰러졌지만 원정 보상으로 등반 마석 +150개를 획득했습니다! 워터딥 주점 로비에서 클래스 레벨업, C→B→A→S 티어 승급, 마법 무구(+강화), D&D 특성(Feat)을 강화해 재도전하세요!';
       this.meta.gems += 150;

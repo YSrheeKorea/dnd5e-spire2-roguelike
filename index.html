@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>D&D 5E SPIRE II: TALES OF UNDERMOUNTAIN (8클래스 32직업 · 5계층 150스테이지)</title>
+  <title>D&D 5E SPIRE II: TALES OF UNDERMOUNTAIN (8클래스 32직업 · 5계층 × 15스테이지)</title>
   <link rel="stylesheet" href="style.css" />
   <script>
     (function () {
@@ -20,7 +20,7 @@
   <header id="top-bar" class="top-bar">
     <div class="brand-box" onclick="Game.showHub()">
       <span class="brand-logo">🐉 D&D 5E SPIRE II</span>
-      <span class="brand-sub">FORGOTTEN REALMS · 5 ACTS x 30 STAGES</span>
+      <span class="brand-sub">FORGOTTEN REALMS · 5 ACTS x 15 STAGES</span>
     </div>
 
     <!-- In-Run Status & Real-Time Level/SP Bar -->
@@ -35,8 +35,8 @@
       <div class="stat-pill gold-pill" title="보유 골드 (워터딥 금화 GP)">
         🪙 <span id="hud-gold">99</span> GP
       </div>
-      <div class="stat-pill floor-pill" title="현재 계층(Act 1~5) 및 스테이지(1~30)">
-        🏰 <span id="hud-floor">1층 - 1/30</span>
+      <div class="stat-pill floor-pill" title="현재 계층(Act 1~5) 및 스테이지(1~15)">
+        🏰 <span id="hud-floor">1층 - 1/15</span>
       </div>
       <div id="hud-relics" class="hud-relics" title="보유 마법 물품(유물)"></div>
       <div id="hud-potions" class="hud-potions" title="보유 마법 물약(포션) - 클릭하여 사용"></div>
@@ -73,12 +73,12 @@
         <div class="hub-header-text">
           <span class="badge-tag">DUNGEONS & DRAGONS 5E · SLAY THE SPIRE 2 ROGUELIKE</span>
           <h1>워터딥 첨탑 등반 출격 — 8대 클래스 선택</h1>
-          <p>D&D 5판 공식 <strong>8대 클래스(전원 해금)</strong> 중 하나를 선택해 출격하세요! 첨탑을 오르며 <strong>클래스별 44종 카드(공용 4종 + 4개 하위직업 각 10종)</strong>를 수집하고 <strong>5개 층 × 30스테이지(총 150층)</strong> 정상을 정복하세요!</p>
+          <p>D&D 5판 공식 <strong>8대 클래스(전원 해금)</strong> 중 하나를 선택해 출격하세요! 첨탑을 오르며 <strong>클래스별 44종 카드(공용 4종 + 4개 하위직업 각 10종)</strong>를 수집하고 <strong>5개 층 × 15스테이지(슬더스 표준 템포)</strong> 정상을 정복하세요!</p>
         </div>
         <div class="hub-cta-group">
           <div class="mech-box" style="text-align:right; min-width:230px;">
             <h4>🏔️ 첨탑 최고 등반 기록</h4>
-            <p id="hub-best-record" style="color:#55efc4; font-weight:800; font-size:0.92rem;">제1층 - Stage 1 / 30</p>
+            <p id="hub-best-record" style="color:#55efc4; font-weight:800; font-size:0.92rem;">제1층 - Stage 1 / 15</p>
           </div>
         </div>
       </div>
