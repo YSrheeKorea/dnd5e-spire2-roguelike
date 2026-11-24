@@ -4,11 +4,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="D&D SPIRE II" />
   <meta name="theme-color" content="#0b0d14" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png" />
   <title>D&D 5E SPIRE II [MOBILE EDITION]</title>
-  <link rel="stylesheet" href="style.css?v=6" />
-  <link rel="stylesheet" href="mobile.css?v=6" />
+  <link rel="stylesheet" href="style.css?v=7" />
+  <link rel="stylesheet" href="mobile.css?v=7" />
 </head>
 
 <body class="mobile-edition">
@@ -28,6 +34,9 @@
       <div class="stat-pill gem-pill" title="보유 마석">
         💎 <span id="hud-gems">1200</span>
       </div>
+      <button class="hud-btn btn-pwa-install hidden" onclick="PwaInstaller.install()" title="홈 화면에 앱 설치">
+        📲 앱 설치
+      </button>
       <button class="hud-btn btn-sfx-toggle" onclick="Game.toggleSound()" title="효과음 켜기/끄기">
         🔊
       </button>
@@ -340,11 +349,12 @@
   <!-- NON-BLOCKING IN-GAME TOAST STACK -->
   <div id="toast-container" class="toast-container"></div>
 
-  <script src="data.js?v=6"></script>
-  <script src="sprites.js?v=6"></script>
-  <script src="backgrounds.js?v=6"></script>
-  <script src="card_art.js?v=6"></script>
-  <script src="game.js?v=6"></script>
+  <script src="data.js?v=7"></script>
+  <script src="sprites.js?v=7"></script>
+  <script src="backgrounds.js?v=7"></script>
+  <script src="card_art.js?v=7"></script>
+  <script src="game.js?v=7"></script>
+  <script src="pwa.js?v=7"></script>
 </body>
 
 </html>

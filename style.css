@@ -2790,3 +2790,21 @@ body {
   background: rgba(8, 10, 18, 0.78);
   backdrop-filter: blur(4px);
 }
+
+/* PWA One-Click Install App Button */
+.btn-pwa-install {
+  background: linear-gradient(135deg, rgba(46, 213, 115, 0.22), rgba(24, 220, 255, 0.22));
+  border-color: #2ed573;
+  color: #55efc4;
+  box-shadow: 0 0 12px rgba(46, 213, 115, 0.24);
+  animation: pwaPulse 2.4s ease-in-out infinite;
+}
+.btn-pwa-install:hover {
+  background: linear-gradient(135deg, rgba(46, 213, 115, 0.36), rgba(24, 220, 255, 0.36));
+  border-color: #ffeaa7;
+  color: #ffffff;
+}
+@keyframes pwaPulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(46, 213, 115, 0.2); }
+  50% { box-shadow: 0 0 16px rgba(24, 220, 255, 0.45); }
+}

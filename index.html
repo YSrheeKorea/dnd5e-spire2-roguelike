@@ -4,8 +4,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b0d14" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="D&D SPIRE II" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png" />
   <title>D&D 5E SPIRE II: TALES OF UNDERMOUNTAIN (8클래스 32직업 · 5계층 × 15스테이지)</title>
-  <link rel="stylesheet" href="style.css?v=6" />
+  <link rel="stylesheet" href="style.css?v=7" />
   <script>
     (function () {
       var params = new URLSearchParams(window.location.search);
@@ -61,6 +69,9 @@
       </button>
       <button class="hud-btn" onclick="Game.openMasteryModal()">
         📜 특성(Feat)
+      </button>
+      <button class="hud-btn btn-pwa-install hidden" onclick="PwaInstaller.install()" title="바탕화면/홈 화면에 앱으로 설치 (오프라인 플레이 지원)">
+        📲 앱 설치
       </button>
       <a href="mobile.html" class="hud-btn" style="text-decoration:none; border-color:#00d2d3; color:#00d2d3;">
         📱 모바일 버전
@@ -393,11 +404,12 @@
   <!-- NON-BLOCKING IN-GAME TOAST STACK -->
   <div id="toast-container" class="toast-container"></div>
 
-  <script src="data.js?v=6"></script>
-  <script src="sprites.js?v=6"></script>
-  <script src="backgrounds.js?v=6"></script>
-  <script src="card_art.js?v=6"></script>
-  <script src="game.js?v=6"></script>
+  <script src="data.js?v=7"></script>
+  <script src="sprites.js?v=7"></script>
+  <script src="backgrounds.js?v=7"></script>
+  <script src="card_art.js?v=7"></script>
+  <script src="game.js?v=7"></script>
+  <script src="pwa.js?v=7"></script>
 </body>
 
 </html>
