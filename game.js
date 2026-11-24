@@ -3185,7 +3185,7 @@ const Game = {
   },
 
   playCardFromHand(handIdx) {
-    if (!this.combat) return;
+    if (!this.combat || this.combat.ended) return;
     const cardInst = this.combat.hand[handIdx];
     if (!cardInst) return;
     const tpl = GAME_DATA.cards[cardInst.id];
@@ -3552,7 +3552,7 @@ const Game = {
   },
 
   triggerSecondaryBurst() {
-    if (!this.combat) return;
+    if (!this.combat || this.combat.ended) return;
     const cost = this.combat.burstCost || 5;
     if (this.combat.burstUsedThisTurn) {
       this.logCombat('⚠️ 클래스 고유 개방은 한 라운드(턴)에 1번만 발동할 수 있습니다!');
@@ -3769,7 +3769,7 @@ const Game = {
   },
 
   endPlayerTurn() {
-    if (!this.combat) return;
+    if (!this.combat || this.combat.ended) return;
     const subId = this.run.subclassId;
 
     // Slay the Spire End-of-Turn Hand Resolution:
@@ -3826,7 +3826,7 @@ const Game = {
     if (this.checkCombatEnd()) return;
 
     this.combat.enemies.forEach(en => {
-      if (en.hp <= 0) return;
+      if (en.hp <= 0 || this.run.hp <= 0) return;
       en.block = 0;
 
       if (en.poison > 0) {
@@ -3867,6 +3867,7 @@ const Game = {
         }
 
         for (let h = 0; h < hits; h++) {
+          if (en.hp <= 0 || this.run.hp <= 0) break;
           let dmg = move.dmg + en.strength;
           // Wizard Frostbite reduces enemy attack damage; 10+ stacks Freezes (-25% damage)!
           if ((en.frostbite || 0) > 0) {
@@ -3883,10 +3884,11 @@ const Game = {
           }
 
           this.applyEnemyDamageToPlayerOrSummon(dmg, isCleaveBreath, en);
-          if (move.lifesteal && dmg > 0) {
+          if (en.hp > 0 && move.lifesteal && dmg > 0) {
             en.hp = Math.min(en.maxHp, en.hp + Math.round(dmg * 0.5));
           }
         }
+        if (en.hp <= 0 || this.run.hp <= 0) return;
         if ((en.frostbite || 0) >= 10) {
           en.frostbite = Math.max(0, en.frostbite - 5);
         }
@@ -3972,16 +3974,16 @@ const Game = {
       }
     }
     if (!this._hitVisuals) this._hitVisuals = { enemyHits: {}, playerLungeTs: 0, playerHurtTs: 0, playerBlockTs: 0 };
+    if (dmg > 0 && attackerEnemy && this.combat && this.combat.enemies) {
+      const aIdx = this.combat.enemies.indexOf(attackerEnemy);
+      if (aIdx >= 0) {
+        if (!this._hitVisuals.enemyLunges) this._hitVisuals.enemyLunges = {};
+        this._hitVisuals.enemyLunges[aIdx] = Date.now();
+      }
+    }
     if (remaining > 0) {
       this.run.hp = Math.max(0, this.run.hp - remaining);
       this._hitVisuals.playerHurtTs = Date.now();
-      if (attackerEnemy && this.combat && this.combat.enemies) {
-        const aIdx = this.combat.enemies.indexOf(attackerEnemy);
-        if (aIdx >= 0) {
-          if (!this._hitVisuals.enemyLunges) this._hitVisuals.enemyLunges = {};
-          this._hitVisuals.enemyLunges[aIdx] = Date.now();
-        }
-      }
       SfxEngine.play('playerHit');
       VfxEngine.effectOnTarget('player', 0, 'blood');
       VfxEngine.damageVignette();
@@ -4000,13 +4002,15 @@ const Game = {
   },
 
   checkCombatEnd() {
-    if (!this.combat) return true;
+    if (!this.combat || this.combat.ended) return true;
     if (this.run.hp <= 0) {
+      this.combat.ended = true;
       this.showGameOverModal(false);
       return true;
     }
     const anyAlive = this.combat.enemies.some(e => e.hp > 0);
     if (!anyAlive) {
+      this.combat.ended = true;
       this.handleCombatVictory();
       return true;
     }

@@ -2742,7 +2742,7 @@ body {
   border-color: rgba(255, 255, 255, 0.16);
 }
 
-.battlefield-row .unit-card.targeted-enemy {
+.battlefield-row .unit-card.targeted {
   background: rgba(28, 16, 26, 0.68);
 }
 
