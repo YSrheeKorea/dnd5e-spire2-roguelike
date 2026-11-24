@@ -228,7 +228,7 @@ window.GAME_DATA = {
       "secondaryResourceIcon": "⚔️",
       "secondaryResourceDesc": "【고유 시스템: 연격 콤보 & 파쇄/반격】 한 턴에 카드를 사용할 때마다 연격 콤보가 쌓여 공격 피해가 +(콤보×8%, 최대 5콤보) 증가하며, 4콤보 달성 시 턴당 1회 행동력(AP)+1을 얻습니다. 강타 계열은 [💥파쇄], 방패/응수 계열은 [🛡️반격]을 부여합니다.",
       "passiveName": "전장의 지배자 (연격 콤보 & 패링 반격)",
-      "passiveDesc": "매 턴 3콤보 달성 시 AP+1 & 1드로우! 공격 카드가 적의 방어도를 부수는 [💥파쇄]를 부여하고 방어 카드가 [🛡️반격]을 얻습니다.",
+      "passiveDesc": "매 턴 3콤보 달성 시 AP+1(턴당 1회) & 연격당 피해 +6%! 공격이 [💥파쇄]를 부여하고 방어가 [🛡️반격]을 쌓습니다.",
       "awakeningCard": "ftr_sh_4",
       "avatarSvg": "<svg viewBox=\"0 0 120 120\" class=\"char-svg\">\n        <circle cx=\"60\" cy=\"60\" r=\"52\" fill=\"#4a2311\" stroke=\"#e67e22\" stroke-width=\"4\"/>\n        <path d=\"M32 95 L28 48 L45 25 L60 32 L75 25 L92 48 L88 95 Z\" fill=\"#636e72\" stroke=\"#dfe6e9\" stroke-width=\"3\"/>\n        <rect x=\"42\" y=\"52\" width=\"36\" height=\"8\" fill=\"#fdcb6e\"/>\n        <line x1=\"60\" y1=\"25\" x2=\"60\" y2=\"85\" stroke=\"#2d3436\" stroke-width=\"4\"/>\n      </svg>",
       "startRelic": "fighters_badge",
@@ -398,7 +398,7 @@ window.GAME_DATA = {
       "secondaryResourceIcon": "💢",
       "secondaryResourceDesc": "【고유 시스템: 혈투 광폭화 & 과다출혈】 잃은 체력 10%마다 공격 피해가 +6%씩 증폭되며, 체력 50% 이하 [🩸혈전] 상태에서는 공격 시 체력+1 흡혈! 도끼/혈기 공격이 [🩸출혈]을 쌓고 출혈 적 타격 시 추가 출혈 피해가 터집니다.",
       "passiveName": "피의 광전사 (잃은 체력 비례 공격력 증폭)",
-      "passiveDesc": "체력이 낮을수록 공격력이 폭증하며, 모든 공격이 적에게 [🩸출혈]을 부여하고 출혈 중인 적을 타격할 때마다 추가 출혈 폭발 피해를 입힙니다!",
+      "passiveDesc": "잃은 체력 10%당 공격력 +5%(혈전 50%↓ 흡혈·방어 강화)! 공격이 [🩸출혈]을 부여하고 출혈 적 타격 시 추가 폭발 피해를 줍니다.",
       "awakeningCard": "bar_sh_4",
       "avatarSvg": "<svg viewBox=\"0 0 120 120\" class=\"char-svg\">\n        <circle cx=\"60\" cy=\"60\" r=\"52\" fill=\"#5c1212\" stroke=\"#ff4757\" stroke-width=\"4\"/>\n        <path d=\"M28 92 L32 42 L60 26 L88 42 L92 92 Z\" fill=\"#833471\" stroke=\"#ff7675\" stroke-width=\"3\"/>\n        <polygon points=\"38,52 54,58 38,62\" fill=\"#ff3838\"/>\n        <polygon points=\"82,52 66,58 82,62\" fill=\"#ff3838\"/>\n        <polygon points=\"42,78 47,66 52,78\" fill=\"#fff\"/>\n        <polygon points=\"68,78 73,66 78,78\" fill=\"#fff\"/>\n      </svg>",
       "startRelic": "totem_necklace",
@@ -568,7 +568,7 @@ window.GAME_DATA = {
       "secondaryResourceIcon": "🗡️",
       "secondaryResourceDesc": "【고유 시스템: 투척 단검(Shiv) & 5연계 마무리】 암기/손놀림 스킬로 손패에 0코스트 [투척 단검]을 생성합니다! 공격으로 적에게 [⚪연계 점수(1~5)]를 쌓아 5연계 달성 시 [💀마무리 일격]이 폭발하며 턴당 1회 AP+1을 환급받습니다.",
       "passiveName": "그림자 암살술 (단검 생성 & 5연계 폭발)",
-      "passiveDesc": "전투 시작 시 손패에 0코스트 [투척 단검] 1장을 생성하며, 공격으로 5연계를 채울 때마다 마무리 일격과 맹독 폭발이 자동으로 터집니다!",
+      "passiveDesc": "전투 시작 시 0코스트 [투척 단검] 1장 생성 & 적 맹독 +2! 5연계 달성 시 고정 마무리 일격 + 맹독 추가 폭발 + AP+1(1/턴)!",
       "awakeningCard": "rog_sh_4",
       "avatarSvg": "<svg viewBox=\"0 0 120 120\" class=\"char-svg\">\n        <circle cx=\"60\" cy=\"60\" r=\"52\" fill=\"#09331e\" stroke=\"#00ff88\" stroke-width=\"4\"/>\n        <path d=\"M26 92 Q28 22 60 22 Q92 22 94 92 Z\" fill=\"#1e272e\" stroke=\"#2ecc71\" stroke-width=\"3\"/>\n        <polygon points=\"42,56 54,58 40,62\" fill=\"#00ff88\"/>\n        <polygon points=\"78,56 66,58 80,62\" fill=\"#00ff88\"/>\n      </svg>",
       "startRelic": "thieves_tools",
@@ -738,7 +738,7 @@ window.GAME_DATA = {
       "secondaryResourceIcon": "🏹",
       "secondaryResourceDesc": "【고유 시스템: 전술 함정(Trap) & 표적(Quarry)】 함정/위장 스킬로 전장에 [🪤함정]을 매설하면 적이 공격할 때 먼저 터져 피해 6 및 공격력 -20% 감쇄! 사격/징표 카드가 [🎯표적]을 부여해 다음 타격 시 표적 관통 치명타를 입힙니다.",
       "passiveName": "올가미 함정술 & 흑표범 사냥",
-      "passiveDesc": "전투 시작 시 [🪤전술 함정 2개]를 설치한 채 시작하며, 방어/전술 카드가 함정을 추가 매설하고 공격 카드가 [🎯표적]을 격발합니다!",
+      "passiveDesc": "전투 시작 시 [🪤함정 1개] & 야수 동료(포식 1.35배 / 호위 전환) 출격! 방어 카드가 함정을 매설하고 공격이 [🎯표적]을 격발합니다.",
       "awakeningCard": "rng_sh_4",
       "avatarSvg": "<svg viewBox=\"0 0 120 120\" class=\"char-svg\">\n        <circle cx=\"60\" cy=\"60\" r=\"52\" fill=\"#0b3b24\" stroke=\"#55efc4\" stroke-width=\"4\"/>\n        <path d=\"M90 18 Q112 60 90 102\" stroke=\"#fdcb6e\" stroke-width=\"4\" fill=\"none\"/>\n        <path d=\"M30 92 L36 32 L60 20 L84 32 L90 92 Z\" fill=\"#1e5631\" stroke=\"#55efc4\" stroke-width=\"3\"/>\n        <circle cx=\"48\" cy=\"54\" r=\"5\" fill=\"#ffeaa7\"/>\n        <circle cx=\"72\" cy=\"54\" r=\"5\" fill=\"#ffeaa7\"/>\n      </svg>",
       "startRelic": "hunters_quiver",
@@ -908,7 +908,7 @@ window.GAME_DATA = {
       "secondaryResourceIcon": "🔮",
       "secondaryResourceDesc": "【고유 시스템: 3원소 구체(🔥화염/❄️냉기/⚡번개) & 동상】 주문 속성에 맞는 원소 구체가 최대 4슬롯에 영창되며, 슬롯 초과 시 가장 앞 구체가 2배 위력으로 [발현(Evoke)]합니다! 냉기 주문은 적의 공격력을 깎는 [❄️동상](10중첩 시 빙결 -25%)을 부여합니다.",
       "passiveName": "원소 대마도사 (화염·냉기·번개 구체 & 빙결)",
-      "passiveDesc": "전투 시작 시 [❄️냉기 구체 1기 + ⚡번개 구체 1기]를 영창하며, 모든 주문이 적에게 공격력을 깎는 [❄️동상]을 부여합니다!",
+      "passiveDesc": "전투 시작 시 [❄️냉기 구체 + ⚡번개 구체] 영창! 구체가 매 턴 발동(냉기는 방어+동상, 10중첩 시 빙결 -25%)하며 4개 초과 시 발현(Evoke)!",
       "awakeningCard": "wiz_sh_4",
       "avatarSvg": "<svg viewBox=\"0 0 120 120\" class=\"char-svg\">\n        <circle cx=\"60\" cy=\"60\" r=\"52\" fill=\"#0a1931\" stroke=\"#00d2d3\" stroke-width=\"4\"/>\n        <polygon points=\"60,10 86,46 34,46\" fill=\"#192a56\" stroke=\"#00d2d3\" stroke-width=\"3\"/>\n        <ellipse cx=\"60\" cy=\"46\" rx=\"36\" ry=\"7\" fill=\"#273c75\" stroke=\"#00d2d3\" stroke-width=\"2\"/>\n        <circle cx=\"49\" cy=\"62\" r=\"6\" fill=\"#00d2d3\"/>\n        <circle cx=\"71\" cy=\"62\" r=\"6\" fill=\"#00d2d3\"/>\n      </svg>",
       "startRelic": "spellbook_of_mystra",
@@ -1078,7 +1078,7 @@ window.GAME_DATA = {
       "secondaryResourceIcon": "☀️",
       "secondaryResourceDesc": "【고유 시스템: 초과치유 보호막 & 성스러운 낙인】 최대 체력을 초과한 치유량은 100% 방어도로 전환됩니다! 광휘 주문으로 적에게 [☀️성스러운 낙인]을 새기면, 치유/방어 스킬 사용 시(턴당 최대 3회) 낙인 수치만큼 광휘 심판 피해를 반사합니다.",
       "passiveName": "라센더의 축복 (초과치유 보호막 & 힐/방어 광휘 반사)",
-      "passiveDesc": "전투 시작 시 모든 적에게 [☀️성스러운 낙인 3]을 부여합니다! 치유와 방어가 곧 적 전체를 태우는 광휘 공격이 됩니다.",
+      "passiveDesc": "전투 시작 시 적에게 [☀️성스러운 낙인 +1]! 치유 초과분은 방어도로 전환되며, 방어·치유 시 낙인이 광휘 반사! 신앙심 10 도달 시 천상 기적!",
       "awakeningCard": "clr_sh_4",
       "avatarSvg": "<svg viewBox=\"0 0 120 120\" class=\"char-svg\">\n        <circle cx=\"60\" cy=\"60\" r=\"52\" fill=\"#4a3500\" stroke=\"#ffeaa7\" stroke-width=\"4\"/>\n        <circle cx=\"60\" cy=\"50\" r=\"32\" fill=\"none\" stroke=\"#fdcb6e\" stroke-width=\"3\" stroke-dasharray=\"5,3\"/>\n        <path d=\"M32 94 L38 38 L60 24 L82 38 L88 94 Z\" fill=\"#dfe6e9\" stroke=\"#f1c40f\" stroke-width=\"3\"/>\n        <circle cx=\"48\" cy=\"56\" r=\"5\" fill=\"#f39c12\"/>\n        <circle cx=\"72\" cy=\"56\" r=\"5\" fill=\"#f39c12\"/>\n      </svg>",
       "startRelic": "holy_symbol_lathander",
@@ -1248,7 +1248,7 @@ window.GAME_DATA = {
       "secondaryResourceIcon": "✨",
       "secondaryResourceDesc": "【고유 시스템: 3대 성기사 오라 & 문장 심판】 [🔥응보(반사)] ↔ [🛡️헌신(피해-15%/방어)] ↔ [⚔️성전(공격+15%)] 오라를 전환합니다! 일반 검격/축복으로 [⚖️심판의 문장]을 쌓고, [강타(Smite)] 카드로 폭발시켜 광휘 피해와 방어도를 동시에 얻습니다.",
       "passiveName": "성기사단장의 오라 & 문장 심판",
-      "passiveDesc": "전투 시작 시 [🔥응보의 오라(가시 반사 +5)]가 활성화되며, 공격이 [⚖️심판의 문장]을 새기고 강타 카드가 문장을 폭발시킵니다!",
+      "passiveDesc": "전투 시작 시 [🔥응보 오라(반사+4)] & 적 [⚖️심판 문장 +2]! 3대 오라(응보/헌신/성전) 실시간 전환 및 강타 카드로 문장 폭발!",
       "awakeningCard": "pal_sh_4",
       "avatarSvg": "<svg viewBox=\"0 0 120 120\" class=\"char-svg\">\n        <circle cx=\"60\" cy=\"60\" r=\"52\" fill=\"#2c2c54\" stroke=\"#f1c40f\" stroke-width=\"4\"/>\n        <path d=\"M30 95 L28 45 L60 22 L92 45 L90 95 Z\" fill=\"#dcdde1\" stroke=\"#f39c12\" stroke-width=\"3\"/>\n        <polygon points=\"60,32 66,52 84,52 68,62 74,80 60,68 46,80 52,62 36,52 54,52\" fill=\"#f1c40f\"/>\n      </svg>",
       "startRelic": "holy_avenger_hilt",
@@ -1418,7 +1418,7 @@ window.GAME_DATA = {
       "secondaryResourceIcon": "🟣",
       "secondaryResourceDesc": "【고유 시스템: 파멸의 저주(Doom) & 사역마 혈맹】 주술/지옥 주문으로 영구 축적되는 [💀파멸(Doom)]을 쌓습니다! 적 체력이 파멸 이하(보스는 체력 25% 이하 & 파멸 이하)가 되면 즉시 처형됩니다! 계약 악마의 체력을 바쳐 AP+1과 드로우를 얻을 수 있습니다.",
       "passiveName": "슬더스 2 네크로바인더: 파멸(Doom) 처형 & 계약 악마",
-      "passiveDesc": "전투 시작 시 계약 악마 [핀드]를 소환하고 모든 적에게 [💀파멸 10]을 부여합니다! 적 체력이 파멸 수치 이하가 되면 즉시 처형됩니다!",
+      "passiveDesc": "전투 시작 시 계약 사역마 소환 & 적 [💀파멸 +4]! 적 HP ≤ 파멸 시 즉시 처형(엘리트 HP 40%↓ / 보스 HP 25%↓ 제한)!",
       "awakeningCard": "wlk_sh_4",
       "avatarSvg": "<svg viewBox=\"0 0 120 120\" class=\"char-svg\">\n        <circle cx=\"60\" cy=\"60\" r=\"52\" fill=\"#1a0526\" stroke=\"#e056fd\" stroke-width=\"4\"/>\n        <path d=\"M30 94 L34 40 L47 22 L60 36 L73 22 L86 40 L90 94 Z\" fill=\"#130f40\" stroke=\"#be2edd\" stroke-width=\"3\"/>\n        <polygon points=\"40,54 55,58 53,64 38,59\" fill=\"#00cec9\"/>\n        <polygon points=\"80,54 65,58 67,64 82,59\" fill=\"#00cec9\"/>\n      </svg>",
       "startRelic": "rod_of_pact_keeper",
@@ -1777,9 +1777,10 @@ window.GAME_DATA = {
       "cost": 1,
       "damage": 6,
       "upgradeDamage": 9,
-      "desc": "적에게 피해를 {damage} 줍니다.",
+      "desc": "적에게 피해를 {damage} 줍니다. 💥파쇄 +1.",
       "classId": "fighter",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "sunder": 1
     },
     "ftr_sh_2": {
       "id": "ftr_sh_2",
@@ -1789,9 +1790,10 @@ window.GAME_DATA = {
       "cost": 1,
       "block": 5,
       "upgradeBlock": 8,
-      "desc": "방어도를 {block} 얻습니다.",
+      "desc": "방어도를 {block} 얻습니다. 🛡️반격 +1.",
       "classId": "fighter",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "parry": 1
     },
     "ftr_sh_3": {
       "id": "ftr_sh_3",
@@ -2405,9 +2407,10 @@ window.GAME_DATA = {
       "cost": 1,
       "damage": 6,
       "upgradeDamage": 9,
-      "desc": "적에게 피해를 {damage} 줍니다.",
+      "desc": "적에게 피해를 {damage} 줍니다. 🩸출혈 +1.",
       "classId": "barbarian",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "bleed": 1
     },
     "bar_sh_2": {
       "id": "bar_sh_2",
@@ -3666,9 +3669,10 @@ window.GAME_DATA = {
       "cost": 1,
       "damage": 6,
       "upgradeDamage": 9,
-      "desc": "적에게 피해를 {damage} 줍니다.",
+      "desc": "적에게 피해를 {damage} 줍니다. 🎯표적 +1.",
       "classId": "ranger",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "quarry": 1
     },
     "rng_sh_2": {
       "id": "rng_sh_2",
@@ -3678,9 +3682,10 @@ window.GAME_DATA = {
       "cost": 1,
       "block": 5,
       "upgradeBlock": 8,
-      "desc": "방어도를 {block} 얻습니다.",
+      "desc": "방어도를 {block} 얻습니다. 🪤전술 함정 +1 매설.",
       "classId": "ranger",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "placeTrap": 1
     },
     "rng_sh_3": {
       "id": "rng_sh_3",
@@ -4295,7 +4300,8 @@ window.GAME_DATA = {
       "upgradeDamage": 10,
       "desc": "화염 피해를 {damage} 줍니다. 비전 주문력 +1.",
       "classId": "wizard",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "resourceGain": 1
     },
     "wiz_sh_2": {
       "id": "wiz_sh_2",
@@ -4759,7 +4765,8 @@ window.GAME_DATA = {
       "summonAtkBoost": 3,
       "desc": "주문력 +2, 해골 기사 체력 +18 및 공격력 +5 영구 강화!",
       "classId": "wizard",
-      "subclassId": "necromancy"
+      "subclassId": "necromancy",
+      "resourceGain": 2
     },
     "wizard_necromancy_9": {
       "id": "wizard_necromancy_9",
@@ -4972,7 +4979,7 @@ window.GAME_DATA = {
       "cost": 1,
       "block": 5,
       "upgradeBlock": 8,
-      "desc": "방어도를 {block} 얻습니다.",
+      "desc": "방어도를 {block} 얻습니다. (신앙심 +1)",
       "classId": "cleric",
       "subclassId": "shared",
       "devotionGain": 1
@@ -6267,9 +6274,10 @@ window.GAME_DATA = {
       "damage": 3,
       "upgradeDamage": 5,
       "hits": 2,
-      "desc": "적에게 마력탄 피해를 {damage}씩 2회 줍니다.",
+      "desc": "적에게 마력탄 피해를 {damage}씩 2회 줍니다. 💀파멸(Doom) +1.",
       "classId": "warlock",
-      "subclassId": "shared"
+      "subclassId": "shared",
+      "doom": 1
     },
     "wlk_sh_2": {
       "id": "wlk_sh_2",
