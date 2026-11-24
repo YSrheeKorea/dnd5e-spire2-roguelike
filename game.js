@@ -691,17 +691,22 @@ const Game = {
     bestAct: 1,
     bestStage: 1,
     totalClimbs: 0,
-    // All 8 D&D 5e Classes are unlocked from the start (No Gacha!)
+    // Starter Roster: 3 Core Classes unlocked initially (Fighter, Rogue, Wizard)
+    // Remaining 5 Classes, 16 Advanced Subclasses & Legendary Cards unlock via Achievements!
     unlocked: {
       fighter: true,
-      barbarian: true,
+      barbarian: false,
       rogue: true,
-      ranger: true,
+      ranger: false,
       wizard: true,
-      cleric: true,
-      paladin: true,
-      warlock: true
+      cleric: false,
+      paladin: false,
+      warlock: false
     },
+    unlockedSubclasses: {},
+    unlockedLegendaries: {},
+    achievements: {},
+    achStats: null,
     ranks: {
       fighter: 'C',
       barbarian: 'C',
@@ -880,6 +885,14 @@ const Game = {
       return;
     }
 
+    if (isVisible('modal-achievements')) {
+      if (key === 'Escape') {
+        e.preventDefault();
+        this.closeAchievementsModal();
+      }
+      return;
+    }
+
     // 2. Global Run Hotkeys (Deck, SP Allocation)
     if (this.run && !isActiveScreen('screen-hub')) {
       if (lower === 'd') {
@@ -913,7 +926,7 @@ const Game = {
         this.renderHub();
       } else if (key === 'Enter' || key === ' ') {
         e.preventDefault();
-        this.startNewRun(this.meta.selectedCharId);
+        this.startRunFromHub(this.meta.selectedCharId);
       } else if (lower === 'g') {
         e.preventDefault();
         this.openGearModal();
@@ -1057,15 +1070,212 @@ const Game = {
       const saved = localStorage.getItem('DND5E_SPIRE_2_TOWER_META');
       if (saved) {
         const parsed = JSON.parse(saved);
+        // Cleanly merge while preserving new achievement progression fields
         this.meta = Object.assign(this.meta, parsed);
       }
-      // Ensure all 8 classes are always unlocked (No Gacha!)
-      Object.keys(GAME_DATA.characters).forEach(cid => {
-        this.meta.unlocked[cid] = true;
-      });
+      this.initAchievementState();
     } catch (e) {
       console.warn('Meta load skipped:', e);
+      this.initAchievementState();
     }
+  },
+
+  // --------------------------------------------------------------------------
+  // ACHIEVEMENT & UNLOCK PROGRESSION SYSTEM (3 Starter Classes -> 28 Achievements!)
+  // --------------------------------------------------------------------------
+  initAchievementState() {
+    const sys = typeof window !== 'undefined' ? window.ACHIEVEMENT_SYSTEM : null;
+    const starterClasses = sys ? sys.STARTER_CLASSES : ['fighter', 'rogue', 'wizard'];
+    const defSubs = sys ? sys.getDefaultUnlockedSubclasses(GAME_DATA) : {};
+    const defStats = sys ? sys.createDefaultStats() : {};
+
+    // First-time migration to Achievement Unlock Schema (v2): start with 3 starter classes!
+    if (!this.meta.achSchemaV2) {
+      const freshUnlocked = {};
+      Object.keys(GAME_DATA.characters).forEach(cid => {
+        freshUnlocked[cid] = starterClasses.includes(cid);
+      });
+      this.meta.unlocked = freshUnlocked;
+      this.meta.unlockedSubclasses = { ...defSubs };
+      this.meta.unlockedLegendaries = {};
+      this.meta.achievements = {};
+      this.meta.achStats = { ...defStats };
+      // Credit returning players for any Act progress they already achieved
+      if ((this.meta.bestAct || 1) > 1) {
+        this.meta.achStats.maxActReached = this.meta.bestAct;
+        this.meta.achStats.bossesKilled = Math.max(1, this.meta.bestAct - 1);
+      }
+      this.meta.achSchemaV2 = true;
+    } else {
+      if (!this.meta.unlocked) this.meta.unlocked = {};
+      starterClasses.forEach(cid => { this.meta.unlocked[cid] = true; });
+      this.meta.unlockedSubclasses = Object.assign({}, defSubs, this.meta.unlockedSubclasses || {});
+      if (!this.meta.unlockedLegendaries) this.meta.unlockedLegendaries = {};
+      if (!this.meta.achievements) this.meta.achievements = {};
+      this.meta.achStats = Object.assign({}, defStats, this.meta.achStats || {});
+      if (!this.meta.achStats.classKills) this.meta.achStats.classKills = {};
+      if (!this.meta.achStats.classBestStageNum) this.meta.achStats.classBestStageNum = {};
+    }
+
+    if (!this.meta.selectedCharId || !GAME_DATA.characters[this.meta.selectedCharId]) {
+      this.meta.selectedCharId = 'fighter';
+    }
+    // Re-sync any rewards from already earned achievements silently
+    this.checkAchievements(true);
+  },
+
+  isClassUnlocked(charId) {
+    return !!(this.meta.unlocked && this.meta.unlocked[charId]);
+  },
+
+  isSubclassUnlocked(subId) {
+    if (!subId || subId === 'shared') return true;
+    return !!(this.meta.unlockedSubclasses && this.meta.unlockedSubclasses[subId]);
+  },
+
+  isLegendaryUnlocked(charId) {
+    return !!(this.meta.unlockedLegendaries && this.meta.unlockedLegendaries[charId]);
+  },
+
+  startRunFromHub(charId) {
+    if (!this.isClassUnlocked(charId)) {
+      const ch = GAME_DATA.characters[charId];
+      const sys = typeof window !== 'undefined' ? window.ACHIEVEMENT_SYSTEM : null;
+      const hint = sys ? sys.getUnlockHintForClass(charId) : '업적을 달성하세요!';
+      this.showToast(`🔒 [${ch ? ch.name : charId}] 잠김! ${hint}`, 'warn');
+      this.openAchievementsModal('class');
+      return;
+    }
+    this.startNewRun(charId);
+  },
+
+  recordAchStat(key, val, mode = 'add') {
+    if (!this.meta.achStats) this.initAchievementState();
+    const s = this.meta.achStats;
+    if (mode === 'max') {
+      if (val > (s[key] || 0)) s[key] = val;
+    } else {
+      s[key] = (s[key] || 0) + val;
+    }
+  },
+
+  checkAchievements(silent = false) {
+    const sys = typeof window !== 'undefined' ? window.ACHIEVEMENT_SYSTEM : null;
+    if (!sys || !this.meta.achStats) return;
+    if (!this.meta.achievements) this.meta.achievements = {};
+    const newlyUnlocked = [];
+
+    sys.ACHIEVEMENTS.forEach(ach => {
+      const already = !!this.meta.achievements[ach.id];
+      const qualifies = already || ach.check(this.meta.achStats);
+      if (!qualifies) return;
+
+      if (!already) {
+        this.meta.achievements[ach.id] = true;
+        if (ach.gemReward) this.meta.gems = (this.meta.gems || 0) + ach.gemReward;
+        newlyUnlocked.push(ach);
+      }
+      // Ensure unlock flags are always applied
+      if (ach.unlockClass) this.meta.unlocked[ach.unlockClass] = true;
+      if (ach.unlockSubclass) this.meta.unlockedSubclasses[ach.unlockSubclass] = true;
+      if (ach.unlockLegendaryClasses) {
+        ach.unlockLegendaryClasses.forEach(cid => {
+          this.meta.unlockedLegendaries[cid] = true;
+        });
+      }
+    });
+
+    this.updateAchievementBadges();
+    if (newlyUnlocked.length > 0) {
+      this.saveMeta();
+      if (!silent) {
+        SfxEngine.play('victory');
+        newlyUnlocked.forEach(ach => {
+          VfxEngine.banner(`🏆 업적 달성: ${ach.name}`, 'gold');
+          this.showToast(`🏆 업적 달성 [${ach.icon} ${ach.name}]! ${ach.rewardText}`, 'success');
+        });
+        if (typeof document !== 'undefined' && document.getElementById('screen-hub') && document.getElementById('screen-hub').classList.contains('active')) {
+          this.renderHub();
+        }
+      }
+    }
+  },
+
+  updateAchievementBadges() {
+    const sys = typeof window !== 'undefined' ? window.ACHIEVEMENT_SYSTEM : null;
+    if (!sys) return;
+    const total = sys.ACHIEVEMENTS.length;
+    const done = sys.ACHIEVEMENTS.filter(a => this.meta.achievements && this.meta.achievements[a.id]).length;
+    const txt = `${done}/${total}`;
+    ['hud-ach-count', 'mobile-ach-count'].forEach(id => {
+      const el = typeof document !== 'undefined' ? document.getElementById(id) : null;
+      if (el) el.textContent = txt;
+    });
+  },
+
+  openAchievementsModal(filter = 'all') {
+    const modal = document.getElementById('modal-achievements');
+    if (!modal) return;
+    this._achFilter = filter;
+    this.renderAchievementsModal(filter);
+    modal.classList.remove('hidden');
+  },
+
+  closeAchievementsModal() {
+    const modal = document.getElementById('modal-achievements');
+    if (modal) modal.classList.add('hidden');
+  },
+
+  renderAchievementsModal(filter = 'all') {
+    const sys = typeof window !== 'undefined' ? window.ACHIEVEMENT_SYSTEM : null;
+    const grid = document.getElementById('achievements-grid');
+    if (!sys || !grid) return;
+
+    const total = sys.ACHIEVEMENTS.length;
+    const doneCount = sys.ACHIEVEMENTS.filter(a => this.meta.achievements && this.meta.achievements[a.id]).length;
+    const unlockedClassesCount = Object.keys(GAME_DATA.characters).filter(cid => this.isClassUnlocked(cid)).length;
+    const summaryEl = document.getElementById('achievements-summary');
+    if (summaryEl) {
+      const pct = Math.round((doneCount / total) * 100);
+      summaryEl.innerHTML = `
+        <div class="ach-summary-row">
+          <span>🏆 달성 업적: <strong style="color:#f6c967;">${doneCount} / ${total} (${pct}%)</strong></span>
+          <span>🧑 해금 클래스: <strong style="color:#55efc4;">${unlockedClassesCount} / 8</strong></span>
+        </div>
+        <div class="ach-total-bar"><div class="ach-total-fill" style="width:${pct}%"></div></div>
+      `;
+    }
+
+    document.querySelectorAll('#achievements-tabs .ach-tab-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tab === filter);
+    });
+
+    const list = sys.ACHIEVEMENTS.filter(a => filter === 'all' || a.category === filter);
+    grid.innerHTML = '';
+    list.forEach(ach => {
+      const earned = !!(this.meta.achievements && this.meta.achievements[ach.id]);
+      const prog = ach.progress ? ach.progress(this.meta.achStats || {}) : { cur: earned ? 1 : 0, max: 1 };
+      const cur = earned ? prog.max : Math.min(prog.max, prog.cur);
+      const pct = Math.round((cur / Math.max(1, prog.max)) * 100);
+
+      const card = document.createElement('div');
+      card.className = `ach-card ${earned ? 'earned' : 'locked'}`;
+      card.innerHTML = `
+        <div class="ach-card-top">
+          <div class="ach-icon">${ach.icon}</div>
+          <div class="ach-meta">
+            <h4>${ach.name} ${earned ? '<span class="ach-done-pill">✔ 달성</span>' : '<span class="ach-lock-pill">🔒 미달성</span>'}</h4>
+            <p>${ach.desc}</p>
+          </div>
+        </div>
+        <div class="ach-reward-line">${ach.rewardText}</div>
+        <div class="ach-prog-wrap">
+          <div class="ach-prog-bar"><div class="ach-prog-fill" style="width:${pct}%"></div></div>
+          <span class="ach-prog-txt">${cur} / ${prog.max}</span>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
   },
 
   saveMeta() {
@@ -1360,21 +1570,22 @@ const Game = {
     Object.values(GAME_DATA.characters).forEach(ch => {
       const stats = this.getHunterTotalBonuses(ch.id);
       const isSelected = this.meta.selectedCharId === ch.id;
+      const isUnlocked = this.isClassUnlocked(ch.id);
       const bestFloor = (this.meta.classBestFloor && this.meta.classBestFloor[ch.id]) || '1층 1F';
 
       const card = document.createElement('div');
-      card.className = `char-roster-card ${isSelected ? 'selected' : ''}`;
+      card.className = `char-roster-card ${isSelected ? 'selected' : ''} ${isUnlocked ? '' : 'char-locked'}`;
       card.onclick = () => {
         this.meta.selectedCharId = ch.id;
         this.renderHub();
       };
 
       card.innerHTML = `
-        <span class="char-rarity-badge rank-badge rank-${stats.currentRank}">${stats.currentRank}급</span>
-        <span class="char-star-badge">Lv.${stats.hunterLv}</span>
+        <span class="char-rarity-badge rank-badge rank-${stats.currentRank}">${isUnlocked ? `${stats.currentRank}급` : '🔒'}</span>
+        <span class="char-star-badge">${isUnlocked ? `Lv.${stats.hunterLv}` : '잠김'}</span>
         <div class="char-avatar-wrap">${ch.avatarSvg}</div>
         <h3>${ch.name.split(' ')[0]}</h3>
-        <div class="char-archetype" style="font-size:0.65rem;">${ch.uniqueStatusName || `${ch.secondaryResourceIcon} 44종 카드 풀`}</div>
+        <div class="char-archetype" style="font-size:0.65rem;">${isUnlocked ? (ch.uniqueStatusName || `${ch.secondaryResourceIcon} 44종 카드 풀`) : '🏆 업적 해금 클래스'}</div>
         <div class="char-curve-tag" style="font-size:0.61rem; color:${ch.growthCurve && ch.growthCurve.includes('왕귀') ? '#a29bfe' : '#fdcb6e'}; font-weight:800; margin-top:2px;">
           ${ch.growthCurve ? ch.growthCurve.split(' (')[0] : ''}
         </div>
@@ -1383,12 +1594,13 @@ const Game = {
           <span>⚔️ +${stats.bonusStr}</span>
         </div>
         <div class="char-roster-best">
-          🏔️ ${bestFloor}
+          ${isUnlocked ? `🏔️ ${bestFloor}` : '🔒 클릭해 조건 확인'}
         </div>
       `;
       grid.appendChild(card);
     });
 
+    this.updateAchievementBadges();
     this.renderSelectedCharPanel();
   },
 
@@ -1406,18 +1618,26 @@ const Game = {
     const aObj = GAME_DATA.equipment[this.meta.equipped.armor];
     const accObj = GAME_DATA.equipment[this.meta.equipped.accessory];
 
+    const sys = typeof window !== 'undefined' ? window.ACHIEVEMENT_SYSTEM : null;
+    const isCharUnlocked = this.isClassUnlocked(ch.id);
+    const isLegUnlocked = this.isLegendaryUnlocked(ch.id);
+    const classUnlockHint = sys ? sys.getUnlockHintForClass(ch.id) : '';
+    const legUnlockHint = sys ? sys.getUnlockHintForLegendary(ch.id) : '';
+
     const subCardsHtml = ch.subclasses
       .map(sub => {
         const lCard = GAME_DATA.cards[sub.legendaryCard];
+        const subUnlocked = this.isSubclassUnlocked(sub.id);
+        const subHint = sys ? sys.getUnlockHintForSubclass(sub.id) : '';
         return `
-          <div class="subclass-card" onclick="Game.openClassCompendium('${ch.id}', '${sub.id}')" title="클릭하면 이 하위 직업 계통의 카드 10종을 도감에서 확인합니다">
+          <div class="subclass-card ${subUnlocked ? '' : 'subclass-locked'}" onclick="Game.openClassCompendium('${ch.id}', '${sub.id}')" title="클릭하면 이 하위 직업 계통의 카드 10종을 도감에서 확인합니다">
             <h4>
-              <span>${sub.icon} ${sub.name}</span>
-              <span style="font-size:0.68rem; color:#00d2d3;">카드 10종 도감 보기 🔎</span>
+              <span>${subUnlocked ? sub.icon : '🔒'} ${sub.name}</span>
+              <span style="font-size:0.66rem; color:${subUnlocked ? '#00d2d3' : '#ff7675'};">${subUnlocked ? '🔓 해금됨 · 도감 🔎' : '🔒 업적 잠김'}</span>
             </h4>
             <p>${sub.desc}</p>
-            <div style="font-size:0.68rem; color:#fdcb6e; margin-top:3px;">
-              👑 전설 카드: [${lCard ? lCard.name : ''}] 외 9종
+            <div style="font-size:0.67rem; color:${subUnlocked ? '#fdcb6e' : '#f6c967'}; margin-top:3px;">
+              ${subUnlocked ? `👑 전설 카드: [${lCard ? lCard.name : ''}] ${isLegUnlocked ? '(🔓 해금)' : '(🔒 업적 필요)'}` : `🏆 ${subHint}`}
             </div>
           </div>
         `;
@@ -1503,10 +1723,20 @@ const Game = {
       </div>
 
       <div>
-        <button class="btn-start-run" onclick="Game.startNewRun('${ch.id}')">
-          🏔️ 첨탑 등반 시작 ➔<br/>
-          <span style="font-size:0.75rem; font-weight:600; color:#ffeaa7;">[${stats.currentRank}급 · Lv.${stats.hunterLv} 출격]</span>
-        </button>
+        ${isCharUnlocked
+        ? `<button class="btn-start-run" onclick="Game.startRunFromHub('${ch.id}')">
+              🏔️ 첨탑 등반 시작 ➔<br/>
+              <span style="font-size:0.75rem; font-weight:600; color:#ffeaa7;">[${stats.currentRank}급 · Lv.${stats.hunterLv} · 전설 ${isLegUnlocked ? '🔓해금' : '🔒잠김'}]</span>
+            </button>`
+        : `<button class="btn-start-run btn-locked-run" onclick="Game.openAchievementsModal('class')">
+              🔒 업적 달성 시 해금 🏆<br/>
+              <span style="font-size:0.7rem; font-weight:600; color:#ffeaa7;">${classUnlockHint}</span>
+            </button>`
+      }
+        ${!isLegUnlocked && isCharUnlocked
+        ? `<div style="font-size:0.66rem; color:#f6c967; text-align:center; margin-top:6px; cursor:pointer;" onclick="Game.openAchievementsModal('legendary')">👑 전설 해금: ${legUnlockHint}</div>`
+        : ''
+      }
       </div>
     `;
   },
@@ -2093,6 +2323,13 @@ const Game = {
     }
     if (!this.meta.classBestFloor) this.meta.classBestFloor = {};
     this.meta.classBestFloor[this.run.charId] = `${this.run.act}층 ${this.run.stage}F`;
+    // Update Achievement Progression Stats (Act reached & class best stage)
+    this.recordAchStat('maxActReached', this.run.act, 'max');
+    if (this.meta.achStats && this.meta.achStats.classBestStageNum) {
+      const prevStage = this.meta.achStats.classBestStageNum[this.run.charId] || 1;
+      if (curScore > prevStage) this.meta.achStats.classBestStageNum[this.run.charId] = curScore;
+    }
+    this.checkAchievements();
     this.saveMeta();
   },
 
@@ -2168,12 +2405,19 @@ const Game = {
     const ch = GAME_DATA.characters[this.run.charId];
     const basicIds = new Set([ch.sharedCards[0], ch.sharedCards[1]]);
     const poolByRarity = { common: [], uncommon: [], rare: [], legendary: [] };
+    const legUnlocked = this.isLegendaryUnlocked(this.run.charId);
+    const eligibleIds = [];
 
     ch.cardPool.forEach(cid => {
       if (basicIds.has(cid)) return;
       const tpl = GAME_DATA.cards[cid];
-      const r = tpl && poolByRarity[tpl.rarity] ? tpl.rarity : 'common';
+      if (!tpl) return;
+      // Enforce Subclass & Legendary Achievement Unlock Gates!
+      if (!this.isSubclassUnlocked(tpl.subclassId)) return;
+      if (tpl.rarity === 'legendary' && !legUnlocked) return;
+      const r = poolByRarity[tpl.rarity] ? tpl.rarity : 'common';
       poolByRarity[r].push(cid);
+      eligibleIds.push(cid);
     });
 
     const act = Math.max(1, Math.min(5, this.run.act || 1));
@@ -2218,6 +2462,12 @@ const Game = {
       if (act >= 2) weights.legendary += rankLv * 2;
     }
 
+    // Gate Legendary weight until Legendary Card Achievement is unlocked for this class!
+    if (!legUnlocked || poolByRarity.legendary.length === 0) {
+      weights.rare += weights.legendary;
+      weights.legendary = 0;
+    }
+
     const pickedIds = [];
     const totalWeight = weights.common + weights.uncommon + weights.rare + weights.legendary;
 
@@ -2230,6 +2480,9 @@ const Game = {
       else chosenRarity = 'common';
 
       let candidates = poolByRarity[chosenRarity].filter(id => !pickedIds.includes(id));
+      if (candidates.length === 0) {
+        candidates = eligibleIds.filter(id => !pickedIds.includes(id));
+      }
       if (candidates.length === 0) {
         candidates = ch.cardPool.filter(id => !basicIds.has(id) && !pickedIds.includes(id));
       }
@@ -2922,6 +3175,7 @@ const Game = {
     const actualHeal = Math.min(missing, amount);
     const overheal = Math.max(0, amount - missing);
     this.run.hp += actualHeal;
+    if (actualHeal > 0) this.recordAchStat('totalHealed', actualHeal, 'add');
 
     if (actualHeal > 0 || overheal > 0) {
       SfxEngine.play('heal');
@@ -3015,6 +3269,7 @@ const Game = {
     this.combat.firstAttackUsedThisTurn = false;
     this.combat.burstUsedThisTurn = false;
     this.combat.cardsPlayedThisTurn = 0;
+    this.combat.turnDamageDealt = 0;
     this.combat.comboCount = 0;
     this.combat.comboApGrantedThisTurn = false;
     this.combat.rogueFinisherApUsed = false;
@@ -3211,6 +3466,7 @@ const Game = {
 
     this.combat.energy -= effectiveCost;
     this.combat.cardsPlayedThisTurn = (this.combat.cardsPlayedThisTurn || 0) + 1;
+    this.recordAchStat('maxCardsInTurn', this.combat.cardsPlayedThisTurn, 'max');
     SfxEngine.play('card');
 
     // Slay the Spire 1 Gremlin Nob Skill Enrage: Playing a Skill card enrages enemies with skillEnrage!
@@ -3238,6 +3494,8 @@ const Game = {
     if (tpl.gainEnergy) this.combat.energy += tpl.gainEnergy;
     if (stats.block > 0) {
       this.combat.player.block += stats.block;
+      this.recordAchStat('totalBlockGained', stats.block, 'add');
+      this.recordAchStat('maxSingleBlock', this.combat.player.block, 'max');
       SfxEngine.play('block');
       VfxEngine.effectOnTarget('player', 0, 'block');
       this.spawnFloatingVfx('player', `🛡️+${stats.block}`, 'vfx-block');
@@ -3568,6 +3826,8 @@ const Game = {
     this.combat.secondaryResource -= cost;
     this.combat.burstUsedThisTurn = true;
     this.combat.burstCost = cost + 2; // Escalating cost (5 -> 7 -> 9) prevents infinite stalling!
+    this.recordAchStat('burstsTriggered', 1, 'add');
+    this.checkAchievements();
     const cid = this.run.charId;
     SfxEngine.play('burst');
     VfxEngine.effectOnTarget('player', 0, cid === 'warlock' ? 'doom' : cid === 'cleric' || cid === 'paladin' ? 'holy' : 'fire');
@@ -3721,6 +3981,7 @@ const Game = {
       return;
     }
     enemy[debuffKey] = (enemy[debuffKey] || 0) + amount;
+    this.recordAchStat('totalDebuffsApplied', amount, 'add');
   },
 
   dealDamageToEnemy(enemy, rawDmg, ignoreWeak = false, hitStep = 0, vfxTheme = null) {
@@ -3736,6 +3997,21 @@ const Game = {
     const wasAlive = enemy.hp > 0;
     enemy.hp = Math.max(0, enemy.hp - dmg);
     const justKilled = wasAlive && enemy.hp === 0;
+
+    if (totalShown > 0) {
+      this.recordAchStat('maxSingleHit', totalShown, 'max');
+      if (this.combat) {
+        this.combat.turnDamageDealt = (this.combat.turnDamageDealt || 0) + totalShown;
+        this.recordAchStat('maxTurnDmg', this.combat.turnDamageDealt, 'max');
+      }
+    }
+    if (justKilled && this.run) {
+      this.recordAchStat('totalKills', 1, 'add');
+      if (this.meta.achStats && this.meta.achStats.classKills) {
+        this.meta.achStats.classKills[this.run.charId] = (this.meta.achStats.classKills[this.run.charId] || 0) + 1;
+      }
+      this.checkAchievements();
+    }
 
     if (totalShown > 0 && this.combat && this.combat.enemies) {
       const eIdx = this.combat.enemies.indexOf(enemy);
@@ -3983,6 +4259,7 @@ const Game = {
     }
     if (remaining > 0) {
       this.run.hp = Math.max(0, this.run.hp - remaining);
+      if (this.combat) this.combat.tookHpDamageThisCombat = true;
       this._hitVisuals.playerHurtTs = Date.now();
       SfxEngine.play('playerHit');
       VfxEngine.effectOnTarget('player', 0, 'blood');
@@ -4021,6 +4298,15 @@ const Game = {
     SfxEngine.play('victory');
     VfxEngine.banner('🏆 전투 승리!', 'gold');
     const type = this.combat.encounterType;
+    // Record Achievement Milestones for Combat Victory!
+    if (!this.combat.tookHpDamageThisCombat) this.recordAchStat('perfectCombats', 1, 'add');
+    if (type === 'elite') this.recordAchStat('elitesKilled', 1, 'add');
+    else if (type === 'midboss') this.recordAchStat('midBossesKilled', 1, 'add');
+    else if (type === 'boss') this.recordAchStat('bossesKilled', 1, 'add');
+    if (type === 'boss' && this.run.act >= this.run.maxActs) {
+      this.recordAchStat('totalVictories', 1, 'add');
+    }
+    this.checkAchievements();
     // Clear any Snecko Eye tempCost mutations on run deck cards after combat
     if (this.run && this.run.deck) {
       this.run.deck.forEach(c => {
@@ -4679,7 +4965,12 @@ const Game = {
       return;
     }
     const heal = Math.round(this.run.maxHp * 0.3);
+    const actualHeal = Math.min(this.run.maxHp - this.run.hp, heal);
     this.run.hp = Math.min(this.run.maxHp, this.run.hp + heal);
+    if (actualHeal > 0) {
+      this.recordAchStat('totalHealed', actualHeal, 'add');
+      this.checkAchievements();
+    }
     this.showToast(`❤️‍🩹 긴 휴식 완료! 체력을 +${heal} 회복했습니다.`, 'success');
     this.leaveNodeToMap();
   },
@@ -4818,6 +5109,8 @@ const Game = {
       const cardEl = this.createCardElement(cInst, () => {
         if (mode === 'upgrade') {
           cInst.upgraded = true;
+          this.recordAchStat('cardsUpgraded', 1, 'add');
+          this.checkAchievements();
           modal.classList.add('hidden');
           this.showToast(`⚒️ [${GAME_DATA.cards[cInst.id].name}+] 강화 완료!`, 'success');
           this.leaveNodeToMap();
@@ -4826,6 +5119,8 @@ const Game = {
           const pickedMut = muts[Math.floor(Math.random() * muts.length)];
           cInst.mutation = pickedMut.id;
           cInst.upgraded = true;
+          this.recordAchStat('cardsUpgraded', 1, 'add');
+          this.checkAchievements();
           modal.classList.add('hidden');
           this.showToast(`🔮 [${GAME_DATA.cards[cInst.id].name}+]에 [${pickedMut.name}] 각인!`, 'success');
           this.leaveNodeToMap();
@@ -4838,6 +5133,8 @@ const Game = {
           const pickedMut = muts[Math.floor(Math.random() * muts.length)];
           cInst.mutation = pickedMut.id;
           cInst.upgraded = true;
+          this.recordAchStat('cardsUpgraded', 1, 'add');
+          this.checkAchievements();
           modal.classList.add('hidden');
           this.updateShopServiceButtons();
           this.updateTopHud();

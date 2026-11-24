@@ -486,3 +486,10 @@ body.mobile-edition {
 .mobile-edition .theme-pill-badge {
   font-size: 0.68rem;
 }
+.mobile-edition .ach-grid {
+  grid-template-columns: 1fr;
+}
+.mobile-edition .btn-start-run.btn-locked-run {
+  max-width: none;
+  width: 100%;
+}
