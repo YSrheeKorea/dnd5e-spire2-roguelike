@@ -2240,7 +2240,9 @@ window.GAME_DATA = {
       "dexterity": 2,
       "desc": "검기 구체 2기 소환 및 힘 +2, 민첩 +2 영구 획득!",
       "classId": "fighter",
-      "subclassId": "eldritch_knight"
+      "subclassId": "eldritch_knight",
+      "upgradeCost": 0,
+      "upgradeStrength": 3
     },
     "fighter_eldritch_knight_10": {
       "id": "fighter_eldritch_knight_10",
@@ -2369,7 +2371,9 @@ window.GAME_DATA = {
       "desc": "방어도 10, 내 체력 +4 회복, 잔상 체력 +10, 카드 1장 드로우! (소멸)",
       "classId": "fighter",
       "subclassId": "echo_knight",
-      "exhaust": true
+      "exhaust": true,
+      "upgradeCost": 0,
+      "upgradeBlock": 11
     },
     "fighter_echo_knight_9": {
       "id": "fighter_echo_knight_9",
@@ -2382,7 +2386,9 @@ window.GAME_DATA = {
       "summonAtkBoost": 3,
       "desc": "두 개의 잔상! 힘 +3, 잔상 체력 +18 및 공격력 +5 영구 강화!",
       "classId": "fighter",
-      "subclassId": "echo_knight"
+      "subclassId": "echo_knight",
+      "upgradeCost": 1,
+      "upgradeStrength": 3
     },
     "fighter_echo_knight_10": {
       "id": "fighter_echo_knight_10",
@@ -2571,7 +2577,9 @@ window.GAME_DATA = {
       "exhaust": true,
       "desc": "적 전체를 공포에 빠뜨려 약화 3과 취약 3을 부여합니다! (소멸)",
       "classId": "barbarian",
-      "subclassId": "berserker"
+      "subclassId": "berserker",
+      "upgradeCost": 0,
+      "upgradeVuln": 4
     },
     "barbarian_berserker_9": {
       "id": "barbarian_berserker_9",
@@ -2712,7 +2720,9 @@ window.GAME_DATA = {
       "metallicize": 3,
       "desc": "힘 +3, 민첩 +3 및 매 턴 종료 시 방어도 +6을 얻습니다!",
       "classId": "barbarian",
-      "subclassId": "totem_warrior"
+      "subclassId": "totem_warrior",
+      "upgradeCost": 0,
+      "upgradeStrength": 3
     },
     "barbarian_totem_warrior_9": {
       "id": "barbarian_totem_warrior_9",
@@ -2853,7 +2863,9 @@ window.GAME_DATA = {
       "summonAtkBoost": 3,
       "desc": "힘 +2, 선조 수호령 체력 +18 및 공격력 +5 영구 강화!",
       "classId": "barbarian",
-      "subclassId": "ancestral_guardian"
+      "subclassId": "ancestral_guardian",
+      "upgradeCost": 1,
+      "upgradeStrength": 3
     },
     "barbarian_ancestral_guardian_9": {
       "id": "barbarian_ancestral_guardian_9",
@@ -2867,7 +2879,9 @@ window.GAME_DATA = {
       "desc": "방어도 12, 내 체력 +4 회복, 수호령 체력 +4 회복! (소멸)",
       "classId": "barbarian",
       "subclassId": "ancestral_guardian",
-      "exhaust": true
+      "exhaust": true,
+      "upgradeCost": 0,
+      "upgradeBlock": 12
     },
     "barbarian_ancestral_guardian_10": {
       "id": "barbarian_ancestral_guardian_10",
@@ -2951,7 +2965,8 @@ window.GAME_DATA = {
       "exhaust": true,
       "desc": "0코스트! 행동력(AP) +1, 마력 구체 1기 생성, 카드 1장 드로우 (소멸)",
       "classId": "barbarian",
-      "subclassId": "wild_magic"
+      "subclassId": "wild_magic",
+      "upgradeDraw": 2
     },
     "barbarian_wild_magic_6": {
       "id": "barbarian_wild_magic_6",
@@ -3007,7 +3022,9 @@ window.GAME_DATA = {
       "dexterity": 2,
       "desc": "야생 마력 구체 2기 생성 및 힘 +3, 민첩 +2 영구 획득!",
       "classId": "barbarian",
-      "subclassId": "wild_magic"
+      "subclassId": "wild_magic",
+      "upgradeCost": 0,
+      "upgradeStrength": 3
     },
     "barbarian_wild_magic_10": {
       "id": "barbarian_wild_magic_10",
@@ -3184,7 +3201,8 @@ window.GAME_DATA = {
       "desc": "0코스트! 행동력 +1, 카드 2장 드로우, 주사위 +1 (소멸) 🗡️[투척 단검] 1장 생성.",
       "classId": "rogue",
       "subclassId": "thief",
-      "addShiv": 1
+      "addShiv": 1,
+      "upgradeDraw": 2
     },
     "rogue_thief_8": {
       "id": "rogue_thief_8",
@@ -3197,7 +3215,9 @@ window.GAME_DATA = {
       "draw": 2,
       "desc": "민첩 +3, 힘 +2를 영구 획득하고 즉시 카드를 2장 뽑습니다!",
       "classId": "rogue",
-      "subclassId": "thief"
+      "subclassId": "thief",
+      "upgradeCost": 0,
+      "upgradeStrength": 3
     },
     "rogue_thief_9": {
       "id": "rogue_thief_9",
@@ -3325,7 +3345,8 @@ window.GAME_DATA = {
       "exhaust": true,
       "desc": "대상의 맹독을 2배로 증폭하고 즉시 맹독 피해를 터뜨립니다! (소멸)",
       "classId": "rogue",
-      "subclassId": "assassin"
+      "subclassId": "assassin",
+      "upgradeCost": 0
     },
     "rogue_assassin_8": {
       "id": "rogue_assassin_8",
@@ -3339,7 +3360,9 @@ window.GAME_DATA = {
       "target": "all",
       "desc": "힘 +2, 민첩 +3을 얻고 적 전체에게 맹독 4을 부여합니다.",
       "classId": "rogue",
-      "subclassId": "assassin"
+      "subclassId": "assassin",
+      "upgradeCost": 0,
+      "upgradeStrength": 3
     },
     "rogue_assassin_9": {
       "id": "rogue_assassin_9",
@@ -3453,7 +3476,9 @@ window.GAME_DATA = {
       "resourceGain": 1,
       "desc": "대상에게 취약 2, 약화 2를 걸고 카드를 2장 뽑습니다.",
       "classId": "rogue",
-      "subclassId": "arcane_trickster"
+      "subclassId": "arcane_trickster",
+      "upgradeCost": 0,
+      "upgradeDraw": 3
     },
     "rogue_arcane_trickster_7": {
       "id": "rogue_arcane_trickster_7",
@@ -3481,7 +3506,9 @@ window.GAME_DATA = {
       "strength": 2,
       "desc": "마법사의 손 구체 2기 소환 및 민첩 +3, 힘 +2 획득!",
       "classId": "rogue",
-      "subclassId": "arcane_trickster"
+      "subclassId": "arcane_trickster",
+      "upgradeCost": 0,
+      "upgradeStrength": 3
     },
     "rogue_arcane_trickster_9": {
       "id": "rogue_arcane_trickster_9",
@@ -3627,7 +3654,9 @@ window.GAME_DATA = {
       "summonAtkBoost": 3,
       "desc": "힘 +2, 원한의 망령 체력 +16 및 공격력 +5 영구 강화!",
       "classId": "rogue",
-      "subclassId": "phantom"
+      "subclassId": "phantom",
+      "upgradeCost": 0,
+      "upgradeStrength": 3
     },
     "rogue_phantom_9": {
       "id": "rogue_phantom_9",
@@ -3969,7 +3998,9 @@ window.GAME_DATA = {
       "desc": "방어도 10, 레인저 체력 +3, 흑표범 체력 +12, 카드 1장 드로우! (소멸)",
       "classId": "ranger",
       "subclassId": "beast_master",
-      "exhaust": true
+      "exhaust": true,
+      "upgradeCost": 0,
+      "upgradeBlock": 11
     },
     "ranger_beast_master_9": {
       "id": "ranger_beast_master_9",
@@ -3982,7 +4013,9 @@ window.GAME_DATA = {
       "summonAtkBoost": 3,
       "desc": "힘 +2, 흑표범의 체력 +18 및 공격력 +5 영구 강화!",
       "classId": "ranger",
-      "subclassId": "beast_master"
+      "subclassId": "beast_master",
+      "upgradeCost": 1,
+      "upgradeStrength": 3
     },
     "ranger_beast_master_10": {
       "id": "ranger_beast_master_10",
@@ -4215,7 +4248,9 @@ window.GAME_DATA = {
       "desc": "적 전체에게 공포를 반사해 약화 2, 취약 2, 맹독 4 부여! 🪤전술 함정 +1 매설.",
       "classId": "ranger",
       "subclassId": "fey_wanderer",
-      "placeTrap": 1
+      "placeTrap": 1,
+      "upgradeCost": 0,
+      "upgradePoison": 6
     },
     "ranger_fey_wanderer_6": {
       "id": "ranger_fey_wanderer_6",
@@ -4257,7 +4292,9 @@ window.GAME_DATA = {
       "dexterity": 2,
       "desc": "요정 정령 구체 2기 즉시 소환 및 힘 +2, 민첩 +3 획득!",
       "classId": "ranger",
-      "subclassId": "fey_wanderer"
+      "subclassId": "fey_wanderer",
+      "upgradeCost": 0,
+      "upgradeStrength": 3
     },
     "ranger_fey_wanderer_9": {
       "id": "ranger_fey_wanderer_9",
@@ -4271,7 +4308,8 @@ window.GAME_DATA = {
       "exhaust": true,
       "desc": "0코스트! 행동력 +1, 카드 2장 드로우, 요정 구체 +1기 (소멸)",
       "classId": "ranger",
-      "subclassId": "fey_wanderer"
+      "subclassId": "fey_wanderer",
+      "upgradeDraw": 2
     },
     "ranger_fey_wanderer_10": {
       "id": "ranger_fey_wanderer_10",
@@ -4608,7 +4646,9 @@ window.GAME_DATA = {
       "classId": "wizard",
       "subclassId": "abjuration",
       "addDrone": 1,
-      "orbType": "frost"
+      "orbType": "frost",
+      "upgradeCost": 0,
+      "upgradeBlock": 9
     },
     "wizard_abjuration_8": {
       "id": "wizard_abjuration_8",
@@ -4737,7 +4777,9 @@ window.GAME_DATA = {
       "target": "all",
       "desc": "적 전체의 근력을 앗아가 약화 3과 부패 4을 부여합니다.",
       "classId": "wizard",
-      "subclassId": "necromancy"
+      "subclassId": "necromancy",
+      "upgradeCost": 0,
+      "upgradePoison": 6
     },
     "wizard_necromancy_7": {
       "id": "wizard_necromancy_7",
@@ -4766,7 +4808,9 @@ window.GAME_DATA = {
       "desc": "주문력 +2, 해골 기사 체력 +18 및 공격력 +5 영구 강화!",
       "classId": "wizard",
       "subclassId": "necromancy",
-      "resourceGain": 2
+      "resourceGain": 2,
+      "upgradeCost": 1,
+      "upgradeStrength": 3
     },
     "wizard_necromancy_9": {
       "id": "wizard_necromancy_9",
@@ -4892,7 +4936,8 @@ window.GAME_DATA = {
       "classId": "wizard",
       "subclassId": "divination",
       "addDrone": 1,
-      "orbType": "lightning"
+      "orbType": "lightning",
+      "upgradeDraw": 2
     },
     "wizard_divination_7": {
       "id": "wizard_divination_7",
@@ -4923,7 +4968,9 @@ window.GAME_DATA = {
       "desc": "힘 +3, 민첩 +3, 비전 구체 +1기 생성 및 카드 2장 드로우!",
       "classId": "wizard",
       "subclassId": "divination",
-      "orbType": "lightning"
+      "orbType": "lightning",
+      "upgradeCost": 0,
+      "upgradeStrength": 3
     },
     "wizard_divination_9": {
       "id": "wizard_divination_9",
@@ -4938,7 +4985,9 @@ window.GAME_DATA = {
       "classId": "wizard",
       "subclassId": "divination",
       "addDrone": 1,
-      "orbType": "lightning"
+      "orbType": "lightning",
+      "upgradeCost": 0,
+      "upgradeBlock": 12
     },
     "wizard_divination_10": {
       "id": "wizard_divination_10",
@@ -5134,7 +5183,9 @@ window.GAME_DATA = {
       "desc": "민첩 +3, 힘 +2 및 매 턴 종료 시 방어도 +5를 영구 획득합니다! (신앙심 +2)",
       "classId": "cleric",
       "subclassId": "life_domain",
-      "devotionGain": 2
+      "devotionGain": 2,
+      "upgradeCost": 0,
+      "upgradeStrength": 3
     },
     "cleric_life_domain_9": {
       "id": "cleric_life_domain_9",
@@ -5212,7 +5263,9 @@ window.GAME_DATA = {
       "classId": "cleric",
       "subclassId": "light_domain",
       "devotionGain": 1,
-      "holyBrand": 2
+      "holyBrand": 2,
+      "upgradeCost": 0,
+      "upgradeDraw": 2
     },
     "cleric_light_domain_4": {
       "id": "cleric_light_domain_4",
@@ -5306,7 +5359,9 @@ window.GAME_DATA = {
       "classId": "cleric",
       "subclassId": "light_domain",
       "devotionGain": 2,
-      "holyBrand": 3
+      "holyBrand": 3,
+      "upgradeCost": 0,
+      "upgradeStrength": 3
     },
     "cleric_light_domain_10": {
       "id": "cleric_light_domain_10",
@@ -5394,12 +5449,14 @@ window.GAME_DATA = {
       "strength": 1,
       "summonAtkBoost": 2,
       "block": 6,
-      "desc": "방어도 8, 내 힘 +2 및 영체 수호자 공격력을 +4 강화합니다! (소멸) (💛초과치유 시 방어도 전환, 신앙심 +1)",
+      "desc": "방어도 8, 내 힘 +2 및 영체 수호자 공격력을 +4 강화합니다! (소멸) (신앙심 +1)",
       "classId": "cleric",
       "subclassId": "war_domain",
       "exhaust": true,
       "healOnHit": 3,
-      "devotionGain": 1
+      "devotionGain": 1,
+      "upgradeCost": 0,
+      "upgradeBlock": 9
     },
     "cleric_war_domain_6": {
       "id": "cleric_war_domain_6",
@@ -5443,7 +5500,9 @@ window.GAME_DATA = {
       "desc": "힘 +3, 영체 수호자의 체력 +18 및 공격력 +5 영구 강화! (신앙심 +2)",
       "classId": "cleric",
       "subclassId": "war_domain",
-      "devotionGain": 2
+      "devotionGain": 2,
+      "upgradeCost": 1,
+      "upgradeStrength": 3
     },
     "cleric_war_domain_9": {
       "id": "cleric_war_domain_9",
@@ -5516,7 +5575,9 @@ window.GAME_DATA = {
       "desc": "적 전체에게 약화 2와 사령 저주 3를 부여합니다. (신앙심 +1)",
       "classId": "cleric",
       "subclassId": "grave_domain",
-      "devotionGain": 1
+      "devotionGain": 1,
+      "upgradeCost": 0,
+      "upgradePoison": 5
     },
     "cleric_grave_domain_4": {
       "id": "cleric_grave_domain_4",
@@ -5545,7 +5606,9 @@ window.GAME_DATA = {
       "desc": "대상에게 취약 3 부여, [심판(공격력 2배)] 태세 돌입, 카드 2장 드로우! (신앙심 +1)",
       "classId": "cleric",
       "subclassId": "grave_domain",
-      "devotionGain": 1
+      "devotionGain": 1,
+      "upgradeCost": 0,
+      "upgradeDraw": 3
     },
     "cleric_grave_domain_6": {
       "id": "cleric_grave_domain_6",
@@ -5589,7 +5652,9 @@ window.GAME_DATA = {
       "desc": "힘 +1, 민첩 +1을 영구 획득하고 즉시 신성력 +1을 얻습니다! (신앙심 +2)",
       "classId": "cleric",
       "subclassId": "grave_domain",
-      "devotionGain": 2
+      "devotionGain": 2,
+      "upgradeCost": 0,
+      "upgradeStrength": 3
     },
     "cleric_grave_domain_9": {
       "id": "cleric_grave_domain_9",
@@ -5719,7 +5784,9 @@ window.GAME_DATA = {
       "block": 5,
       "desc": "방어도 6을 얻고 적 전체에게 약화 2를 부여합니다.",
       "classId": "paladin",
-      "subclassId": "devotion"
+      "subclassId": "devotion",
+      "upgradeCost": 0,
+      "upgradeBlock": 8
     },
     "paladin_devotion_4": {
       "id": "paladin_devotion_4",
@@ -5795,7 +5862,9 @@ window.GAME_DATA = {
       "desc": "방어도 12, 체력 +4 회복, 2드로우 및 [헌신/명경(AP+2)] 돌입! (소멸)",
       "classId": "paladin",
       "subclassId": "devotion",
-      "exhaust": true
+      "exhaust": true,
+      "upgradeCost": 0,
+      "upgradeBlock": 12
     },
     "paladin_devotion_9": {
       "id": "paladin_devotion_9",
@@ -5925,7 +5994,8 @@ window.GAME_DATA = {
       "exhaust": true,
       "desc": "0코스트! 행동력 +1, 힘 +1, 카드 2장 드로우 (소멸)",
       "classId": "paladin",
-      "subclassId": "vengeance"
+      "subclassId": "vengeance",
+      "upgradeStrength": 2
     },
     "paladin_vengeance_8": {
       "id": "paladin_vengeance_8",
@@ -6083,7 +6153,9 @@ window.GAME_DATA = {
       "classId": "paladin",
       "subclassId": "conquest",
       "sealAll": 2,
-      "auraBoost": 1
+      "auraBoost": 1,
+      "upgradeCost": 1,
+      "upgradeStrength": 3
     },
     "paladin_conquest_9": {
       "id": "paladin_conquest_9",
@@ -6231,7 +6303,9 @@ window.GAME_DATA = {
       "draw": 2,
       "desc": "적 전체 암흑 저주 6 부여, 데스나이트 체력 +15, 카드 2장 드로우!",
       "classId": "paladin",
-      "subclassId": "oathbreaker"
+      "subclassId": "oathbreaker",
+      "upgradeCost": 0,
+      "upgradeDraw": 3
     },
     "paladin_oathbreaker_9": {
       "id": "paladin_oathbreaker_9",
@@ -6432,7 +6506,9 @@ window.GAME_DATA = {
       "summonAtkBoost": 3,
       "desc": "힘 +3, 지옥마신 핀드의 체력 +16 및 공격력 +5 영구 강화!",
       "classId": "warlock",
-      "subclassId": "fiend_patron"
+      "subclassId": "fiend_patron",
+      "upgradeCost": 0,
+      "upgradeStrength": 3
     },
     "warlock_fiend_patron_9": {
       "id": "warlock_fiend_patron_9",
@@ -6725,7 +6801,9 @@ window.GAME_DATA = {
       "desc": "공허의 촉수 구체 2기 소환 및 힘 +3, 민첩 +2 영구 획득! 💀파멸(Doom) +9.",
       "classId": "warlock",
       "subclassId": "great_old_one",
-      "doom": 9
+      "doom": 9,
+      "upgradeCost": 0,
+      "upgradeStrength": 3
     },
     "warlock_great_old_one_9": {
       "id": "warlock_great_old_one_9",
@@ -6740,7 +6818,9 @@ window.GAME_DATA = {
       "draw": 2,
       "desc": "적 전체 약화 3, 취약 3, 카드 2장 드로우 및 [명경(AP+2)] 돌입!",
       "classId": "warlock",
-      "subclassId": "great_old_one"
+      "subclassId": "great_old_one",
+      "upgradeCost": 0,
+      "upgradeDraw": 3
     },
     "warlock_great_old_one_10": {
       "id": "warlock_great_old_one_10",
@@ -6825,7 +6905,9 @@ window.GAME_DATA = {
       "desc": "사역마가 있을 때 최대 회복! 방어도 10, 내 체력 +4, 사역마 체력 +12! (소멸)",
       "classId": "warlock",
       "subclassId": "archfey_chain",
-      "exhaust": true
+      "exhaust": true,
+      "upgradeCost": 0,
+      "upgradeBlock": 11
     },
     "warlock_archfey_chain_6": {
       "id": "warlock_archfey_chain_6",
@@ -6868,7 +6950,9 @@ window.GAME_DATA = {
       "summonAtkBoost": 4,
       "desc": "힘 +2, 사역마의 체력 +20 및 공격력 +6 영구 초월 강화!",
       "classId": "warlock",
-      "subclassId": "archfey_chain"
+      "subclassId": "archfey_chain",
+      "upgradeCost": 1,
+      "upgradeStrength": 3
     },
     "warlock_archfey_chain_9": {
       "id": "warlock_archfey_chain_9",
@@ -7016,25 +7100,25 @@ window.GAME_DATA = {
       "id": "totem_necklace",
       "name": "우스가르드 야수 토템 목걸이",
       "icon": "🐻",
-      "desc": "전투 시작 시 힘 +2 및 격노 +2를 얻습니다."
+      "desc": "전투 시작 시 힘 +1 및 격노 +1을 얻습니다."
     },
     "thieves_tools": {
       "id": "thieves_tools",
       "name": "젠타림 마스터 도적 도구",
       "icon": "🗝️",
-      "desc": "전투 시작 시 모든 적에게 맹독 3과 취약 1을 부여하고 첫 턴 카드를 2장 더 뽑습니다."
+      "desc": "전투 시작 시 모든 적에게 맹독 +1을 부여하고 첫 턴 카드를 1장 더 뽑습니다."
     },
     "hunters_quiver": {
       "id": "hunters_quiver",
       "name": "엘프 여왕의 마법 화살통",
       "icon": "🏹",
-      "desc": "전투 시작 시 민첩 +2 및 사냥꾼의 징표 +3을 얻습니다."
+      "desc": "전투 시작 시 민첩 +1 및 모든 적에게 표적 +1을 부여합니다."
     },
     "spellbook_of_mystra": {
       "id": "spellbook_of_mystra",
       "name": "미스트라의 비전 마도서",
       "icon": "📘",
-      "desc": "전투 시작 시 [비전 구체 오브] 1기를 소환하고 비전 주문력 +3을 얻습니다."
+      "desc": "전투 시작 시 비전 주문력 +1 및 첫 턴 방어도 +3을 얻습니다."
     },
     "holy_symbol_lathander": {
       "id": "holy_symbol_lathander",
@@ -7046,7 +7130,7 @@ window.GAME_DATA = {
       "id": "holy_avenger_hilt",
       "name": "티르의 성검 인장",
       "icon": "⚜️",
-      "desc": "매 턴 종료 시 방어도 +4를 자동으로 얻으며 첫 턴 신성한 강타 +3을 얻습니다."
+      "desc": "매 턴 종료 시 방어도 +2를 자동으로 얻으며 첫 턴 신성한 강타 +1을 얻습니다."
     },
     "rod_of_pact_keeper": {
       "id": "rod_of_pact_keeper",
@@ -10006,58 +10090,341 @@ window.GAME_DATA = {
   },
   "events": [
     {
-      "id": "mystra_shrine",
-      "title": "🎲 [D20 비전 판정] 미스트라의 균열된 마법 제단",
-      "desc": "언더마운틴의 비밀 방에서 불안정한 비전 에너지를 내뿜는 미스트라의 성소를 발견했습니다. 대가를 치르고 권능을 취하거나 안전하게 기도할 수 있습니다.",
+      "id": "halaster_rune_altar",
+      "title": "🎲 할라스터의 광기 어린 비전 제단",
+      "desc": "미친 대마법사 할라스터의 보랏빛 마법진이 맥동합니다. 주사위(D20)로 비전을 해독하거나 피의 대가로 힘을 얻을 수 있습니다.",
       "choices": [
         {
-          "label": "🎲 [D20 비전(Arcana) 판정: DC 12] 성공 시 카드 1장 강화(+)+룬 각인 | 실패 시 폭발 피해 -14 HP & [화상] 카드 1장 추가",
+          "label": "🧙 [위자드 전용] 비전 학식 완벽 해독 — 판정 없이 카드 1장 강화(+) & 비전 룬 각인!",
+          "effect": "class_free_mutate",
+          "requiredClass": "wizard"
+        },
+        {
+          "label": "🎲 [D20 비전 판정 DC 12] 성공 시 카드 1장 강화+룬 각인 / 실패 시 HP -12 & 저주 획득",
           "effect": "d20_arcana"
         },
         {
-          "label": "🩸 [피의 봉헌] 현재 체력 -12 소모 ➔ 최대 체력 +8 영구 증가 & 카드 1장 무료 강화(+)",
+          "label": "🩸 피의 서약 — HP -12, 최대 체력 +8 및 무작위 카드 1장 강화(+)",
           "effect": "blood_sacrifice_maxhp"
         },
         {
-          "label": "🗝️ [금단의 보물함 강제 개방] 골드 +95 GP & 무작위 유물 1개 획득 (대가: 체력 -15 & 덱에 [☠️심연의 저주] 카드 1장 추가!)",
+          "label": "🚶 조용히 물러나 짧은 숨 고르기 — HP +6 회복",
+          "effect": "safe_leave"
+        }
+      ]
+    },
+    {
+      "id": "xanathar_smuggler_cache",
+      "title": "👁️ 자나타 길드의 비밀 밀수 창고",
+      "desc": "비홀더 자나타의 부하들이 숨겨둔 황금 궤짝과 독극물 함정이 보입니다.",
+      "choices": [
+        {
+          "label": "🗡️ [로그 전용] 도적 도구로 함정 완벽 해제 — 피해 없이 +110 GP & 무작위 유물 획득!",
+          "effect": "class_rogue_heist",
+          "requiredClass": "rogue"
+        },
+        {
+          "label": "💰 함정을 감수하고 털기 — +95 GP & 무작위 유물 획득 (HP -15 & 심연의 저주 1장)",
           "effect": "scrap_and_relic"
+        },
+        {
+          "label": "🎲 [D20 손재주 판정 DC 11] 성공 시 +85 GP / 실패 시 HP -10",
+          "effect": "d20_gold_heist"
+        },
+        {
+          "label": "🚶 흔적을 남기지 않고 통과 — HP +6 회복",
+          "effect": "safe_leave"
+        }
+      ]
+    },
+    {
+      "id": "lathander_sun_shrine",
+      "title": "☀️ 라센더의 버려진 태양 성소",
+      "desc": "어둠 속 지하 미궁 한가운데 따뜻한 황금빛이 쏟아지는 고대 성소가 남아 있습니다.",
+      "choices": [
+        {
+          "label": "☀️ [클레릭 전용] 태양신의 정화 기도 — 저주 전부 제거 & HP 35% 회복 & +40 GP!",
+          "effect": "class_cleric_purify",
+          "requiredClass": "cleric"
+        },
+        {
+          "label": "⚜️ [성기사 전용] 신성한 서약 갱신 — 최대 체력 +10 및 카드 1장 강화(+)",
+          "effect": "class_paladin_oath",
+          "requiredClass": "paladin"
+        },
+        {
+          "label": "🪙 성소에 50 GP 봉헌 — 저주 또는 일반 카드 1장 영구 제거",
+          "effect": "event_paid_remove"
+        },
+        {
+          "label": "✨ 축복만 받고 떠나기 — HP +12 회복",
+          "effect": "heal_medium"
+        }
+      ]
+    },
+    {
+      "id": "underdark_blacksmith_ghost",
+      "title": "⚒️ 드워프 대장장이의 원령",
+      "desc": "미스릴 모루 앞에서 망치를 두드리는 고대 드워프 장인의 영혼이 당신의 무기를 살펴봅니다.",
+      "choices": [
+        {
+          "label": "⚔️ [파이터 전용] 무기 달인의 교감 — 덱의 카드 2장 무료 단련(+)!",
+          "effect": "class_fighter_forge",
+          "requiredClass": "fighter"
+        },
+        {
+          "label": "⚒️ 60 GP로 무기 벼리기 — 무작위 미강화 카드 2장 강화(+)",
+          "effect": "paid_double_upgrade"
+        },
+        {
+          "label": "🩸 생명력을 불어넣어 단련 — HP -10, 카드 1장 강화(+) + 룬 각인",
+          "effect": "blood_mutate"
+        },
+        {
+          "label": "🚶 정중히 예를 갖추고 이동 — EXP +45",
+          "effect": "gain_small_exp"
+        }
+      ]
+    },
+    {
+      "id": "abyssal_whisper_mirror",
+      "title": "🟣 심연의 거울 (Mirror of the Abyss)",
+      "desc": "검은 흑요석 거울 너머로 악마 군주의 목소리가 거래를 제안합니다.",
+      "choices": [
+        {
+          "label": "🟣 [워락 전용] 심연의 주인과 동등한 계약 — 저주 없이 무작위 유물 1개 & EXP +80!",
+          "effect": "class_warlock_pact",
+          "requiredClass": "warlock"
+        },
+        {
+          "label": "☠️ 금단의 거래 — 심연의 저주 1장 추가 대신 무작위 마법 유물 1개 즉시 획득",
+          "effect": "cursed_relic"
+        },
+        {
+          "label": "📖 금단의 지식 흡수 — 최대 HP -8, EXP +95 & 등반 마석 +120",
+          "effect": "gain_exp_sp_gems"
+        },
+        {
+          "label": "🚶 거울을 깨뜨리고 전진 — HP +6 회복",
+          "effect": "safe_leave"
+        }
+      ]
+    },
+    {
+      "id": "giant_iron_gate",
+      "title": "🪨 고대 아다만틴 봉인문",
+      "desc": "거대한 강철 문이 보물실을 막고 있습니다. 자물쇠는 녹슬어 부서져 있습니다.",
+      "choices": [
+        {
+          "label": "🪓 [바바리안 전용] 괴력으로 문짝 박살! — 피해 없이 무작위 유물 & +60 GP!",
+          "effect": "class_barbarian_smash",
+          "requiredClass": "barbarian"
+        },
+        {
+          "label": "🎲 [D20 근력 판정 DC 13] 성공 시 무작위 유물 획득 / 실패 시 HP -12",
+          "effect": "d20_str_relic"
+        },
+        {
+          "label": "🪙 틈새로 굴러나온 금화만 줍기 — +45 GP",
+          "effect": "gain_gold_small"
+        },
+        {
+          "label": "🚶 힘을 아끼고 우회 — HP +6 회복",
+          "effect": "safe_leave"
+        }
+      ]
+    },
+    {
+      "id": "feywild_mushroom_ring",
+      "title": "🍄 페이와일드 요정 버섯 고리",
+      "desc": "형광빛 버섯이 원형으로 자라난 곳에서 요정들의 웃음소리가 들려옵니다.",
+      "choices": [
+        {
+          "label": "🏹 [레인저 전용] 자연의 친화력 — HP +20 회복, 물약 1개 & 고급/희귀 카드 1장 획득!",
+          "effect": "class_ranger_fey",
+          "requiredClass": "ranger"
+        },
+        {
+          "label": "🧪 신비한 이슬 채취 — HP -10, EXP +60 및 무작위 물약 1개 획득",
+          "effect": "potion_and_exp"
+        },
+        {
+          "label": "🎴 요정과 카드 교환 — HP -12, 일반 카드 1장 제거 후 희귀/전설급 카드 1장 획득",
+          "effect": "remove_and_rare"
+        },
+        {
+          "label": "🚶 고리를 밟지 않고 지나가기 — HP +8 회복",
+          "effect": "safe_leave"
+        }
+      ]
+    },
+    {
+      "id": "mindflayer_brain_jar",
+      "title": "🧠 일리시드의 보존된 지식 저장소",
+      "desc": "푸른 용액 속에 떠 있는 고대 현자의 기억 수정체가 당신의 정신에 공명합니다.",
+      "choices": [
+        {
+          "label": "🎲 [D20 지능 판정 DC 12] 성공 시 SP +1 & EXP +70 / 실패 시 HP -12",
+          "effect": "d20_int_sp"
+        },
+        {
+          "label": "🔥 저장소 파괴 — +75 GP & 등반 마석 +80",
+          "effect": "gain_gold_gems"
+        },
+        {
+          "label": "🚶 정신 오염을 피해 이탈 — HP +6 회복",
+          "effect": "safe_leave"
+        }
+      ]
+    },
+    {
+      "id": "wounded_harper_scout",
+      "title": "🩹 부상당한 하퍼즈 정찰병",
+      "desc": "워터딥 하퍼즈 소속 정찰병이 벽에 기대어 도움을 청하고 있습니다.",
+      "choices": [
+        {
+          "label": "🪙 40 GP 치료비 지원 — 무작위 유물 1개 보답 획득!",
+          "effect": "paid_relic_help"
+        },
+        {
+          "label": "❤️‍🩹 내 체력 10을 나눠 응급 처치 — 카드 1장 강화(+) & +55 GP",
+          "effect": "hp_for_upgrade_gold"
+        },
+        {
+          "label": "🗺️ 지도 정보만 공유받기 — EXP +55",
+          "effect": "gain_small_exp"
+        }
+      ]
+    },
+    {
+      "id": "drow_poison_lab",
+      "title": "🕷️ 드로우 암살단의 독극물 실험실",
+      "desc": "롤스 여신의 거미 문양이 새겨진 실험대에 진귀한 비약과 주문서가 놓여 있습니다.",
+      "choices": [
+        {
+          "label": "🧪 독성 시약 강탈 — 무작위 물약 2개 획득 (HP -10)",
+          "effect": "double_potion_risk"
+        },
+        {
+          "label": "🔥 실험실 소각 — 덱의 저주/일반 카드 1장 제거 & EXP +45",
+          "effect": "free_cleanse_card"
+        },
+        {
+          "label": "🚶 조용히 빠져나오기 — HP +6 회복",
+          "effect": "safe_leave"
+        }
+      ]
+    },
+    {
+      "id": "dragon_hoard_echo",
+      "title": "🐉 고룡의 메아리가 깃든 보물 더미",
+      "desc": "옛 레드 드래곤이 잠들었던 자리에 뜨거운 금화와 용린 조각이 빛납니다.",
+      "choices": [
+        {
+          "label": "🎲 [D20 은신 판정 DC 13] 성공 시 +140 GP / 실패 시 화염 숨결(HP -16)",
+          "effect": "d20_dragon_gold"
+        },
+        {
+          "label": "🛡️ 용린 조각 1개만 챙기기 — 최대 체력 +6 & HP +6",
+          "effect": "gain_maxhp_small"
+        },
+        {
+          "label": "🚶 욕심내지 않고 통과 — HP +6 회복",
+          "effect": "safe_leave"
         }
       ]
     },
     {
       "id": "deck_of_many_things",
-      "title": "🃏 [슬더스식 거래] 매드 메이지 할라스터와 만물의 카드",
-      "desc": "\"크하하하! 내 미궁에서는 공짜 점심이란 없지! 대가를 지불하고 만물의 카드(Deck of Many Things)를 뽑아보겠느냐?\"",
+      "title": "🃏 운명의 덱 (Deck of Many Things)",
+      "desc": "전설의 마법 카드 뭉치가 공중에 떠 있습니다. 한 장 뽑으면 운명이 극적으로 뒤바뀝니다!",
       "choices": [
         {
-          "label": "🔥 [화염(Flames)의 계약] 최대 체력 -8 영구 감소 ➔ 즉시 경험치 +95 EXP & 등반 마석 +120개 획득",
-          "effect": "gain_exp_sp_gems"
+          "label": "🎲 [운명의 카드 뽑기 (D20)] 15+: 유물+SP+1 / 8~14: +90 GP / 7↓: 저주+HP-12",
+          "effect": "d20_deck_of_many"
         },
         {
-          "label": "⚔️ [기사(Knight)의 단련] 체력 -12 소모 ➔ 덱의 일반 카드 1장을 무작위 제거하고 희귀(Rare) 등급 이상 카드 1장 획득",
-          "effect": "remove_and_rare"
+          "label": "🎴 덱의 카드 1장 변이 — 무작위 카드 1장 강화(+) + 룬 각인 (HP -8)",
+          "effect": "blood_mutate"
         },
         {
-          "label": "👑 [공허(Void)의 유물] 덱에 [☠️심연의 저주] 카드 1장 추가 ➔ 마법 유물 1개 획득",
-          "effect": "cursed_relic"
+          "label": "🚶 전설의 저주를 피해 후퇴 — HP +8 회복",
+          "effect": "safe_leave"
         }
       ]
     },
     {
-      "id": "illithid_surgical_table",
-      "title": "🐙 [생체 개조] 버려진 일리시드 연금술 실험실",
-      "desc": "마인드 플레이어들이 사용하던 기괴한 수술대와 변이 물약들이 놓여 있습니다.",
+      "id": "ancient_training_dummy",
+      "title": "🥋 언더마운틴 고대 무투장",
+      "desc": "마법으로 움직이는 자동 인형이 모험가의 전투 기술을 시험하려 합니다.",
       "choices": [
         {
-          "label": "🧪 [변이 영약 섭취] 체력 -10 소모 ➔ 무작위 물약 1개 획득 및 경험치 +60 EXP",
-          "effect": "potion_and_exp"
+          "label": "⚔️ 대련에 응한다 — HP -10, SP +1 & 무작위 카드 1장 강화(+)",
+          "effect": "spar_for_sp"
         },
         {
-          "label": "🗑️ [정신 세척 장치] 50 GP 지불 ➔ 덱에서 원하는 카드 1장 영구 제거",
-          "effect": "event_paid_remove"
+          "label": "👁️ 동작을 관찰하며 연구 — EXP +65",
+          "effect": "gain_small_exp"
         },
         {
-          "label": "🚶 [무시하고 지나간다] 아무 일도 일어나지 않고 체력을 +6 소량 회복합니다",
+          "label": "🚶 휴식을 취하며 지나가기 — HP +10 회복",
+          "effect": "heal_medium"
+        }
+      ]
+    },
+    {
+      "id": "cursed_fountain",
+      "title": "⛲ 피와 황금의 분수",
+      "desc": "두 갈래로 나뉜 신비한 분수에서 붉은 생명수와 황금 액체가 흐릅니다.",
+      "choices": [
+        {
+          "label": "❤️ 생명수를 마신다 — HP 30% 회복 (단, 50 GP 소모)",
+          "effect": "paid_heal_30"
+        },
+        {
+          "label": "🪙 황금 액체를 담는다 — +80 GP (HP -10)",
+          "effect": "blood_for_gold"
+        },
+        {
+          "label": "🚶 손을 씻고 지나간다 — HP +6 회복",
+          "effect": "safe_leave"
+        }
+      ]
+    },
+    {
+      "id": "celestial_librarian",
+      "title": "📚 천상의 서기관 아스트랄 도서관",
+      "desc": "별빛이 흐르는 서고에서 고대의 고급/희귀 주문서를 열람할 수 있습니다.",
+      "choices": [
+        {
+          "label": "📖 비전 서적 필사 — 고급/희귀/전설 카드 보상 1회 즉시 선택! (HP -8)",
+          "effect": "hp_for_rare_draft"
+        },
+        {
+          "label": "🗑️ 불필요한 기초 주문서 소각 — 덱의 일반 카드 1장 무료 제거",
+          "effect": "free_cleanse_card"
+        },
+        {
+          "label": "💎 등반 마석 +90 & EXP +40 획득",
+          "effect": "gain_gems_exp"
+        }
+      ]
+    },
+    {
+      "id": "githyanki_astral_cache",
+      "title": "🌠 기스양키 아스트랄 보급소",
+      "desc": "차원 이동 중 버려진 은검 부대의 비상 보급 상자를 발견했습니다.",
+      "choices": [
+        {
+          "label": "🎲 [D20 생존 판정 DC 11] 성공 시 물약 1개 + 70 GP / 실패 시 HP -10",
+          "effect": "d20_astral_supply"
+        },
+        {
+          "label": "⚒️ 은검 숫돌로 카드 연마 — 무작위 카드 1장 무료 강화(+)",
+          "effect": "free_upgrade_one"
+        },
+        {
+          "label": "🚶 조용히 지나가기 — HP +8 회복",
           "effect": "safe_leave"
         }
       ]

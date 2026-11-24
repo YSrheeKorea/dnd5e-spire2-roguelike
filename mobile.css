@@ -340,3 +340,29 @@ body.mobile-edition {
   padding: 16px;
   max-height: 86dvh;
 }
+
+
+/* Mobile V2 Responsive Overrides for Branching Map, Continue Banner & Toasts */
+.mobile-edition .toast-container {
+  top: auto;
+  bottom: 70px;
+  left: 10px;
+  right: 10px;
+  max-width: none;
+}
+.mobile-edition .continue-run-banner {
+  padding: 10px 12px;
+  gap: 8px;
+}
+.mobile-edition .continue-run-info {
+  font-size: 0.78rem;
+}
+.mobile-edition .map-floor-row.branch-row .floor-nodes-group {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.mobile-edition .map-floor-row.branch-row .map-node-btn {
+  font-size: 0.72rem;
+  padding: 8px 4px;
+  text-align: center;
+}

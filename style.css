@@ -1672,3 +1672,215 @@ body {
   color: #ffeaa7;
   font-family: inherit;
 }
+
+
+/* ==========================================================================
+   V2 UPGRADES: CONTINUE BANNER, BRANCHING MAP, TOASTS, D20 MODAL, VFX, PREVIEW
+   ========================================================================== */
+.continue-run-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 18px;
+  margin-bottom: 14px;
+  background: linear-gradient(135deg, rgba(16, 42, 66, 0.92), rgba(20, 28, 48, 0.95));
+  border: 1.5px solid #00d2d3;
+  border-radius: 14px;
+  box-shadow: 0 6px 22px rgba(0, 210, 211, 0.18);
+  flex-wrap: wrap;
+}
+.continue-run-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 0.88rem;
+  color: #dfe6e9;
+}
+.continue-tag {
+  background: rgba(0, 210, 211, 0.2);
+  border: 1px solid #00d2d3;
+  color: #55efc4;
+  padding: 3px 9px;
+  border-radius: 99px;
+  font-weight: 800;
+  font-size: 0.74rem;
+}
+.continue-run-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Branching Spire Map Lanes */
+.map-floor-row.branch-row .floor-nodes-group {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.map-node-btn.locked-lane {
+  opacity: 0.34;
+  border-style: dashed;
+  cursor: not-allowed;
+}
+.map-node-btn.skipped-lane {
+  opacity: 0.22;
+}
+.map-node-btn.node-type-elite.available {
+  border-color: #ff6b81;
+  background: linear-gradient(135deg, rgba(192, 57, 43, 0.32), rgba(32, 16, 26, 0.9));
+}
+.map-node-btn.node-type-shop.available {
+  border-color: #f6c967;
+  background: linear-gradient(135deg, rgba(241, 196, 15, 0.24), rgba(30, 26, 14, 0.9));
+}
+.map-node-btn.node-type-rest.available {
+  border-color: #ff9f43;
+  background: linear-gradient(135deg, rgba(230, 126, 34, 0.26), rgba(34, 22, 14, 0.9));
+}
+.map-node-btn.node-type-event.available {
+  border-color: #a29bfe;
+  background: linear-gradient(135deg, rgba(108, 92, 231, 0.28), rgba(22, 18, 42, 0.9));
+}
+
+/* Class-Exclusive Event Choice Highlight */
+.event-choice-btn.class-exclusive-choice {
+  border-color: #f6c967;
+  background: linear-gradient(135deg, rgba(246, 201, 103, 0.22), rgba(24, 22, 38, 0.94));
+  box-shadow: 0 0 14px rgba(246, 201, 103, 0.22);
+}
+
+/* Discounted Upgrade Cost & Upgrade Preview Pill */
+.card-cost-orb.cost-discounted {
+  background: linear-gradient(135deg, #2ed573, #1e8449);
+  border-color: #b8e994;
+}
+.upgrade-preview-pill {
+  margin-top: 6px;
+  padding: 4px 6px;
+  border-radius: 7px;
+  background: rgba(46, 213, 115, 0.16);
+  border: 1px solid rgba(46, 213, 115, 0.55);
+  color: #7bed9f;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-align: center;
+  line-height: 1.25;
+}
+.rest-skip-card {
+  opacity: 0.85;
+  border-style: dashed !important;
+}
+
+/* Non-Blocking Toast Notifications */
+.toast-container {
+  position: fixed;
+  top: 72px;
+  right: 18px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 380px;
+  pointer-events: none;
+}
+.game-toast {
+  padding: 11px 16px;
+  border-radius: 11px;
+  background: rgba(18, 24, 38, 0.96);
+  border: 1.5px solid rgba(116, 185, 255, 0.55);
+  color: #f1f2f6;
+  font-size: 0.84rem;
+  font-weight: 700;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.55);
+  animation: toastSlideIn 0.22s ease;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.game-toast.toast-success { border-color: #2ed573; color: #b8e994; }
+.game-toast.toast-warn { border-color: #ffa502; color: #ffeaa7; }
+.game-toast.toast-danger { border-color: #ff4757; color: #ffcccc; }
+.game-toast.toast-fade-out { opacity: 0; transform: translateX(20px); }
+@keyframes toastSlideIn {
+  from { opacity: 0; transform: translateY(-10px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* D20 Fate Roll Modal */
+.d20-modal-box {
+  max-width: 440px;
+  text-align: center;
+}
+.d20-die-stage {
+  display: flex;
+  justify-content: center;
+  margin: 18px 0 12px;
+}
+.d20-die-face {
+  width: 96px;
+  height: 96px;
+  clip-path: polygon(50% 0%, 95% 25%, 95% 75%, 50% 100%, 5% 75%, 5% 25%);
+  background: linear-gradient(135deg, #2d3436, #0c1220);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.3rem;
+  font-weight: 900;
+  color: #fff;
+  box-shadow: 0 0 28px rgba(246, 201, 103, 0.35);
+  animation: d20SpinPop 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.d20-die-face.roll-pass, .d20-die-face.nat20 {
+  background: linear-gradient(135deg, #2ed573, #145a32);
+}
+.d20-die-face.roll-fail, .d20-die-face.nat1 {
+  background: linear-gradient(135deg, #eb3b5a, #641e16);
+}
+.d20-dc-badge {
+  font-size: 1rem;
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+.d20-outcome-desc {
+  font-size: 0.9rem;
+  color: #dfe6e9;
+  line-height: 1.5;
+}
+@keyframes d20SpinPop {
+  0% { transform: rotate(-160deg) scale(0.45); opacity: 0.2; }
+  70% { transform: rotate(10deg) scale(1.12); opacity: 1; }
+  100% { transform: rotate(0deg) scale(1); opacity: 1; }
+}
+
+/* Floating Combat VFX & Unit Hit Shake */
+.unit-card {
+  position: relative;
+}
+.floating-vfx {
+  position: absolute;
+  top: 14px;
+  z-index: 40;
+  font-size: 1.25rem;
+  font-weight: 900;
+  pointer-events: none;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.95);
+  animation: floatUpFade 0.85s ease-out forwards;
+}
+.floating-vfx.vfx-dmg { color: #ff6b81; }
+.floating-vfx.vfx-crit { color: #f6c967; font-size: 1.55rem; }
+.floating-vfx.vfx-block { color: #74b9ff; font-size: 1.05rem; }
+.floating-vfx.vfx-doom { color: #e056fd; font-size: 1.35rem; }
+@keyframes floatUpFade {
+  0% { opacity: 1; transform: translate(-50%, 0) scale(0.9); }
+  25% { opacity: 1; transform: translate(-50%, -14px) scale(1.15); }
+  100% { opacity: 0; transform: translate(-50%, -44px) scale(0.95); }
+}
+.unit-hit-shake {
+  animation: unitHitShake 0.26s ease;
+}
+@keyframes unitHitShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  50% { transform: translateX(6px); }
+  75% { transform: translateX(-4px); }
+}

@@ -119,6 +119,14 @@ const Game = {
     };
 
     // 1. Top-priority Modals
+    if (isVisible('modal-d20')) {
+      if (key === 'Enter' || key === ' ' || key === 'Escape') {
+        e.preventDefault();
+        this.closeD20Modal();
+      }
+      return;
+    }
+
     if (isVisible('modal-gameover')) {
       if (key === 'Enter' || key === ' ' || key === 'Escape') {
         e.preventDefault();
@@ -230,13 +238,15 @@ const Game = {
       return;
     }
 
-    // --- MAP SCREEN ---
+    // --- MAP SCREEN (1/2/3 selects available branch lanes!) ---
     if (isActiveScreen('screen-map')) {
-      if (key === 'Enter' || key === ' ' || key === '1') {
-        const curBtn = document.querySelector('#current-stage-row .map-node-btn.available');
-        if (curBtn) {
+      if (key === 'Enter' || key === ' ' || (key >= '1' && key <= '3')) {
+        const availBtns = document.querySelectorAll('#current-stage-row .map-node-btn.available');
+        const idx = key >= '1' && key <= '3' ? parseInt(key, 10) - 1 : 0;
+        const targetBtn = availBtns[idx] || availBtns[0];
+        if (targetBtn) {
           e.preventDefault();
-          curBtn.click();
+          targetBtn.click();
         }
       }
       return;
@@ -314,6 +324,9 @@ const Game = {
       } else if (key === '3') {
         e.preventDefault();
         this.openUpgradeModal(true);
+      } else if (key === '4' || key === 'Escape') {
+        e.preventDefault();
+        this.skipRest();
       }
       return;
     }
@@ -376,6 +389,137 @@ const Game = {
     this.updateTopHud();
   },
 
+  // Active Run Auto-Save & Continue (PC <-> Mobile shared localStorage!)
+  saveRun() {
+    if (!this.run) return;
+    try {
+      localStorage.setItem('DND5E_SPIRE_2_ACTIVE_RUN', JSON.stringify(this.run));
+    } catch (e) { }
+  },
+
+  loadSavedRun() {
+    try {
+      const raw = localStorage.getItem('DND5E_SPIRE_2_ACTIVE_RUN');
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.charId && GAME_DATA.characters[parsed.charId] && parsed.hp > 0) {
+        return parsed;
+      }
+    } catch (e) { }
+    return null;
+  },
+
+  clearSavedRun() {
+    try {
+      localStorage.removeItem('DND5E_SPIRE_2_ACTIVE_RUN');
+    } catch (e) { }
+  },
+
+  continueSavedRun() {
+    const saved = this.loadSavedRun();
+    if (!saved) {
+      this.showToast('불러올 진행 중인 모험 데이터가 없습니다.', 'warn');
+      return;
+    }
+    this.run = saved;
+    this.combat = null;
+    if (!this.run.actMap) this.run.actMap = this.generate30StageActMap(this.run.act || 1);
+    this.switchScreen('screen-map');
+    this.renderMap();
+    this.showToast(`🔄 저장된 모험 복원! 제${this.run.act}계층 Stage ${this.run.stage}/15에서 이어갑니다.`, 'success');
+  },
+
+  abandonSavedRun() {
+    this.clearSavedRun();
+    if (this.run) {
+      this.run = null;
+      this.combat = null;
+    }
+    this.renderHub();
+    this.updateTopHud();
+    this.showToast('저장된 모험을 포기했습니다. 새 등반을 시작할 수 있습니다.', 'info');
+  },
+
+  // In-Game Non-Blocking Toast Notification (Replaces all browser alert() popups!)
+  showToast(msg, type = 'info') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    const toast = document.createElement('div');
+    toast.className = `game-toast toast-${type}`;
+    toast.textContent = msg;
+    container.appendChild(toast);
+    while (container.children.length > 4) {
+      container.removeChild(container.firstChild);
+    }
+    setTimeout(() => {
+      toast.classList.add('toast-fade-out');
+      setTimeout(() => {
+        if (toast.parentNode) toast.parentNode.removeChild(toast);
+      }, 320);
+    }, 3200);
+  },
+
+  // D20 Dice Roll Result Modal (Replaces alert() for D&D fate checks!)
+  showD20Modal(roll, dc, title, outcomeText, isSuccess, onClose = null) {
+    this._d20OnClose = onClose;
+    const modal = document.getElementById('modal-d20');
+    if (!modal) {
+      this.showToast(`🎲 D20 [${roll}] ${outcomeText}`, isSuccess ? 'success' : 'danger');
+      if (onClose) onClose();
+      return;
+    }
+    const titleEl = document.getElementById('d20-modal-title');
+    const dieEl = document.getElementById('d20-die-number');
+    const dcEl = document.getElementById('d20-dc-badge');
+    const descEl = document.getElementById('d20-outcome-desc');
+    if (titleEl) titleEl.textContent = title;
+    if (dieEl) {
+      dieEl.textContent = String(roll);
+      dieEl.className = `d20-die-face ${roll === 20 ? 'nat20' : roll === 1 ? 'nat1' : isSuccess ? 'roll-pass' : 'roll-fail'}`;
+    }
+    if (dcEl) {
+      dcEl.textContent = dc > 0
+        ? `DC ${dc} — ${roll === 20 ? '대성공 (NAT 20)!' : roll === 1 ? '대실패 (NAT 1)!' : isSuccess ? '판정 성공 ✔' : '판정 실패 ✖'}`
+        : `운명의 결과: [${roll}]`;
+      dcEl.style.color = isSuccess ? '#2ed573' : '#ff6b81';
+    }
+    if (descEl) descEl.textContent = outcomeText;
+    modal.classList.remove('hidden');
+  },
+
+  closeD20Modal() {
+    const modal = document.getElementById('modal-d20');
+    if (modal) modal.classList.add('hidden');
+    const cb = this._d20OnClose;
+    this._d20OnClose = null;
+    if (cb) cb();
+  },
+
+  // Floating Combat VFX & Hit Shake
+  spawnFloatingVfx(targetType, text, colorClass = 'vfx-dmg', enemyIdx = 0) {
+    let host = null;
+    if (targetType === 'player') {
+      host = document.getElementById('player-unit-card');
+    } else {
+      const enCards = document.querySelectorAll('#enemies-zone .enemy-unit');
+      host = enCards[enemyIdx] || enCards[0];
+    }
+    if (!host) return;
+    const pop = document.createElement('div');
+    pop.className = `floating-vfx ${colorClass}`;
+    pop.textContent = text;
+    pop.style.left = `${35 + Math.floor(Math.random() * 30)}%`;
+    host.appendChild(pop);
+    if (colorClass === 'vfx-dmg' || colorClass === 'vfx-crit' || colorClass === 'vfx-doom') {
+      host.classList.remove('unit-hit-shake');
+      void host.offsetWidth;
+      host.classList.add('unit-hit-shake');
+    }
+    setTimeout(() => {
+      if (pop.parentNode) pop.parentNode.removeChild(pop);
+    }, 900);
+  },
+
   switchScreen(screenId) {
     document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
     const target = document.getElementById(screenId);
@@ -384,6 +528,9 @@ const Game = {
   },
 
   showHub() {
+    if (this.run && this.run.hp > 0) {
+      this.saveRun();
+    }
     this.switchScreen('screen-hub');
     this.renderHub();
   },
@@ -498,6 +645,30 @@ const Game = {
     const bestRecEl = document.getElementById('hub-best-record');
     if (bestRecEl) {
       bestRecEl.textContent = `제${this.meta.bestAct || 1}층 - Stage ${this.meta.bestStage || 1} / 15 (총 ${this.meta.totalClimbs || 0}회 등반)`;
+    }
+
+    // Show Continue Saved Run Banner if an active run exists!
+    const contBanner = document.getElementById('continue-run-banner');
+    if (contBanner) {
+      const savedRun = this.loadSavedRun();
+      if (savedRun) {
+        const sch = GAME_DATA.characters[savedRun.charId];
+        contBanner.classList.remove('hidden');
+        contBanner.innerHTML = `
+          <div class="continue-run-info">
+            <span class="continue-tag">💾 자동 저장된 모험</span>
+            <strong>${sch ? sch.name : savedRun.charId}</strong>
+            <span>· 제${savedRun.act}계층 Stage ${savedRun.stage}/15 · ❤️ ${savedRun.hp}/${savedRun.maxHp} · 🪙 ${savedRun.gold} GP · 🎴 ${savedRun.deck.length}장</span>
+          </div>
+          <div class="continue-run-actions">
+            <button class="btn-primary" onclick="Game.continueSavedRun()">🔄 모험 이어하기</button>
+            <button class="hud-btn danger-btn" onclick="Game.abandonSavedRun()">🗑️ 포기</button>
+          </div>
+        `;
+      } else {
+        contBanner.classList.add('hidden');
+        contBanner.innerHTML = '';
+      }
     }
 
     Object.values(GAME_DATA.characters).forEach(ch => {
@@ -655,13 +826,14 @@ const Game = {
     const curLv = this.meta.levels[charId] || 1;
     const cost = curLv * 50;
     if (this.meta.gems < cost) {
-      alert(`등반 마석이 부족합니다! (필요: ${cost}, 보유: ${this.meta.gems})\n첨탑을 등반해 몬스터와 보스를 토벌하면 마석을 획득할 수 있습니다.`);
+      this.showToast(`등반 마석이 부족합니다! (필요: 💎${cost}, 보유: 💎${this.meta.gems})`, 'warn');
       return;
     }
     this.meta.gems -= cost;
     this.meta.levels[charId] = curLv + 1;
     this.saveMeta();
     this.renderHub();
+    this.showToast(`⬆️ [${GAME_DATA.characters[charId].name}] Lv.${curLv + 1} 훈련 완료!`, 'success');
   },
 
   promoteHunterRank(charId) {
@@ -672,7 +844,7 @@ const Game = {
 
     const gemCost = curRank === 'C' ? 120 : curRank === 'B' ? 220 : 350;
     if (this.meta.gems < gemCost) {
-      alert(`승급에 필요한 등반 마석이 부족합니다!\n필요: 💎 ${gemCost} 마석 (보유: ${this.meta.gems})\n첨탑을 등반해 스테이지를 돌파하여 마석을 모으세요!`);
+      this.showToast(`승급 마석 부족! 필요: 💎${gemCost} (보유: 💎${this.meta.gems})`, 'warn');
       return;
     }
 
@@ -680,7 +852,7 @@ const Game = {
     this.meta.ranks[charId] = nextRank;
     this.saveMeta();
     this.renderHub();
-    alert(`🌟 축하합니다! [${GAME_DATA.characters[charId].name}] 클래스가 [${GAME_DATA.rankNames[nextRank]}] 등급으로 승급했습니다!\n(${GAME_DATA.rankBonuses[nextRank].desc})`);
+    this.showToast(`🌟 [${GAME_DATA.characters[charId].name}] ${GAME_DATA.rankNames[nextRank]} 승급 완료!`, 'success');
   },
 
   // --------------------------------------------------------------------------
@@ -775,7 +947,7 @@ const Game = {
   unlockGear(gearId) {
     const item = GAME_DATA.equipment[gearId];
     if (this.meta.gems < item.unlockCost) {
-      alert('마석이 부족합니다!');
+      this.showToast(`마석이 부족합니다! (필요: 💎${item.unlockCost})`, 'warn');
       return;
     }
     this.meta.gems -= item.unlockCost;
@@ -784,6 +956,7 @@ const Game = {
     this.meta.equipped[item.slot] = gearId;
     this.saveMeta();
     this.renderGearModal();
+    this.showToast(`🔓 [${item.name}] 해금 및 장착 완료!`, 'success');
   },
 
   equipGear(gearId) {
@@ -798,13 +971,14 @@ const Game = {
     if (lv >= 10) return;
     const cost = (lv + 1) * 60;
     if (this.meta.gems < cost) {
-      alert('마석이 부족합니다!');
+      this.showToast(`마석이 부족합니다! (필요: 💎${cost})`, 'warn');
       return;
     }
     this.meta.gems -= cost;
     this.meta.gearLevels[gearId] = lv + 1;
     this.saveMeta();
     this.renderGearModal();
+    this.showToast(`⚒️ [${GAME_DATA.equipment[gearId].name}] +${lv + 1} 강화 성공!`, 'success');
   },
 
   openMasteryModal() {
@@ -850,13 +1024,14 @@ const Game = {
     if (lv >= m.maxLv) return;
     const cost = m.baseCost * (lv + 1);
     if (this.meta.gems < cost) {
-      alert('마석이 부족합니다!');
+      this.showToast(`마석이 부족합니다! (필요: 💎${cost})`, 'warn');
       return;
     }
     this.meta.gems -= cost;
     this.meta.masteryLevels[mId] = lv + 1;
     this.saveMeta();
     this.renderMasteryModal();
+    this.showToast(`📜 [${m.name}] Lv.${lv + 1} 습득!`, 'success');
   },
 
   // --------------------------------------------------------------------------
@@ -977,9 +1152,11 @@ const Game = {
       shopRemoveCount: 0,
       shopMutateCount: 0,
       currentShopState: null,
+      seenEvents: [],
       actMap: null
     };
     this.run.actMap = this.generate30StageActMap(1);
+    this.saveRun();
 
     this.switchScreen('screen-map');
     this.renderMap();
@@ -1028,15 +1205,14 @@ const Game = {
         this.run.relics.push(picked.id);
       }
     }
+    this.saveRun();
     this.switchScreen('screen-map');
     this.renderMap();
   },
 
-  // Generates 15 Stages per Act (Slay the Spire Standard Pacing!):
-  // - Normal Combats: 5~6 per floor
-  // - Elites / Midboss: 2 per floor (Stage 8 Midboss + 1 random Elite)
-  // - Events (?), Shop, Campfire Rest, Treasure Chest: 6~7 per floor
-  // - Act Boss: Stage 15
+  // Generates Slay the Spire Branching 15-Stage Act Map (2~3 Lanes per Stage!):
+  // - Stage 1 (Start Combat), Stage 8 (Midboss), Stage 9 (Treasure), Stage 14 (Rest), Stage 15 (Boss) are convergence nodes
+  // - Stages 2~7 & 10~13 branch into 2~3 connected lanes (Combat / Event / Elite / Shop / Rest)
   generate30StageActMap(actNum) {
     const stages = [];
     const bossId = this.run && this.run.selectedBosses ? this.run.selectedBosses[actNum] : GAME_DATA.acts[actNum - 1].bossPool[0];
@@ -1045,71 +1221,52 @@ const Game = {
     const bossObj = GAME_DATA.enemies[bossId];
     const midObj = GAME_DATA.enemies[midBossId];
 
-    const shopStage = Math.random() < 0.5 ? 5 : 11;
-    const earlyRestStage = 6;
-    const eliteStage = shopStage === 5 ? 11 : 12;
-
-    const makeNode = (s, type) => {
-      if (type === 'boss') {
-        return { id: `a${actNum}_s${s}_boss`, type, label: `👑 [15F 계층 보스] ${bossObj ? bossObj.name : '계층 지배자'}` };
-      }
-      if (type === 'midboss') {
-        return { id: `a${actNum}_s${s}_midboss`, type, label: `🩸 [8F 중간 보스] ${midObj ? midObj.name : '계층 수문장'}` };
-      }
-      if (type === 'treasure') {
-        return { id: `a${actNum}_s${s}_treasure`, type, label: `🎁 [9F 고대 보물상자] 마법 유물 & 금화 획득` };
-      }
-      if (type === 'rest') {
-        return { id: `a${actNum}_s${s}_rest`, type, label: `🔥 [모닥불 휴식처] 긴 휴식(30% 회복) 또는 카드 단련(+)` };
-      }
-      if (type === 'shop') {
-        return { id: `a${actNum}_s${s}_shop`, type, label: `💰 [방랑 마법 상점] 주문서 · 유물 · 물약 · 카드 제거` };
-      }
-      if (type === 'elite') {
-        return { id: `a${actNum}_s${s}_elite`, type, label: `👹 [엘리트 강적] 위험 전투 — 처치 시 마법 유물 & 대량 EXP` };
-      }
-      if (type === 'event') {
-        return { id: `a${actNum}_s${s}_event`, type, label: `❓ [미지의 방] D20 운명 판정 & 하이리스크 거래 이벤트` };
-      }
-      return { id: `a${actNum}_s${s}_combat`, type: 'combat', label: `⚔️ [몬스터 교전] 미궁 수호 몬스터와 전투` };
+    const makeNode = (s, lane, type) => {
+      const id = `a${actNum}_s${s}_l${lane}_${type}`;
+      if (type === 'boss') return { id, lane, type, label: `👑 [15F 계층 보스] ${bossObj ? bossObj.name : '계층 지배자'}` };
+      if (type === 'midboss') return { id, lane, type, label: `🩸 [8F 중간 보스] ${midObj ? midObj.name : '계층 수문장'}` };
+      if (type === 'treasure') return { id, lane, type, label: `🎁 [9F 고대 보물상자] 유물 & 금화` };
+      if (type === 'rest') return { id, lane, type, label: `🔥 모닥불 휴식` };
+      if (type === 'shop') return { id, lane, type, label: `💰 마법 상점` };
+      if (type === 'elite') return { id, lane, type, label: `👹 엘리트 강적` };
+      if (type === 'event') return { id, lane, type, label: `❓ 미지의 방(D20)` };
+      return { id, lane, type: 'combat', label: `⚔️ 몬스터 전투` };
     };
 
-    let combatCount = 0;
-    for (let s = 1; s <= 15; s++) {
-      let type = 'combat';
+    const pickBranchTypes = s => {
+      if (s === 2) return ['combat', 'event', 'combat'];
+      if (s === 3) return ['event', 'combat', 'shop'];
+      if (s === 4) return ['combat', 'event', 'combat'];
+      if (s === 5) return ['shop', 'combat', 'event'];
+      if (s === 6) return ['rest', 'elite', 'rest'];
+      if (s === 7) return ['combat', 'event', 'combat'];
+      if (s === 10) return ['combat', 'event', 'shop'];
+      if (s === 11) return ['elite', 'combat', 'elite'];
+      if (s === 12) return ['event', 'rest', 'combat'];
+      if (s === 13) return ['combat', 'shop', 'event'];
+      return ['combat', 'event'];
+    };
 
-      if (s === 15) {
-        type = 'boss';
-      } else if (s === 14 || s === earlyRestStage) {
-        type = 'rest';
-      } else if (s === 9) {
-        type = 'treasure';
-      } else if (s === 8) {
-        type = 'midboss';
-      } else if (s === shopStage) {
-        type = 'shop';
-      } else if (s === eliteStage) {
-        type = 'elite';
-      } else if (s <= 2) {
-        // First 2 floors are warm-up normal combats (Slay the Spire Easy Pool)
-        type = 'combat';
-        combatCount += 1;
-      } else {
-        // Remaining 6 flexible slots (stages 3, 4, 5/11, 7, 10, 12/13): cap normal combats at 5~6 total!
-        if (combatCount >= 6) {
-          type = 'event';
-        } else if (s === 3 || s === 7 || (Math.random() < 0.48 && combatCount >= 4)) {
-          type = 'event';
-        } else {
-          type = 'combat';
-          combatCount += 1;
-        }
+    for (let s = 1; s <= 15; s++) {
+      let nodes = [];
+      if (s === 1) nodes = [makeNode(s, 1, 'combat')];
+      else if (s === 8) nodes = [makeNode(s, 1, 'midboss')];
+      else if (s === 9) nodes = [makeNode(s, 1, 'treasure')];
+      else if (s === 14) nodes = [makeNode(s, 1, 'rest')];
+      else if (s === 15) nodes = [makeNode(s, 1, 'boss')];
+      else {
+        const types = pickBranchTypes(s);
+        // Randomly permute the 3 lanes for roguelike map variety each run!
+        const shuffled = [...types];
+        this.shuffleArray(shuffled);
+        nodes = shuffled.map((t, idx) => makeNode(s, idx, t));
       }
 
       stages.push({
         stage: s,
         completed: false,
-        nodes: [makeNode(s, type)]
+        chosenNodeId: null,
+        nodes
       });
     }
     return stages;
@@ -1122,8 +1279,9 @@ const Game = {
     const currentBossObj = GAME_DATA.enemies[currentBossId];
 
     document.getElementById('map-act-title').textContent = `🏰 ${actInfo.name} (Stage ${this.run.stage} / 15)`;
-    document.getElementById('map-act-subtitle').innerHTML = `${actInfo.subtitle} — <strong style="color:#ff7675">15F 보스 예고: ${currentBossObj ? currentBossObj.name : ''
-      }</strong> | <span style="color:#f6c967">🎲 슬더스 표준 15스테이지 (전투 5~6회 + 엘리트/이벤트/상점/휴식/보물/보스)</span>`;
+    document.getElementById('map-act-subtitle').innerHTML = `${actInfo.subtitle} — <strong style="color:#ff7675">15F 보스 예고: ${
+      currentBossObj ? currentBossObj.name : ''
+    }</strong> | <span style="color:#f6c967">🗺️ 슬더스 분기 지도: 이전 경로와 연결된 갈림길(인접 레인) 중 원하는 루트를 선택하세요!</span>`;
 
     const spCountEl = document.getElementById('map-sp-count');
     if (spCountEl) spCountEl.textContent = this.run.sp;
@@ -1135,7 +1293,7 @@ const Game = {
         const cls = a.act === this.run.act ? 'active-act' : a.act < this.run.act ? 'cleared-act' : '';
         return `
           <div class="act-pill ${cls}">
-            ${a.act < this.run.act ? '✔ ' : a.act === this.run.act ? '📍 ' : ''}제${a.act}계층 (15 스테이지)
+            ${a.act < this.run.act ? '✔ ' : a.act === this.run.act ? '📍 ' : ''}제${a.act}계층 (15F)
           </div>
         `;
       })
@@ -1144,32 +1302,53 @@ const Game = {
     const wrap = document.getElementById('map-nodes-wrapper');
     wrap.innerHTML = '';
 
+    const curLane = this.run.currentLane;
+
     this.run.actMap.forEach(row => {
       const isCurrent = row.stage === this.run.stage;
       const rowEl = document.createElement('div');
-      rowEl.className = `map-floor-row ${isCurrent ? 'current-floor' : ''}`;
+      rowEl.className = `map-floor-row ${isCurrent ? 'current-floor' : ''} ${row.nodes.length > 1 ? 'branch-row' : 'converge-row'}`;
       if (isCurrent) rowEl.id = 'current-stage-row';
 
+      let availIdx = 0;
       const nodesHtml = row.nodes
         .map(n => {
-          const stateClass = isCurrent ? 'available' : row.completed ? 'completed' : '';
+          // A node is reachable on the current stage if:
+          // - single convergence node, OR curLane is null/1 (from convergence), OR |n.lane - curLane| <= 1
+          const isReachable =
+            isCurrent &&
+            (row.nodes.length === 1 || curLane === null || curLane === undefined || Math.abs(n.lane - curLane) <= 1);
+          const isChosenPast = row.completed && row.chosenNodeId === n.id;
+          let stateClass = '';
+          if (isReachable) {
+            stateClass = 'available';
+            availIdx += 1;
+          } else if (isCurrent) {
+            stateClass = 'locked-lane';
+          } else if (isChosenPast) {
+            stateClass = 'completed';
+          } else if (row.completed) {
+            stateClass = 'skipped-lane';
+          }
+          const kbdBadge = isReachable && row.nodes.length > 1 ? `<span class="kbd-hint">${availIdx}</span> ` : '';
+          const typeClass = `node-type-${n.type}`;
           return `
-            <button class="map-node-btn ${stateClass}" style="flex:1; justify-content:center;" ${isCurrent ? `onclick="Game.enterMapNode('${n.id}', '${n.type}')"` : ''
+            <button class="map-node-btn ${typeClass} ${stateClass}" style="flex:1; justify-content:center;" ${
+              isReachable ? `onclick="Game.enterMapNode('${n.id}', '${n.type}', ${n.lane})"` : 'disabled'
             }>
-              ${n.label}
+              ${kbdBadge}${n.label}${isChosenPast ? ' ✔' : ''}
             </button>
           `;
         })
         .join('');
 
       rowEl.innerHTML = `
-        <div class="floor-label">${this.run.act}층 - STAGE ${row.stage}/15</div>
+        <div class="floor-label">${this.run.act}층 · ${row.stage}F</div>
         <div class="floor-nodes-group">${nodesHtml}</div>
       `;
       wrap.appendChild(rowEl);
     });
 
-    // Auto-scroll to current stage row inside the 30-stage list
     setTimeout(() => {
       const curEl = document.getElementById('current-stage-row');
       if (curEl) curEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1178,7 +1357,13 @@ const Game = {
     this.updateTopHud();
   },
 
-  enterMapNode(nodeId, type) {
+  enterMapNode(nodeId, type, lane = 1) {
+    if (this.run) {
+      this.run.currentLane = lane;
+      const curRow = this.run.actMap && this.run.actMap.find(r => r.stage === this.run.stage);
+      if (curRow) curRow.chosenNodeId = nodeId;
+      this.saveRun();
+    }
     if (type === 'combat' || type === 'elite' || type === 'midboss' || type === 'boss') {
       this.startCombat(type);
     } else if (type === 'rest') {
@@ -1199,12 +1384,14 @@ const Game = {
     if (this.run.relics.includes('ectoplasm_slime')) goldBonus = 0;
     this.run.gold += goldBonus;
 
-    let msg = `🎁 [고대 보물상자 개방!]\n${relic ? `마법 유물 [${relic.icon} ${relic.name}] 획득!` : '유물 도감을 모두 수집했습니다!'}${goldBonus > 0 ? ` 및 금화 +${goldBonus} GP 획득!` : ''}`;
+    let msg = `🎁 고대 보물상자 개방! ${relic ? `[${relic.icon} ${relic.name}] 획득!` : '모든 유물 수집 완료!'}${
+      goldBonus > 0 ? ` (+${goldBonus} GP)` : ''
+    }`;
     if (this.run.relics.includes('cursed_key')) {
       this.run.deck.push(this.createCardInstance('curse_pain'));
-      msg += `\n⚠️ [🗝️ 저주받은 열쇠] 페널티 발동! 보물상자를 열어 덱에 [☠️ 심연의 저주] 카드가 1장 추가되었습니다!`;
+      msg += ` ⚠️ [저주받은 열쇠] 페널티로 심연의 저주 추가!`;
     }
-    alert(msg);
+    this.showToast(msg, 'success');
     this.leaveNodeToMap();
   },
 
@@ -1229,7 +1416,11 @@ const Game = {
 
     if (this.run.stage < this.run.stagesPerAct) {
       this.run.stage += 1;
+      // Reset lane to center when arriving at a single-node convergence stage
+      const nextRow = this.run.actMap.find(r => r.stage === this.run.stage);
+      if (nextRow && nextRow.nodes.length === 1) this.run.currentLane = 1;
       this.recordTowerProgress();
+      this.saveRun();
       this.switchScreen('screen-map');
       this.renderMap();
     } else {
@@ -1237,14 +1428,15 @@ const Game = {
       if (this.run.act < this.run.maxActs) {
         this.run.act += 1;
         this.run.stage = 1;
+        this.run.currentLane = 1;
         this.recordTowerProgress();
-        // Heal 50% of missing HP between Acts
         const missingHp = this.run.maxHp - this.run.hp;
         this.run.hp = Math.min(this.run.maxHp, this.run.hp + Math.round(missingHp * 0.5));
         this.run.actMap = this.generate30StageActMap(this.run.act);
-        alert(
-          `🎉 제${this.run.act - 1}층(15 스테이지) 보스를 토벌했습니다!\n잃은 체력의 50%를 회복하며 다음 층 [${GAME_DATA.acts[this.run.act - 1].name
-          }] (Stage 1/15) 등반을 시작합니다!`
+        this.saveRun();
+        this.showToast(
+          `🎉 제${this.run.act - 1}층 보스 토벌! 잃은 체력 50% 회복 후 [${GAME_DATA.acts[this.run.act - 1].name}] 등반 개시!`,
+          'success'
         );
         this.switchScreen('screen-map');
         this.renderMap();
@@ -1519,7 +1711,7 @@ const Game = {
       }
       this.logCombat(`🧪 [${p.name}] 사용! 체력을 25 회복했습니다.`);
     } else if (!inCombat) {
-      alert('이 물약은 전투 중에만 사용할 수 있습니다!');
+      this.showToast('이 물약은 전투 중에만 사용할 수 있습니다!', 'warn');
       return;
     } else if (pid === 'fury_stim') {
       this.combat.player.strength += 3;
@@ -1876,6 +2068,27 @@ const Game = {
       this.combat.secondaryResource += 2;
     }
 
+    // 5 Previously Unimplemented Class Starter Relics (Now Active & STS2 Balanced!)
+    if (relics.includes('totem_necklace')) {
+      this.combat.player.strength += 1;
+      this.combat.secondaryResource += 1;
+    }
+    if (relics.includes('thieves_tools')) {
+      this.combat.enemies.forEach(en => this.applyDebuffToEnemy(en, 'poison', 1));
+    }
+    if (relics.includes('hunters_quiver')) {
+      this.combat.player.dexterity += 1;
+      this.combat.enemies.forEach(en => (en.quarry = (en.quarry || 0) + 1));
+    }
+    if (relics.includes('spellbook_of_mystra')) {
+      this.combat.secondaryResource += 1;
+      this.combat.player.block += 3;
+    }
+    if (relics.includes('holy_avenger_hilt')) {
+      this.combat.secondaryResource += 1;
+      this.combat.player.metallicize += 2;
+    }
+
     // Relics (Slay the Spire 1 Classic Relics)
     if (relics.includes('Geiger_counter')) this.combat.player.strength += 2;
     if (relics.includes('vajra_relic')) this.combat.player.strength += 1;
@@ -2065,6 +2278,8 @@ const Game = {
             : en.hp <= en.doom;
         if (canExecute) {
           en.hp = 0;
+          const eIdx = this.combat.enemies.indexOf(en);
+          this.spawnFloatingVfx('enemy', `💀 파멸 처형!`, 'vfx-doom', eIdx);
           this.logCombat(`💀 [파멸(Doom) 처형 발동!] ${en.name}이(가) 파멸(${en.doom})에 삼켜져 즉시 처형되었습니다!`);
           if (this.run.charId === 'warlock') {
             this.combat.energy += 1;
@@ -2119,6 +2334,7 @@ const Game = {
     let drawCount = 5;
     if (isFirstTurn) {
       if (this.run.charId === 'rogue') drawCount += 1;
+      if (this.run.relics.includes('thieves_tools')) drawCount += 1;
       if (this.run.relics.includes('rog_rank_b')) drawCount += 1;
       if (subId === 'thief' || subId === 'gloom_stalker' || subId === 'wild_magic') drawCount += 1;
       if (this.run.relics.includes('bag_of_prep')) drawCount += 2;
@@ -2237,6 +2453,17 @@ const Game = {
       .replace('{summonAtkBoost}', stats.summonAtkBoost);
   },
 
+  getCardBaseCost(cardInst) {
+    const tpl = GAME_DATA.cards[cardInst.id];
+    if (!tpl) return 0;
+    return cardInst.upgraded && tpl.upgradeCost !== undefined ? tpl.upgradeCost : tpl.cost;
+  },
+
+  getCardEffectiveCost(cardInst, inCombat = true) {
+    if (inCombat && this.combat && cardInst.tempCost !== undefined) return cardInst.tempCost;
+    return this.getCardBaseCost(cardInst);
+  },
+
   playCardFromHand(handIdx) {
     if (!this.combat) return;
     const cardInst = this.combat.hand[handIdx];
@@ -2249,7 +2476,7 @@ const Game = {
       return;
     }
 
-    const effectiveCost = cardInst.tempCost !== undefined ? cardInst.tempCost : tpl.cost;
+    const effectiveCost = this.getCardEffectiveCost(cardInst, true);
     if (this.combat.energy < effectiveCost) {
       this.logCombat('⚠️ 행동력(AP)이 부족합니다!');
       return;
@@ -2735,12 +2962,17 @@ const Game = {
     let dmg = rawDmg;
     if (!ignoreWeak && this.combat.player.weak > 0) dmg = Math.floor(dmg * 0.75);
     if (enemy.vuln > 0) dmg = Math.floor(dmg * 1.5);
+    const totalShown = dmg;
     if (enemy.block > 0) {
       const absorbed = Math.min(enemy.block, dmg);
       enemy.block -= absorbed;
       dmg -= absorbed;
     }
     enemy.hp = Math.max(0, enemy.hp - dmg);
+    if (totalShown > 0 && this.combat && this.combat.enemies) {
+      const eIdx = this.combat.enemies.indexOf(enemy);
+      this.spawnFloatingVfx('enemy', dmg > 0 ? `-${dmg}` : `🛡️막힘`, dmg >= 15 ? 'vfx-crit' : 'vfx-dmg', eIdx);
+    }
     // Slay the Spire Curl-Up mechanic (Louse / Cube / Rust Monster): first time taking HP damage, gains immediate block!
     if (dmg > 0 && enemy.hp > 0 && enemy.curlUp > 0) {
       enemy.block += enemy.curlUp;
@@ -2952,10 +3184,13 @@ const Game = {
     }
     if (remaining > 0) {
       this.run.hp = Math.max(0, this.run.hp - remaining);
+      this.spawnFloatingVfx('player', `-${remaining}`, 'vfx-dmg');
       // Barbarian gains +1 Rage whenever taking unblocked HP damage!
       if (this.run.charId === 'barbarian') {
         this.combat.secondaryResource += 1;
       }
+    } else if (dmg > 0) {
+      this.spawnFloatingVfx('player', `🛡️방어!`, 'vfx-block');
     }
   },
 
@@ -2975,6 +3210,12 @@ const Game = {
 
   handleCombatVictory() {
     const type = this.combat.encounterType;
+    // Clear any Snecko Eye tempCost mutations on run deck cards after combat
+    if (this.run && this.run.deck) {
+      this.run.deck.forEach(c => {
+        delete c.tempCost;
+      });
+    }
 
     let healAmt = this.run.permStats.healAfterCombat || 0;
     if (this.run.charId === 'fighter' || this.run.relics.includes('fighters_badge')) healAmt += 3;
@@ -3321,8 +3562,7 @@ const Game = {
     handEl.innerHTML = '';
     this.combat.hand.forEach((cardInst, idx) => {
       const cardEl = this.createCardElement(cardInst, () => this.playCardFromHand(idx));
-      const tpl = GAME_DATA.cards[cardInst.id];
-      const effectiveCost = cardInst.tempCost !== undefined ? cardInst.tempCost : tpl.cost;
+      const effectiveCost = this.getCardEffectiveCost(cardInst, true);
       if (this.combat.energy < effectiveCost) {
         cardEl.classList.add('unplayable');
       }
@@ -3385,11 +3625,12 @@ const Game = {
       }
     }
 
-    const shownCost = cardInst.tempCost !== undefined ? cardInst.tempCost : tpl.cost;
+    const shownCost = this.getCardEffectiveCost(cardInst, !!onClickFn && !!this.combat);
+    const isCostReduced = cardInst.upgraded && tpl.upgradeCost !== undefined && tpl.upgradeCost < tpl.cost;
     el.innerHTML = `
       <div>
         <div class="card-top-row">
-          <div class="card-cost-orb">${shownCost}</div>
+          <div class="card-cost-orb ${isCostReduced ? 'cost-discounted' : ''}">${shownCost}</div>
           <div class="card-badges-right">
             <span class="card-type-tag">${typeKor}</span>
             <span class="card-rarity-dot" style="color:${rInfo.color}">${rInfo.label}</span>
@@ -3579,22 +3820,48 @@ const Game = {
 
   doRestHeal() {
     if (this.run && this.run.relics.includes('coffee_dripper')) {
-      alert('☕ [드워프 커피 드리퍼] 보스 유물 페널티로 인해 모닥불에서 휴식(체력 회복)을 할 수 없습니다! 카드 단련(+)을 선택하세요.');
+      this.showToast('☕ [드워프 커피 드리퍼] 페널티로 휴식 불가! 카드 단련(+) 또는 지나가기를 선택하세요.', 'warn');
       return;
     }
-    // Slay the Spire 1 Campfire Rest: Heal 30% of Max HP (no free EXP)
     const heal = Math.round(this.run.maxHp * 0.3);
     this.run.hp = Math.min(this.run.maxHp, this.run.hp + heal);
+    this.showToast(`❤️‍🩹 긴 휴식 완료! 체력을 +${heal} 회복했습니다.`, 'success');
+    this.leaveNodeToMap();
+  },
+
+  skipRest() {
+    this.showToast('🔥 모닥불을 뒤로하고 다음 스테이지로 전진합니다.', 'info');
     this.leaveNodeToMap();
   },
 
   openUpgradeModal(isMutation = false) {
     if (this.run && this.run.relics.includes('fusion_hammer')) {
-      alert('🔨 [융합 해머] 보스 유물 페널티로 인해 모닥불에서 카드 단련(강화)을 할 수 없습니다! 긴 휴식을 선택하세요.');
+      this.showToast('🔨 [융합 해머] 페널티로 모닥불 강화 불가! 긴 휴식 또는 지나가기를 선택하세요.', 'warn');
       return;
     }
     this.deckModalMode = isMutation ? 'mutate' : 'upgrade';
     this.openDeckModal(this.deckModalMode);
+  },
+
+  // Compute human-readable Upgrade Preview ("피해 6→9 · 코스트 2→1") for Before->After UI!
+  getUpgradePreviewText(cardInst) {
+    const tpl = GAME_DATA.cards[cardInst.id];
+    if (!tpl || cardInst.upgraded) return '이미 강화(+) 완료';
+    const diffs = [];
+    if (tpl.upgradeCost !== undefined && tpl.upgradeCost !== tpl.cost) diffs.push(`⚡코스트 ${tpl.cost}→${tpl.upgradeCost}`);
+    if (tpl.upgradeDamage !== undefined && tpl.upgradeDamage !== tpl.damage) diffs.push(`⚔️피해 ${tpl.damage}→${tpl.upgradeDamage}`);
+    if (tpl.upgradeBlock !== undefined && tpl.upgradeBlock !== tpl.block) diffs.push(`🛡️방어 ${tpl.block}→${tpl.upgradeBlock}`);
+    if (tpl.upgradePoison !== undefined && tpl.upgradePoison !== tpl.poison) diffs.push(`🧪중독/화상 ${tpl.poison}→${tpl.upgradePoison}`);
+    if (tpl.upgradeVuln !== undefined && tpl.upgradeVuln !== tpl.vuln) diffs.push(`💔취약 ${tpl.vuln}→${tpl.upgradeVuln}`);
+    if (tpl.upgradeWeak !== undefined && tpl.upgradeWeak !== tpl.weak) diffs.push(`💫약화 ${tpl.weak}→${tpl.upgradeWeak}`);
+    if (tpl.upgradeStrength !== undefined && tpl.upgradeStrength !== tpl.strength) diffs.push(`💪힘 ${tpl.strength}→${tpl.upgradeStrength}`);
+    if (tpl.upgradeDexterity !== undefined && tpl.upgradeDexterity !== tpl.dexterity) diffs.push(`🦶민첩 ${tpl.dexterity}→${tpl.upgradeDexterity}`);
+    if (tpl.upgradeDraw !== undefined && tpl.upgradeDraw !== tpl.draw) diffs.push(`🃏드로우 ${tpl.draw}→${tpl.upgradeDraw}`);
+    if (tpl.upgradeSummonHeal !== undefined && tpl.upgradeSummonHeal !== tpl.summonHeal) diffs.push(`🐾소환체력 ${tpl.summonHeal}→${tpl.upgradeSummonHeal}`);
+    if (tpl.upgradeSummonAtkBoost !== undefined && tpl.upgradeSummonAtkBoost !== tpl.summonAtkBoost) diffs.push(`🐾소환공격 ${tpl.summonAtkBoost}→${tpl.upgradeSummonAtkBoost}`);
+    if (tpl.doom) diffs.push(`💀파멸 +${tpl.doom}→+${tpl.doom + 2}`);
+    if (tpl.doomAll) diffs.push(`💀전체파멸 +${tpl.doomAll}→+${tpl.doomAll + 3}`);
+    return diffs.length > 0 ? diffs.join(' · ') : '✨ 강화(+) 적용';
   },
 
   getShopRemoveCost() {
@@ -3610,12 +3877,12 @@ const Game = {
   openRemoveCardModal() {
     if (!this.run) return;
     if (this.run.currentShopState && this.run.currentShopState.removedUsed) {
-      alert('이 상점에서는 이미 카드 제거(기억 소거) 서비스를 이용했습니다! (상점 방문당 1회 제한)');
+      this.showToast('이 상점에서는 이미 카드 제거 서비스를 이용했습니다! (1회 한정)', 'warn');
       return;
     }
     const cost = this.getShopRemoveCost();
     if (this.run.gold < cost) {
-      alert(`금화(GP)가 부족합니다! (필요: ${cost} GP, 보유: ${this.run.gold} GP)`);
+      this.showToast(`금화(GP) 부족! 필요: ${cost} GP (보유: ${this.run.gold} GP)`, 'warn');
       return;
     }
     this.pendingShopCost = cost;
@@ -3625,12 +3892,12 @@ const Game = {
   shopMutateService() {
     if (!this.run) return;
     if (this.run.currentShopState && this.run.currentShopState.mutatedUsed) {
-      alert('이 상점에서는 이미 카드 강화 + 룬 각인 서비스를 이용했습니다! (상점 방문당 1회 제한)');
+      this.showToast('이 상점에서는 이미 카드 강화 + 룬 각인 서비스를 이용했습니다! (1회 한정)', 'warn');
       return;
     }
     const cost = this.getShopMutateCost();
     if (this.run.gold < cost) {
-      alert(`금화(GP)가 부족합니다! (필요: ${cost} GP, 보유: ${this.run.gold} GP)`);
+      this.showToast(`금화(GP) 부족! 필요: ${cost} GP (보유: ${this.run.gold} GP)`, 'warn');
       return;
     }
     this.pendingShopCost = cost;
@@ -3697,12 +3964,15 @@ const Game = {
         if (mode === 'upgrade') {
           cInst.upgraded = true;
           modal.classList.add('hidden');
+          this.showToast(`⚒️ [${GAME_DATA.cards[cInst.id].name}+] 강화 완료!`, 'success');
           this.leaveNodeToMap();
         } else if (mode === 'mutate') {
           const muts = GAME_DATA.mutations;
-          cInst.mutation = muts[Math.floor(Math.random() * muts.length)].id;
+          const pickedMut = muts[Math.floor(Math.random() * muts.length)];
+          cInst.mutation = pickedMut.id;
           cInst.upgraded = true;
           modal.classList.add('hidden');
+          this.showToast(`🔮 [${GAME_DATA.cards[cInst.id].name}+]에 [${pickedMut.name}] 각인!`, 'success');
           this.leaveNodeToMap();
         } else if (mode === 'shop_mutate') {
           if (this.run.currentShopState && this.run.currentShopState.mutatedUsed) return;
@@ -3710,26 +3980,39 @@ const Game = {
           this.run.shopMutateCount = (this.run.shopMutateCount || 0) + 1;
           if (this.run.currentShopState) this.run.currentShopState.mutatedUsed = true;
           const muts = GAME_DATA.mutations;
-          cInst.mutation = muts[Math.floor(Math.random() * muts.length)].id;
+          const pickedMut = muts[Math.floor(Math.random() * muts.length)];
+          cInst.mutation = pickedMut.id;
           cInst.upgraded = true;
           modal.classList.add('hidden');
           this.updateShopServiceButtons();
           this.updateTopHud();
+          this.saveRun();
+          this.showToast(`🔮 [${GAME_DATA.cards[cInst.id].name}+] 룬 각인 완료!`, 'success');
         } else if (mode === 'remove') {
           if (this.run.currentShopState && this.run.currentShopState.removedUsed) return;
           if (this.run.deck.length <= 5) {
-            alert('덱에는 최소 5장의 카드가 남아있어야 합니다!');
+            this.showToast('덱에는 최소 5장의 카드가 남아있어야 합니다!', 'warn');
             return;
           }
           if (this.pendingShopCost > 0) this.run.gold -= this.pendingShopCost;
           this.run.shopRemoveCount = (this.run.shopRemoveCount || 0) + 1;
           if (this.run.currentShopState) this.run.currentShopState.removedUsed = true;
+          const removedName = GAME_DATA.cards[cInst.id].name;
           this.run.deck.splice(idx, 1);
           modal.classList.add('hidden');
           this.updateShopServiceButtons();
           this.updateTopHud();
+          this.saveRun();
+          this.showToast(`🗑️ [${removedName}] 카드를 덱에서 영구 제거했습니다.`, 'info');
         }
       });
+      // Show Before -> After Upgrade Preview badge on upgrade/mutate modals!
+      if ((mode === 'upgrade' || mode === 'mutate' || mode === 'shop_mutate') && !cInst.upgraded) {
+        const prev = document.createElement('div');
+        prev.className = 'upgrade-preview-pill';
+        prev.textContent = `⬆️ ${this.getUpgradePreviewText(cInst)}`;
+        cardEl.appendChild(prev);
+      }
       grid.appendChild(cardEl);
     });
 
@@ -3788,7 +4071,7 @@ const Game = {
       btn.onclick = () => {
         if (entry.sold) return;
         if (this.run.gold < price) {
-          alert('금화(GP)가 부족합니다!');
+          this.showToast(`금화(GP)가 부족합니다! (필요: ${price} GP)`, 'warn');
           return;
         }
         this.run.gold -= price;
@@ -3797,6 +4080,8 @@ const Game = {
         btn.disabled = true;
         btn.textContent = '✔ 품절 (재고 소진)';
         this.updateTopHud();
+        this.saveRun();
+        this.showToast(`🎴 [${GAME_DATA.cards[cInst.id].name}] 구매 완료!`, 'success');
       };
 
       wrap.appendChild(cardEl);
@@ -3823,7 +4108,7 @@ const Game = {
       box.querySelector('button').onclick = e => {
         if (entry.sold || this.run.relics.includes(r.id)) return;
         if (this.run.gold < r.price) {
-          alert('금화(GP)가 부족합니다!');
+          this.showToast(`금화(GP)가 부족합니다! (필요: ${r.price} GP)`, 'warn');
           return;
         }
         this.run.gold -= r.price;
@@ -3836,6 +4121,8 @@ const Game = {
         e.target.disabled = true;
         e.target.textContent = '✔ 품절 (장착됨)';
         this.updateTopHud();
+        this.saveRun();
+        this.showToast(`🏆 [${r.name}] 유물 장착!`, 'success');
       };
     });
 
@@ -3854,15 +4141,15 @@ const Game = {
       box.querySelector('button').onclick = e => {
         if (entry.sold) return;
         if (this.run.relics.includes('sozu_brew')) {
-          alert('🍶 [봉인의 호리병(Sozu)] 보스 유물 페널티로 인해 물약을 획득할 수 없습니다!');
+          this.showToast('🍶 [봉인의 호리병(Sozu)] 페널티로 물약을 획득할 수 없습니다!', 'warn');
           return;
         }
         if (this.run.potions.length >= maxPots) {
-          alert(`물약 벨트가 가득 찼습니다! (최대 ${maxPots}개까지 소지 가능)`);
+          this.showToast(`물약 벨트가 가득 찼습니다! (최대 ${maxPots}개)`, 'warn');
           return;
         }
         if (this.run.gold < p.price) {
-          alert('금화(GP)가 부족합니다!');
+          this.showToast(`금화(GP)가 부족합니다! (필요: ${p.price} GP)`, 'warn');
           return;
         }
         this.run.gold -= p.price;
@@ -3871,6 +4158,8 @@ const Game = {
         e.target.disabled = true;
         e.target.textContent = '✔ 품절 (재고 소진)';
         this.updateTopHud();
+        this.saveRun();
+        this.showToast(`🧪 [${p.name}] 구매 완료!`, 'success');
       };
     });
 
@@ -3879,90 +4168,342 @@ const Game = {
 
   openEventScreen() {
     this.switchScreen('screen-event');
-    const ev = GAME_DATA.events[this.run.stage % GAME_DATA.events.length];
+    if (!this.run.seenEvents) this.run.seenEvents = [];
+    let candidates = GAME_DATA.events.filter(e => !this.run.seenEvents.includes(e.id));
+    if (candidates.length === 0) {
+      this.run.seenEvents = [];
+      candidates = GAME_DATA.events;
+    }
+    // Slight preference for events that have a special choice for the player's current class!
+    const classEvents = candidates.filter(e => e.choices.some(ch => ch.requiredClass === this.run.charId));
+    const pool = classEvents.length > 0 && Math.random() < 0.45 ? classEvents : candidates;
+    const ev = pool[Math.floor(Math.random() * pool.length)];
+    this.run.seenEvents.push(ev.id);
+
     document.getElementById('event-title').textContent = ev.title;
     document.getElementById('event-desc').textContent = ev.desc;
 
     const choicesBox = document.getElementById('event-choices');
     choicesBox.innerHTML = '';
 
-    ev.choices.forEach((ch, idx) => {
+    // Filter choices: show general choices + choices matching player's class!
+    const visibleChoices = ev.choices.filter(ch => !ch.requiredClass || ch.requiredClass === this.run.charId);
+    visibleChoices.forEach((ch, idx) => {
       const btn = document.createElement('button');
-      btn.className = 'event-choice-btn';
+      btn.className = `event-choice-btn ${ch.requiredClass ? 'class-exclusive-choice' : ''}`;
       btn.innerHTML = `<span class="kbd-hint">${idx + 1}</span> ${ch.label}`;
       btn.onclick = () => this.resolveEventChoice(ch.effect);
       choicesBox.appendChild(btn);
     });
   },
 
-  resolveEventChoice(effect) {
-    if (effect === 'd20_arcana') {
-      const roll = Math.floor(Math.random() * 20) + 1;
-      if (roll >= 12) {
-        const muts = GAME_DATA.mutations;
-        const card = this.run.deck[this.run.deck.length - 1];
-        if (card) {
-          card.upgraded = true;
-          card.mutation = muts[Math.floor(Math.random() * muts.length)].id;
-        }
-        alert(`🎲 D20 비전 판정: [${roll}] (DC 12 성공!)\n덱의 카드 1장에 강화(+)와 비전 룬 각인이 부여되었습니다!`);
-      } else {
-        this.run.hp = Math.max(1, this.run.hp - 14);
-        this.run.deck.push(this.createCardInstance('status_burn'));
-        alert(`🎲 D20 비전 판정: [${roll}] (DC 12 실패!)\n비전 폭주로 체력을 14 잃고 덱에 [🔥 지옥 화상] 카드가 1장 추가되었습니다!`);
+  addGoldSafe(amount) {
+    if (!this.run || amount <= 0) return 0;
+    if (this.run.relics.includes('ectoplasm_slime')) {
+      this.showToast('🧪 [엑토플라즘] 보스 유물 페널티로 금화를 얻을 수 없습니다!', 'warn');
+      return 0;
+    }
+    this.run.gold += amount;
+    return amount;
+  },
+
+  addRandomPotionSafe(count = 1) {
+    if (!this.run) return 0;
+    if (this.run.relics.includes('sozu_brew')) {
+      this.showToast('🍶 [봉인의 호리병(Sozu)] 보스 유물 페널티로 물약을 얻을 수 없습니다!', 'warn');
+      return 0;
+    }
+    let added = 0;
+    const maxPots = this.run.maxPotions || 3;
+    const pKeys = Object.keys(GAME_DATA.potions);
+    for (let i = 0; i < count; i++) {
+      if (this.run.potions.length < maxPots) {
+        this.run.potions.push(pKeys[Math.floor(Math.random() * pKeys.length)]);
+        added++;
       }
-    } else if (effect === 'blood_sacrifice_maxhp') {
+    }
+    return added;
+  },
+
+  upgradeRandomCards(count = 1, withMutate = false) {
+    if (!this.run) return 0;
+    const unupg = this.run.deck.filter(c => !c.upgraded && !c.id.startsWith('curse_') && !c.id.startsWith('status_'));
+    this.shuffleArray(unupg);
+    const targets = unupg.length > 0 ? unupg.slice(0, count) : this.run.deck.slice(0, count);
+    const muts = GAME_DATA.mutations;
+    targets.forEach(c => {
+      c.upgraded = true;
+      if (withMutate && muts && muts.length > 0) {
+        c.mutation = muts[Math.floor(Math.random() * muts.length)].id;
+      }
+    });
+    return targets.length;
+  },
+
+  resolveEventChoice(effect) {
+    const finish = () => this.finishNodeWithPendingDrafts('이벤트 경험치 레벨업!');
+    const rollD20 = () => Math.floor(Math.random() * 20) + 1;
+
+    // --- D20 FATE ROLL EVENTS (Using In-Game D20 Modal instead of alert!) ---
+    if (effect === 'd20_arcana') {
+      const roll = rollD20();
+      if (roll >= 12) {
+        this.upgradeRandomCards(1, true);
+        this.showD20Modal(roll, 12, '🎲 D20 비전 해독 판정', '비전 마법진을 완벽히 해독해 카드 1장에 강화(+) 및 비전 룬 각인을 부여했습니다!', true, finish);
+      } else {
+        this.run.hp = Math.max(1, this.run.hp - 12);
+        this.run.deck.push(this.createCardInstance('curse_pain'));
+        this.showD20Modal(roll, 12, '🎲 D20 비전 해독 판정', '비전 역류! 체력을 12 잃고 덱에 [☠️ 심연의 저주] 1장이 새겨졌습니다.', false, finish);
+      }
+      return;
+    } else if (effect === 'd20_gold_heist') {
+      const roll = rollD20();
+      if (roll >= 11) {
+        const g = this.addGoldSafe(85);
+        this.showD20Modal(roll, 11, '🎲 D20 손재주 판정', `함정을 피해 밀수 금화를 챙겼습니다! (+${g} GP)`, true, finish);
+      } else {
+        this.run.hp = Math.max(1, this.run.hp - 10);
+        this.showD20Modal(roll, 11, '🎲 D20 손재주 판정', '독침 함정이 발동해 체력을 10 잃었습니다!', false, finish);
+      }
+      return;
+    } else if (effect === 'd20_str_relic') {
+      const roll = rollD20();
+      if (roll >= 13) {
+        const rel = this.grantRandomRelic();
+        this.showD20Modal(roll, 13, '🎲 D20 근력 판정', `강철 봉인문을 억지로 밀어 열었습니다! 유물 [${rel ? rel.name : '보너스'}] 획득!`, true, finish);
+      } else {
+        this.run.hp = Math.max(1, this.run.hp - 12);
+        this.showD20Modal(roll, 13, '🎲 D20 근력 판정', '봉인문이 튕겨 나가며 반동으로 체력을 12 잃었습니다!', false, finish);
+      }
+      return;
+    } else if (effect === 'd20_int_sp') {
+      const roll = rollD20();
+      if (roll >= 12) {
+        this.run.sp += 1;
+        this.gainRunExp(70);
+        this.showD20Modal(roll, 12, '🎲 D20 지능 판정', '고대 현자의 기억을 흡수해 능력치 포인트(SP) +1 및 EXP +70을 획득했습니다!', true, finish);
+      } else {
+        this.run.hp = Math.max(1, this.run.hp - 12);
+        this.showD20Modal(roll, 12, '🎲 D20 지능 판정', '정신 충격으로 체력을 12 잃었습니다!', false, finish);
+      }
+      return;
+    } else if (effect === 'd20_dragon_gold') {
+      const roll = rollD20();
+      if (roll >= 13) {
+        const g = this.addGoldSafe(140);
+        this.showD20Modal(roll, 13, '🎲 D20 은신 판정', `고룡의 잔영을 피해 금화를 훔쳤습니다! (+${g} GP)`, true, finish);
+      } else {
+        this.run.hp = Math.max(1, this.run.hp - 16);
+        this.showD20Modal(roll, 13, '🎲 D20 은신 판정', '고룡의 화염 숨결 잔영이 폭발해 체력을 16 잃었습니다!', false, finish);
+      }
+      return;
+    } else if (effect === 'd20_deck_of_many') {
+      const roll = rollD20();
+      if (roll >= 15) {
+        const rel = this.grantRandomRelic();
+        this.run.sp += 1;
+        this.showD20Modal(roll, 15, '🃏 운명의 덱 (Deck of Many Things)', `별의 카드 뽑기! 유물 [${rel ? rel.name : '축복'}] & 능력치 포인트(SP) +1 획득!`, true, finish);
+      } else if (roll >= 8) {
+        const g = this.addGoldSafe(90);
+        this.showD20Modal(roll, 8, '🃏 운명의 덱 (Deck of Many Things)', `보석의 카드! 금화 +${g} GP를 획득했습니다!`, true, finish);
+      } else {
+        this.run.hp = Math.max(1, this.run.hp - 12);
+        this.run.deck.push(this.createCardInstance('curse_pain'));
+        this.showD20Modal(roll, 8, '🃏 운명의 덱 (Deck of Many Things)', '해골의 카드! 체력 -12 및 [☠️ 심연의 저주] 1장 추가!', false, finish);
+      }
+      return;
+    } else if (effect === 'd20_astral_supply') {
+      const roll = rollD20();
+      if (roll >= 11) {
+        const g = this.addGoldSafe(70);
+        const p = this.addRandomPotionSafe(1);
+        this.showD20Modal(roll, 11, '🎲 D20 생존 판정', `은검 부대 보급품 회수 성공! (+${g} GP${p ? ' & 물약 +1' : ''})`, true, finish);
+      } else {
+        this.run.hp = Math.max(1, this.run.hp - 10);
+        this.showD20Modal(roll, 11, '🎲 D20 생존 판정', '차원 함정이 터져 체력을 10 잃었습니다!', false, finish);
+      }
+      return;
+    }
+
+    // --- CLASS-EXCLUSIVE CHOICES (All 8 Classes!) ---
+    if (effect === 'class_free_mutate') {
+      this.upgradeRandomCards(1, true);
+      this.showToast('🧙 [위자드 전용] 비전 해독 완료! 카드 1장 강화(+) & 룬 각인!', 'success');
+    } else if (effect === 'class_rogue_heist') {
+      const g = this.addGoldSafe(110);
+      const rel = this.grantRandomRelic();
+      this.showToast(`🗡️ [로그 전용] 완벽한 절도! +${g} GP & 유물 [${rel ? rel.name : ''}] 획득!`, 'success');
+    } else if (effect === 'class_cleric_purify') {
+      this.run.deck = this.run.deck.filter(c => !c.id.startsWith('curse_'));
+      const heal = Math.round(this.run.maxHp * 0.35);
+      this.run.hp = Math.min(this.run.maxHp, this.run.hp + heal);
+      const g = this.addGoldSafe(40);
+      this.showToast(`☀️ [클레릭 전용] 저주 정화 완료! HP +${heal} & +${g} GP!`, 'success');
+    } else if (effect === 'class_paladin_oath') {
+      this.run.maxHp += 10;
+      this.run.hp += 10;
+      this.upgradeRandomCards(1, false);
+      this.showToast('⚜️ [성기사 전용] 서약 갱신! 최대 체력 +10 & 카드 1장 강화(+)!', 'success');
+    } else if (effect === 'class_fighter_forge') {
+      this.upgradeRandomCards(2, false);
+      this.showToast('⚔️ [파이터 전용] 무기 달인의 단련! 카드 2장 무료 강화(+)!', 'success');
+    } else if (effect === 'class_warlock_pact') {
+      const rel = this.grantRandomRelic();
+      this.gainRunExp(80);
+      this.showToast(`🟣 [워락 전용] 동등한 심연 계약! 유물 [${rel ? rel.name : ''}] & EXP +80!`, 'success');
+    } else if (effect === 'class_barbarian_smash') {
+      const rel = this.grantRandomRelic();
+      const g = this.addGoldSafe(60);
+      this.showToast(`🪓 [바바리안 전용] 강철문 박살! 유물 [${rel ? rel.name : ''}] & +${g} GP!`, 'success');
+    } else if (effect === 'class_ranger_fey') {
+      this.run.hp = Math.min(this.run.maxHp, this.run.hp + 20);
+      this.addRandomPotionSafe(1);
+      const choices = this.rollWeightedCardChoices(1, 'midboss');
+      if (choices.length > 0) this.run.deck.push(choices[0]);
+      this.showToast('🏹 [레인저 전용] 요정의 축복! HP +20, 물약 및 고급 카드 획득!', 'success');
+    }
+    // --- STANDARD EVENT CHOICES ---
+    else if (effect === 'blood_sacrifice_maxhp') {
       this.run.hp = Math.max(1, this.run.hp - 12);
       this.run.maxHp += 8;
-      const unupgraded = this.run.deck.find(c => !c.upgraded);
-      if (unupgraded) unupgraded.upgraded = true;
+      this.upgradeRandomCards(1, false);
+      this.showToast('🩸 피의 서약 완료! 최대 HP +8 & 카드 1장 강화(+)', 'success');
     } else if (effect === 'scrap_and_relic') {
-      this.run.gold += 95;
+      const g = this.addGoldSafe(95);
       this.run.hp = Math.max(1, this.run.hp - 15);
       this.run.deck.push(this.createCardInstance('curse_pain'));
-      this.grantRandomRelic();
+      const rel = this.grantRandomRelic();
+      this.showToast(`💰 밀수 창고 약탈! +${g} GP & [${rel ? rel.name : '유물'}] (HP -15, 저주 추가)`, 'warn');
     } else if (effect === 'gain_exp_sp_gems') {
       this.run.maxHp = Math.max(20, this.run.maxHp - 8);
       this.run.hp = Math.min(this.run.hp, this.run.maxHp);
       this.gainRunExp(95);
       this.meta.gems += 120;
       this.saveMeta();
+      this.showToast('📖 금단의 지식 습득! EXP +95 & 💎마석 +120 (최대 HP -8)', 'info');
     } else if (effect === 'remove_and_rare') {
       this.run.hp = Math.max(1, this.run.hp - 12);
       const basicIdx = this.run.deck.findIndex(c => {
         const r = GAME_DATA.cards[c.id].rarity;
         return r === 'basic' || r === 'common';
       });
-      if (basicIdx >= 0) this.run.deck.splice(basicIdx, 1);
+      if (basicIdx >= 0 && this.run.deck.length > 5) this.run.deck.splice(basicIdx, 1);
       const rareChoices = this.rollWeightedCardChoices(1, 'boss');
       if (rareChoices.length > 0) this.run.deck.push(rareChoices[0]);
+      this.showToast('🎴 요정 교환 완료! 일반 카드 1장 제거 및 고등급 카드 획득!', 'success');
     } else if (effect === 'cursed_relic') {
       this.run.deck.push(this.createCardInstance('curse_pain'));
-      this.grantRandomRelic();
+      const rel = this.grantRandomRelic();
+      this.showToast(`☠️ 저주받은 거래! [${rel ? rel.name : '유물'}] 획득 & 심연의 저주 추가`, 'warn');
     } else if (effect === 'potion_and_exp') {
       this.run.hp = Math.max(1, this.run.hp - 10);
       this.gainRunExp(60);
-      const maxPots = this.run.maxPotions || 3;
-      if (this.run.potions.length < maxPots) {
-        const pKeys = Object.keys(GAME_DATA.potions);
-        this.run.potions.push(pKeys[Math.floor(Math.random() * pKeys.length)]);
-      }
+      this.addRandomPotionSafe(1);
+      this.showToast('🧪 요정 이슬 채취 완료! EXP +60 & 물약 획득 (HP -10)', 'info');
     } else if (effect === 'event_paid_remove') {
       if (this.run.gold < 50) {
-        alert('금화(GP)가 부족하여 아무 일도 일어나지 않았습니다.');
+        this.showToast('금화(50 GP)가 부족하여 봉헌하지 못했습니다.', 'warn');
       } else if (this.run.deck.length > 5) {
         this.run.gold -= 50;
         const basicIdx = this.run.deck.findIndex(c => c.id === 'curse_pain' || GAME_DATA.cards[c.id].rarity === 'common');
         if (basicIdx >= 0) this.run.deck.splice(basicIdx, 1);
+        this.showToast('✨ 50 GP 봉헌 완료! 카드 1장을 영구 정화했습니다.', 'success');
       }
+    } else if (effect === 'heal_medium') {
+      this.run.hp = Math.min(this.run.maxHp, this.run.hp + 12);
+      this.showToast('✨ 성소의 축복으로 체력을 +12 회복했습니다.', 'success');
+    } else if (effect === 'paid_double_upgrade') {
+      if (this.run.gold < 60) {
+        this.showToast('금화(60 GP)가 부족합니다!', 'warn');
+      } else {
+        this.run.gold -= 60;
+        this.upgradeRandomCards(2, false);
+        this.showToast('⚒️ 드워프 단련 완료! 카드 2장 강화(+)!', 'success');
+      }
+    } else if (effect === 'blood_mutate') {
+      this.run.hp = Math.max(1, this.run.hp - 10);
+      this.upgradeRandomCards(1, true);
+      this.showToast('🔮 생명력 각인! 카드 1장 강화(+) & 비전 룬 각인 (HP -10)', 'success');
+    } else if (effect === 'gain_small_exp') {
+      this.gainRunExp(55);
+      this.showToast('⭐ 미궁 탐색 정보 획득! EXP +55', 'info');
+    } else if (effect === 'gain_gold_small') {
+      const g = this.addGoldSafe(45);
+      this.showToast(`🪙 틈새 금화 획득! (+${g} GP)`, 'success');
+    } else if (effect === 'gain_gold_gems') {
+      const g = this.addGoldSafe(75);
+      this.meta.gems += 80;
+      this.saveMeta();
+      this.showToast(`🔥 저장소 파괴! +${g} GP & 💎마석 +80`, 'success');
+    } else if (effect === 'paid_relic_help') {
+      if (this.run.gold < 40) {
+        this.showToast('금화(40 GP)가 부족하여 지원하지 못했습니다.', 'warn');
+      } else {
+        this.run.gold -= 40;
+        const rel = this.grantRandomRelic();
+        this.showToast(`🏆 정찰병의 보답! 유물 [${rel ? rel.name : ''}] 획득!`, 'success');
+      }
+    } else if (effect === 'hp_for_upgrade_gold') {
+      this.run.hp = Math.max(1, this.run.hp - 10);
+      this.upgradeRandomCards(1, false);
+      const g = this.addGoldSafe(55);
+      this.showToast(`❤️‍🩹 응급 처치 보답! 카드 1장 강화(+) & +${g} GP`, 'success');
+    } else if (effect === 'double_potion_risk') {
+      this.run.hp = Math.max(1, this.run.hp - 10);
+      const cnt = this.addRandomPotionSafe(2);
+      this.showToast(`🧪 실험실 강탈! 물약 ${cnt}개 획득 (HP -10)`, 'warn');
+    } else if (effect === 'free_cleanse_card') {
+      if (this.run.deck.length > 5) {
+        const idx = this.run.deck.findIndex(c => c.id.startsWith('curse_') || GAME_DATA.cards[c.id].rarity === 'common');
+        if (idx >= 0) this.run.deck.splice(idx, 1);
+      }
+      this.gainRunExp(45);
+      this.showToast('🔥 불필요한 카드 1장 제거 & EXP +45!', 'success');
+    } else if (effect === 'gain_maxhp_small') {
+      this.run.maxHp += 6;
+      this.run.hp += 6;
+      this.showToast('🛡️ 용린 조각 흡수! 최대 체력 +6 & HP +6', 'success');
+    } else if (effect === 'spar_for_sp') {
+      this.run.hp = Math.max(1, this.run.hp - 10);
+      this.run.sp += 1;
+      this.upgradeRandomCards(1, false);
+      this.showToast('⚔️ 무투장 대련 완료! SP +1 & 카드 1장 강화(+) (HP -10)', 'success');
+    } else if (effect === 'paid_heal_30') {
+      if (this.run.gold < 50) {
+        this.showToast('금화(50 GP)가 부족합니다!', 'warn');
+      } else {
+        this.run.gold -= 50;
+        const heal = Math.round(this.run.maxHp * 0.3);
+        this.run.hp = Math.min(this.run.maxHp, this.run.hp + heal);
+        this.showToast(`❤️ 생명수 섭취! 체력 +${heal} 회복`, 'success');
+      }
+    } else if (effect === 'blood_for_gold') {
+      this.run.hp = Math.max(1, this.run.hp - 10);
+      const g = this.addGoldSafe(80);
+      this.showToast(`🪙 황금 액체 채취! +${g} GP (HP -10)`, 'info');
+    } else if (effect === 'hp_for_rare_draft') {
+      this.run.hp = Math.max(1, this.run.hp - 8);
+      this.run.pendingCardDrafts = (this.run.pendingCardDrafts || 0) + 1;
+      this.openRewardModal('📚 아스트랄 도서관 비전 필사! 고등급 카드를 1장 선택하세요.', 'midboss');
+      return;
+    } else if (effect === 'gain_gems_exp') {
+      this.meta.gems += 90;
+      this.saveMeta();
+      this.gainRunExp(40);
+      this.showToast('💎 등반 마석 +90 & EXP +40 획득!', 'success');
+    } else if (effect === 'free_upgrade_one') {
+      this.upgradeRandomCards(1, false);
+      this.showToast('⚒️ 은검 숫돌 연마 완료! 카드 1장 무료 강화(+)', 'success');
     } else if (effect === 'safe_leave') {
       this.run.hp = Math.min(this.run.maxHp, this.run.hp + 6);
+      this.showToast('🚶 조용히 지나가며 체력을 +6 회복했습니다.', 'info');
     }
 
-    this.finishNodeWithPendingDrafts('이벤트 경험치 레벨업!');
+    finish();
   },
 
   showGameOverModal(isVictory) {
+    this.clearSavedRun();
     const modal = document.getElementById('modal-gameover');
     const title = document.getElementById('gameover-title');
     const desc = document.getElementById('gameover-desc');

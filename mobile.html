@@ -59,6 +59,9 @@
         </div>
       </div>
 
+      <!-- Continue Saved Run Banner -->
+      <div id="continue-run-banner" class="continue-run-banner hidden"></div>
+
       <!-- 8 Classes (2x4 Mobile Touch Grid) -->
       <div id="hub-char-grid" class="hub-char-grid"></div>
 
@@ -163,7 +166,7 @@
           <div class="rest-option-card" onclick="Game.doRestHeal()">
             <div class="rest-icon">❤️‍🩹</div>
             <h3>긴 휴식 (Long Rest)</h3>
-            <p>최대 체력의 35% 회복 및 경험치 +60 EXP 획득</p>
+            <p>최대 체력의 30%를 회복합니다.</p>
           </div>
           <div class="rest-option-card" onclick="Game.openUpgradeModal(false)">
             <div class="rest-icon">⚒️</div>
@@ -174,6 +177,11 @@
             <div class="rest-icon">🔮</div>
             <h3>고대 비전 룬 각인</h3>
             <p>카드 1장에 [산성/가속/방호/흡혈] 룬 + 강화(+) 부여</p>
+          </div>
+          <div class="rest-option-card rest-skip-card" onclick="Game.skipRest()">
+            <div class="rest-icon">🚶</div>
+            <h3>야영지 지나가기</h3>
+            <p>휴식이나 단련 없이 다음 스테이지로 이동</p>
           </div>
         </div>
       </div>
@@ -292,6 +300,22 @@
       </div>
     </div>
   </div>
+
+  <!-- D20 FATE ROLL MODAL -->
+  <div id="modal-d20" class="modal-backdrop hidden">
+    <div class="modal-box d20-modal-box">
+      <h2 id="d20-modal-title">🎲 D20 운명 판정</h2>
+      <div class="d20-die-stage">
+        <div id="d20-die-number" class="d20-die-face">20</div>
+      </div>
+      <div id="d20-dc-badge" class="d20-dc-badge">DC 12 — 판정 성공!</div>
+      <p id="d20-outcome-desc" class="d20-outcome-desc"></p>
+      <button class="btn-primary" style="margin-top:14px; width:100%;" onclick="Game.closeD20Modal()">계속 전진 ➔</button>
+    </div>
+  </div>
+
+  <!-- NON-BLOCKING IN-GAME TOAST STACK -->
+  <div id="toast-container" class="toast-container"></div>
 
   <script src="data.js"></script>
   <script src="game.js"></script>

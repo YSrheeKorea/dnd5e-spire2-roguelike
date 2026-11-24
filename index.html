@@ -83,6 +83,9 @@
         </div>
       </div>
 
+      <!-- Continue Saved Run Banner (Auto-saved active climb) -->
+      <div id="continue-run-banner" class="continue-run-banner hidden"></div>
+
       <!-- 8 Classes Grid -->
       <div id="hub-char-grid" class="hub-char-grid"></div>
 
@@ -96,7 +99,7 @@
         <div class="map-header">
           <div>
             <h2 id="map-act-title">🏰 제1계층: 언더마운틴 입구 & 고블린 성채</h2>
-            <p id="map-act-subtitle">현재 층은 총 30개 스테이지로 구성됩니다. 각 스테이지에서 원하는 루트(전투/엘리트/D20 이벤트/상점/모닥불 긴 휴식)를 선택해 전진하세요!</p>
+            <p id="map-act-subtitle">현재 층은 총 15개 스테이지(갈림길 분기 지도)로 구성됩니다. 연결된 루트(전투/엘리트/D20 이벤트/상점/모닥불) 중 원하는 경로를 선택해 전진하세요!</p>
           </div>
           <div style="display:flex; gap:10px; align-items:center;">
             <button class="btn-primary" onclick="Game.openRunStatModal()">
@@ -205,6 +208,11 @@
             <div class="rest-icon">🔮</div>
             <h3><span class="kbd-hint">3</span> 고대 비전 룬 각인</h3>
             <p>덱의 카드 1장에 [맹독/집중/방호/예리함] 룬 속성과 강화(+)를 부여합니다!</p>
+          </div>
+          <div class="rest-option-card rest-skip-card" onclick="Game.skipRest()">
+            <div class="rest-icon">🚶</div>
+            <h3><span class="kbd-hint">4</span> 야영지 지나가기</h3>
+            <p>휴식이나 단련 없이 바로 다음 스테이지로 이동합니다.</p>
           </div>
         </div>
       </div>
@@ -340,6 +348,22 @@
       </div>
     </div>
   </div>
+
+  <!-- 8. D20 FATE ROLL MODAL -->
+  <div id="modal-d20" class="modal-backdrop hidden">
+    <div class="modal-box d20-modal-box">
+      <h2 id="d20-modal-title">🎲 D20 운명 판정</h2>
+      <div class="d20-die-stage">
+        <div id="d20-die-number" class="d20-die-face">20</div>
+      </div>
+      <div id="d20-dc-badge" class="d20-dc-badge">DC 12 — 판정 성공!</div>
+      <p id="d20-outcome-desc" class="d20-outcome-desc"></p>
+      <button class="btn-primary" style="margin-top:14px; width:100%;" onclick="Game.closeD20Modal()">계속 전진 [Enter / Space] ➔</button>
+    </div>
+  </div>
+
+  <!-- NON-BLOCKING IN-GAME TOAST STACK -->
+  <div id="toast-container" class="toast-container"></div>
 
   <script src="data.js"></script>
   <script src="game.js"></script>
