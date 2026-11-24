@@ -4451,7 +4451,7 @@ const Game = {
       legendary: { label: '전설', color: '#f6c967' }
     };
     const rInfo = rarityBadgeMap[rarity] || rarityBadgeMap.common;
-    const iconArt =
+    const fallbackIcon =
       tpl.type === 'status'
         ? '⚠️'
         : tpl.type === 'curse'
@@ -4465,6 +4465,10 @@ const Game = {
                 : tpl.stance
                   ? '✨'
                   : '🛡️';
+    const iconArt =
+      typeof window !== 'undefined' && window.PIXEL_CARD_ART
+        ? window.PIXEL_CARD_ART.getCardArtHtml(tpl)
+        : fallbackIcon;
 
     let mutHtml = '';
     if (cardInst.mutation) {

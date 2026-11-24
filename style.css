@@ -1242,15 +1242,40 @@ body {
 }
 
 .card-art-banner {
-  height: 40px;
+  height: 56px;
   border-radius: 7px;
-  background: rgba(0, 0, 0, 0.32);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: #0d101c;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.65);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.35rem;
   margin-bottom: 7px;
+  overflow: hidden;
+  padding: 0;
+}
+.card-pixel-art {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  transition: transform 0.2s ease;
+}
+.game-card:hover .card-pixel-art {
+  transform: scale(1.06);
+}
+.game-card.rarity-legendary .card-art-banner {
+  border-color: rgba(246, 201, 103, 0.65);
+  box-shadow: 0 0 10px rgba(246, 201, 103, 0.22);
+}
+.game-card.rarity-rare .card-art-banner {
+  border-color: rgba(197, 108, 240, 0.55);
+}
+.game-card.upgraded .card-art-banner {
+  border-color: rgba(46, 213, 115, 0.65);
 }
 
 .card-desc {
