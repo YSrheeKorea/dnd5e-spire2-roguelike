@@ -378,9 +378,12 @@ body {
 }
 
 .char-avatar-wrap {
-  width: 56px;
-  height: 56px;
-  margin: 18px 0 8px;
+  width: 64px;
+  height: 64px;
+  margin: 16px 0 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.45));
 }
 
@@ -2095,20 +2098,21 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 96px;
   overflow: visible !important;
 }
 .unit-avatar .pixel-sprite {
-  width: 88px;
-  height: 88px;
+  width: 96px;
+  height: 96px;
 }
 .unit-avatar .pixel-sprite.px-boss {
-  width: 104px;
-  height: 104px;
+  width: 120px;
+  height: 120px;
   filter: drop-shadow(0 0 12px rgba(246, 201, 103, 0.55)) drop-shadow(0 6px 8px rgba(0, 0, 0, 0.85));
 }
 .char-avatar-wrap .pixel-sprite {
-  width: 68px;
-  height: 68px;
+  width: 64px;
+  height: 64px;
 }
 
 /* Authentic 2-Frame Retro Pixel-Art Stepping (Frame 1 <-> Frame 2) */

@@ -400,17 +400,22 @@ body.mobile-edition {
 
 
 /* Mobile Pixel-Art Sprite Sizing & Vertical Enemy Lunge */
-.mobile-edition .unit-avatar .pixel-sprite {
+.mobile-edition .unit-avatar {
   width: 68px;
   height: 68px;
+  min-height: 68px;
+}
+.mobile-edition .unit-avatar .pixel-sprite {
+  width: 64px;
+  height: 64px;
 }
 .mobile-edition .unit-avatar .pixel-sprite.px-boss {
-  width: 82px;
-  height: 82px;
+  width: 80px;
+  height: 80px;
 }
 .mobile-edition .char-avatar-wrap .pixel-sprite {
-  width: 54px;
-  height: 54px;
+  width: 56px;
+  height: 56px;
 }
 .mobile-edition .enemy-lunge {
   animation: mobileEnemyLunge 0.28s cubic-bezier(0.22, 1, 0.36, 1);
