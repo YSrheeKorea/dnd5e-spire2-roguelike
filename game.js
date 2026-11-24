@@ -2209,14 +2209,14 @@ const Game = {
     }
 
     // Slay the Spire 2 Authentic Difficulty Scaling across 5 Acts x 15 Stages:
-    // Base templates in data.js already scale per Act; this applies fine Act & Stage escalation!
-    const hpScale = 0.80 + (this.run.act - 1) * 0.16 + (this.run.stage - 1) * 0.022;
-    const dmgScale = 0.72 + (this.run.act - 1) * 0.14 + (this.run.stage - 1) * 0.018;
+    // Tuned for genuine STS2 tension: careless play loses in Act 1, strategic builds shine in Acts 2~5!
+    const hpScale = 0.90 + (this.run.act - 1) * 0.20 + (this.run.stage - 1) * 0.025;
+    const dmgScale = 0.81 + (this.run.act - 1) * 0.17 + (this.run.stage - 1) * 0.022;
     const enragePerTurn =
       encounterType === 'boss'
-        ? Math.max(1, Math.floor((this.run.act + 1) * 0.6))
+        ? Math.max(1, Math.floor(this.run.act * 0.9 + 0.5))
         : encounterType === 'elite' || encounterType === 'midboss'
-          ? (this.run.act >= 2 ? 1 : 0)
+          ? (this.run.act >= 2 || this.run.stage >= 11 ? 1 : 0)
           : 0;
 
     const enemies = enemyTemplates.map((t, i) => {
@@ -2409,7 +2409,7 @@ const Game = {
       this.combat.enemies.forEach(en => (en.seal += 2));
     }
     if (cid === 'warlock') {
-      this.summonOrBuffCompanion(6 + pStats.summonBoost, 3 + pStats.summonBoost + rStats.mana);
+      this.summonOrBuffCompanion(8 + pStats.summonBoost, 4 + pStats.summonBoost + rStats.mana);
       this.combat.enemies.forEach(en => (en.doom += 4));
     }
 
@@ -2497,7 +2497,7 @@ const Game = {
 
     // 5 Previously Unimplemented Class Starter Relics (Now Active & STS2 Balanced!)
     if (relics.includes('totem_necklace')) {
-      this.combat.player.strength += 1;
+      this.combat.player.block += 3;
       this.combat.secondaryResource += 1;
     }
     if (relics.includes('thieves_tools')) {
@@ -2673,7 +2673,7 @@ const Game = {
     let triggered = false;
     this.combat.enemies.forEach(en => {
       if (en.hp > 0 && (en.holyBrand || 0) > 0) {
-        const radDmg = Math.min(en.holyBrand + Math.floor(healOrBlockAmt * 0.2), 10);
+        const radDmg = Math.min(en.holyBrand + Math.floor(healOrBlockAmt * 0.25), 12);
         VfxEngine.effectOnTarget('enemy', this.combat.enemies.indexOf(en), 'holy');
         this.dealDamageToEnemy(en, radDmg, true);
         triggered = true;
@@ -2857,8 +2857,8 @@ const Game = {
           baseDamage = Math.round(baseDamage * 1.15);
         }
 
-        if (this.combat.stance === 'wrath') baseDamage = Math.round(baseDamage * 2);
-        if (this.combat.stance === 'divinity') baseDamage = Math.round(baseDamage * 3);
+        if (this.combat.stance === 'wrath') baseDamage = Math.round(baseDamage * 1.75);
+        if (this.combat.stance === 'divinity') baseDamage = Math.round(baseDamage * 2.25);
       }
       if (baseBlock > 0) {
         baseBlock += this.combat.player.dexterity;
@@ -3143,9 +3143,9 @@ const Game = {
         SfxEngine.play('holy');
         VfxEngine.effectOnTarget('enemy', eIdx, 'holy');
         VfxEngine.banner(`⚖️ 심판의 문장 ${sealCnt} 폭발!`, 'holy');
-        if (en.hp > 0) this.dealDamageToEnemy(en, sealCnt * 2, true);
+        if (en.hp > 0) this.dealDamageToEnemy(en, sealCnt * 3, true);
         this.combat.player.block += sealCnt;
-        this.logCombat(`⚖️ [심판의 문장 ${sealCnt}개 폭발!] 추가 광휘 피해 +${sealCnt * 2} 및 방어도 +${sealCnt}!`);
+        this.logCombat(`⚖️ [심판의 문장 ${sealCnt}개 폭발!] 추가 광휘 피해 +${sealCnt * 3} 및 방어도 +${sealCnt}!`);
       }
       if (tpl.comboPoint) {
         en.comboPoints = (en.comboPoints || 0) + tpl.comboPoint;
@@ -3248,12 +3248,12 @@ const Game = {
     const oldStance = this.combat.stance;
     if (oldStance === newStance) return;
     if (oldStance === 'calm') {
-      this.combat.energy += 2;
-      this.logCombat('☯️ [명경/신앙 태세] 해제! 행동력(AP) +2 획득!');
+      this.combat.energy += 1;
+      this.logCombat('☯️ [명경/신앙 태세] 해제! 행동력(AP) +1 획득!');
     }
     if (newStance === 'divinity') {
-      this.combat.energy += 2;
-      this.logCombat('🌟 [초월/천상 강림] 개방! 모든 피해 3배 및 AP +2!');
+      this.combat.energy += 1;
+      this.logCombat('🌟 [초월/천상 강림] 개방! 모든 피해 2.25배 및 AP +1!');
     }
     this.combat.stance = newStance;
   },
@@ -3800,13 +3800,13 @@ const Game = {
     stanceEl.className = 'stance-badge';
     if (this.combat.stance === 'calm') {
       stanceEl.classList.add('stance-calm');
-      stanceEl.textContent = '☯️ 태세: 신앙/명경 (해제 시 AP+2)';
+      stanceEl.textContent = '☯️ 태세: 신앙/명경 (해제 시 AP+1)';
     } else if (this.combat.stance === 'wrath') {
       stanceEl.classList.add('stance-wrath');
-      stanceEl.textContent = '🔥 태세: 광란/복수 (공격력 2배)';
+      stanceEl.textContent = '🔥 태세: 광란/복수 (공격 1.75배 / 피격 2배)';
     } else if (this.combat.stance === 'divinity') {
       stanceEl.classList.add('stance-divinity');
-      stanceEl.textContent = '🌟 태세: 천상 강림 (공격력 3배!)';
+      stanceEl.textContent = '🌟 태세: 천상 강림 (공격 2.25배!)';
     } else {
       stanceEl.textContent = `${this.run.subclassObj.icon} ${this.run.subclassObj.name.split(' ')[0]}`;
     }
