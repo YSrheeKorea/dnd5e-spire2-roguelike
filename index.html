@@ -13,7 +13,7 @@
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png" />
   <title>D&D 5E SPIRE II: TALES OF UNDERMOUNTAIN (8클래스 32직업 · 5계층 × 15스테이지)</title>
-  <link rel="stylesheet" href="style.css?v=11" />
+  <link rel="stylesheet" href="style.css?v=12" />
   <script>
     (function () {
       var params = new URLSearchParams(window.location.search);
@@ -122,6 +122,9 @@
 
       <!-- Selected Class Subclass Picker (4 Subclasses) + Growth Dashboard + Start Button -->
       <div id="hub-selected-panel" class="hub-selected-panel"></div>
+
+      <!-- Yawning Portal Tavern NPCs Interactive Talk Bar -->
+      <div id="hub-npc-bar" class="hub-npc-bar"></div>
     </section>
 
     <!-- 2. UNDERMOUNTAIN 5-ACT x 30-STAGE DUNGEON MAP SCREEN -->
@@ -300,9 +303,44 @@
     <!-- 6. D20 DICE ROLL EVENT SCREEN -->
     <section id="screen-event" class="screen">
       <div class="event-panel">
+        <div id="event-npc-portrait" class="event-npc-portrait hidden"></div>
         <h2 id="event-title">🎲 고대 제단 조우</h2>
         <p id="event-desc" class="event-desc"></p>
         <div id="event-choices" class="event-choices"></div>
+      </div>
+    </section>
+
+    <!-- 7. DEDICATED VISUAL-NOVEL DIALOGUE & MAIN STORY SCREEN -->
+    <section id="screen-story" class="screen">
+      <div class="story-theater-wrap">
+        <div class="story-stage">
+          <img id="story-stage-bg" class="story-stage-bg" alt="" aria-hidden="true" />
+          <div class="story-stage-header">
+            <div>
+              <span id="story-stage-chapter" class="story-chap-pill">제1막 · PROLOGUE</span>
+              <h2 id="story-stage-title">하품하는 포털 주점</h2>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <span id="story-progress-pill" class="story-prog-pill">1 / 5</span>
+              <button class="hud-btn" style="padding:4px 10px; font-size:0.74rem;" onclick="Game.finishStoryScene()">건너뛰기 ⏭️</button>
+            </div>
+          </div>
+          <div class="story-actors-row">
+            <div id="story-hero-slot" class="story-actor-slot actor-left"></div>
+            <div id="story-npc-slot" class="story-actor-slot actor-right"></div>
+          </div>
+        </div>
+        <div class="story-dialogue-box">
+          <div class="story-dialogue-head">
+            <strong id="story-speaker-badge">🍺 더난</strong>
+            <span id="story-faction-tag">워터딥 주점 주인</span>
+          </div>
+          <p id="story-dialogue-text" class="story-dialogue-text"></p>
+          <div id="story-choices-row" class="story-choices-row"></div>
+          <div class="story-controls-row">
+            <button id="story-next-btn" class="btn-primary" onclick="Game.advanceStoryDialogue()">다음 대사 [Space] ➔</button>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -458,14 +496,14 @@
   <!-- NON-BLOCKING IN-GAME TOAST STACK -->
   <div id="toast-container" class="toast-container"></div>
 
-  <script src="data.js?v=11"></script>
-  <script src="story.js?v=11"></script>
-  <script src="sprites.js?v=11"></script>
-  <script src="backgrounds.js?v=11"></script>
-  <script src="card_art.js?v=11"></script>
-  <script src="achievements.js?v=11"></script>
-  <script src="game.js?v=11"></script>
-  <script src="pwa.js?v=11"></script>
+  <script src="data.js?v=12"></script>
+  <script src="story.js?v=12"></script>
+  <script src="sprites.js?v=12"></script>
+  <script src="backgrounds.js?v=12"></script>
+  <script src="card_art.js?v=12"></script>
+  <script src="achievements.js?v=12"></script>
+  <script src="game.js?v=12"></script>
+  <script src="pwa.js?v=12"></script>
 </body>
 
 </html>

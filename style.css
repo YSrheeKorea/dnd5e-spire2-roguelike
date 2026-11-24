@@ -3350,3 +3350,282 @@ html.pixel-bg-off .battlefield-bg-img {
   color: #95a5a6;
   font-style: italic;
 }
+
+/* ==========================================================================
+   V10 DEDICATED VISUAL-NOVEL DIALOGUE SCREEN (#screen-story) & TAVERN NPC BAR
+   ========================================================================== */
+.hub-npc-bar {
+  margin-top: 14px;
+  background: rgba(14, 18, 30, 0.78);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(246, 201, 103, 0.25);
+  border-radius: var(--radius-lg);
+  padding: 12px 16px;
+}
+.hub-npc-bar-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+  font-size: 0.84rem;
+  color: #ffeaa7;
+}
+.hub-npc-bar-head small {
+  color: #95a5a6;
+  font-size: 0.72rem;
+}
+.hub-npc-chips {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+}
+.npc-talk-chip {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 6px 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.16s ease;
+  min-width: 0;
+}
+.npc-talk-chip:hover {
+  transform: translateY(-2px);
+  border-color: #f6c967;
+  background: rgba(246, 201, 103, 0.1);
+}
+.npc-talk-chip.npc-new {
+  border-color: rgba(46, 213, 115, 0.55);
+  background: rgba(46, 213, 115, 0.08);
+}
+.npc-chip-sprite {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+}
+.npc-chip-sprite .pixel-sprite {
+  width: 44px;
+  height: 44px;
+}
+.npc-chip-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.npc-chip-info strong {
+  font-size: 0.78rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.npc-chip-info span {
+  font-size: 0.64rem;
+  color: #b2bec3;
+  white-space: nowrap;
+}
+.npc-talk-chip.npc-new .npc-chip-info span {
+  color: #55efc4;
+  font-weight: 800;
+}
+
+/* Dedicated Full-Screen Visual-Novel Dialogue Theater */
+.story-theater-wrap {
+  max-width: 980px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.story-stage {
+  position: relative;
+  min-height: 290px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1.5px solid rgba(246, 201, 103, 0.45);
+  background: #0b0e17;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+}
+.story-stage-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center bottom;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  z-index: 0;
+}
+.story-stage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(6, 8, 15, 0.72) 0%, rgba(6, 8, 15, 0.14) 45%, rgba(6, 8, 15, 0.78) 100%);
+  pointer-events: none;
+}
+.story-stage-header {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 18px;
+}
+.story-stage-header h2 {
+  font-size: 1.18rem;
+  color: #fff;
+  margin-top: 4px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95);
+}
+.story-prog-pill {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 3px 9px;
+  border-radius: 99px;
+  background: rgba(10, 14, 24, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #dfe6e9;
+}
+.story-actors-row {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 8px 46px 14px;
+  gap: 20px;
+}
+.story-actor-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: transform 0.24s ease, opacity 0.24s ease, filter 0.24s ease;
+}
+.story-actor-slot.speaking {
+  transform: translateY(-6px) scale(1.08);
+  opacity: 1;
+  filter: drop-shadow(0 0 14px rgba(246, 201, 103, 0.45));
+}
+.story-actor-slot.listening {
+  transform: scale(0.92);
+  opacity: 0.62;
+  filter: brightness(0.75);
+}
+.story-actor-sprite {
+  width: 112px;
+  height: 112px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.story-actor-sprite .pixel-sprite {
+  width: 112px;
+  height: 112px;
+}
+.story-actor-slot.actor-right .story-actor-sprite .pixel-sprite {
+  transform: scaleX(-1);
+}
+.story-actor-tag {
+  font-size: 0.76rem;
+  font-weight: 800;
+  padding: 3px 11px;
+  border-radius: 99px;
+  background: rgba(8, 11, 20, 0.85);
+  border: 1px solid rgba(116, 185, 255, 0.55);
+  color: #74b9ff;
+}
+
+.story-dialogue-box {
+  background: rgba(12, 16, 28, 0.9);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(246, 201, 103, 0.42);
+  border-radius: var(--radius-lg);
+  padding: 18px 22px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
+}
+.story-dialogue-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.story-dialogue-head strong {
+  font-size: 1.05rem;
+}
+.story-dialogue-head span {
+  font-size: 0.76rem;
+  color: #95a5a6;
+}
+.story-dialogue-text {
+  font-size: 0.96rem;
+  line-height: 1.65;
+  color: #f1f2f6;
+  min-height: 58px;
+  margin-bottom: 14px;
+}
+.story-choices-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.story-choice-btn {
+  width: 100%;
+  text-align: left;
+  padding: 11px 14px;
+  border-radius: 10px;
+  background: rgba(39, 60, 117, 0.36);
+  border: 1px solid rgba(116, 185, 255, 0.45);
+  color: #f5f6fa;
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.story-choice-btn:hover {
+  border-color: #f6c967;
+  background: rgba(246, 201, 103, 0.14);
+  transform: translateX(3px);
+}
+.story-controls-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Event Screen NPC Portrait Banner */
+.event-npc-portrait {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(10, 14, 24, 0.72);
+  border: 1px solid rgba(246, 201, 103, 0.35);
+  border-radius: 12px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+}
+.event-npc-sprite {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+}
+.event-npc-sprite .pixel-sprite {
+  width: 56px;
+  height: 56px;
+}

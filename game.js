@@ -949,6 +949,27 @@ const Game = {
     }
 
     // 3. Screen-Specific Controls
+    // --- STORY / NPC DIALOGUE SCREEN (#screen-story) ---
+    if (isActiveScreen('screen-story')) {
+      if (key >= '1' && key <= '4') {
+        const btns = document.querySelectorAll('#story-choices-row .story-choice-btn');
+        const idx = parseInt(key, 10) - 1;
+        if (btns[idx]) {
+          e.preventDefault();
+          btns[idx].click();
+          return;
+        }
+      }
+      if (key === 'Enter' || key === ' ') {
+        e.preventDefault();
+        this.advanceStoryDialogue();
+      } else if (key === 'Escape') {
+        e.preventDefault();
+        this.finishStoryScene();
+      }
+      return;
+    }
+
     // --- HUB SCREEN ---
     if (isActiveScreen('screen-hub')) {
       const charIds = Object.keys(GAME_DATA.characters);
@@ -1326,58 +1347,209 @@ const Game = {
     this.showToast(on ? '📖 자동 챕터 스토리 컷인 꺼짐 (연대기에서 언제든 열람 가능)' : '📖 자동 챕터 스토리 컷인 켜짐', 'info');
   },
 
-  showStoryCutin(actNum = 1) {
+  showStoryCutin(actNum = 1, onComplete = null) {
     const se = typeof window !== 'undefined' ? window.STORY_ENGINE : null;
-    const modal = typeof document !== 'undefined' ? document.getElementById('modal-story-cutin') : null;
-    if (!se || !modal || !this.isStoryCutinEnabled()) return;
-    const chap = se.ACT_CHAPTERS[actNum] || se.ACT_CHAPTERS[1];
-    const ch = this.run && GAME_DATA.characters[this.run.charId];
-    const origin = ch && se.CLASS_ORIGINS[ch.id];
+    if (!se || !this.isStoryCutinEnabled()) {
+      if (onComplete) onComplete();
+      return;
+    }
+    const charId = (this.run && this.run.charId) || this.meta.selectedCharId || 'fighter';
+    const scene = se.getActDialogueScene(actNum, charId);
+    this.openStoryScene(scene, onComplete);
+  },
 
-    const body = document.getElementById('story-cutin-body');
-    if (!body) return;
-    const bossId = this.run && this.run.selectedBosses && this.run.selectedBosses[actNum];
-    const bgUrl =
-      typeof window !== 'undefined' && window.PIXEL_BACKGROUNDS
-        ? window.PIXEL_BACKGROUNDS.getSceneDataUrl(bossId || 'lobby', actNum)
-        : '';
+  openTavernNpcDialogue(npcId) {
+    const se = typeof window !== 'undefined' ? window.STORY_ENGINE : null;
+    if (!se) return;
+    const bestAct = Math.max(this.meta.bestAct || 1, (this.meta.achStats && this.meta.achStats.maxActReached) || 1);
+    const scene = se.getTavernNpcDialogue(npcId, bestAct);
+    // First-time tavern talk reward (+20 Gems!)
+    if (!this.meta.talkedNpcs) this.meta.talkedNpcs = {};
+    const firstTalk = !this.meta.talkedNpcs[npcId];
+    this.openStoryScene(scene, () => {
+      if (firstTalk) {
+        this.meta.talkedNpcs[npcId] = true;
+        this.meta.gems = (this.meta.gems || 0) + 20;
+        this.saveMeta();
+        const npc = se.NPCS[npcId];
+        this.showToast(`💬 [${npc ? npc.name : npcId}] 첫 대화 보너스! 💎 등반 마석 +20 획득`, 'success');
+      }
+      this.showHub();
+    });
+  },
 
-    const originHtml =
-      actNum === 1 && origin && ch
-        ? `<div class="story-origin-box">
-             <div class="story-origin-avatar">${ch.avatarSvg}</div>
-             <div>
-               <div class="story-origin-tag">⚔️ ${ch.name} 오리진 · ${origin.title}</div>
-               <p class="story-origin-quote">${origin.quote}</p>
-             </div>
-           </div>`
-        : '';
+  replayActStoryScene(actNum) {
+    const se = typeof window !== 'undefined' ? window.STORY_ENGINE : null;
+    if (!se) return;
+    this.closeStoryChronicleModal();
+    const charId = (this.run && this.run.charId) || this.meta.selectedCharId || 'fighter';
+    const scene = se.getActDialogueScene(actNum, charId);
+    const prevWasRun = this.run && !document.getElementById('screen-hub').classList.contains('active');
+    this.openStoryScene(scene, () => {
+      if (prevWasRun) {
+        this.switchScreen('screen-map');
+        this.renderMap();
+      } else {
+        this.showHub();
+      }
+    });
+  },
 
-    body.innerHTML = `
-      <div class="story-cutin-banner">
-        ${bgUrl ? `<img class="story-cutin-bg" src="${bgUrl}" alt="" />` : ''}
-        <div class="story-cutin-banner-text">
-          <span class="story-chap-pill">${chap.chapter}</span>
-          <h2>${chap.title}</h2>
-          <div class="story-loc-tag">📍 ${chap.location}</div>
-        </div>
-      </div>
-      <div class="story-speaker-line">${chap.speaker}</div>
-      <div class="story-paragraphs">
-        ${chap.paragraphs.map(p => `<p>${p}</p>`).join('')}
-      </div>
-      ${originHtml}
-      <div class="story-objective-box">${chap.objective}</div>
-      <button class="btn-primary" style="width:100%; margin-top:12px; padding:12px;" onclick="Game.closeStoryCutin()">
-        ⚔️ 이야기 계속 진행 [Enter / Space] ➔
-      </button>
-    `;
-    modal.classList.remove('hidden');
+  openStoryScene(scene, onComplete = null) {
+    if (!scene || !scene.lines || scene.lines.length === 0) {
+      if (onComplete) onComplete();
+      return;
+    }
+    this._storyState = {
+      scene,
+      index: 0,
+      pendingReply: null,
+      onComplete
+    };
+    this.switchScreen('screen-story');
+    // Set scene backdrop on #pixel-bg-img and #story-stage-bg
+    if (typeof window !== 'undefined' && window.PIXEL_BACKGROUNDS) {
+      const bossId =
+        scene.bgKey ||
+        (this.run && this.run.selectedBosses && this.run.selectedBosses[scene.actNum || 1]) ||
+        'lobby';
+      const url = window.PIXEL_BACKGROUNDS.getSceneDataUrl(bossId, scene.actNum || 0);
+      const bgImg = document.getElementById('story-stage-bg');
+      if (bgImg && url) bgImg.src = url;
+    }
+    this.renderStoryScreen();
+  },
+
+  renderStoryScreen() {
+    const st = this._storyState;
+    const se = typeof window !== 'undefined' ? window.STORY_ENGINE : null;
+    if (!st || !se) return;
+    const { scene, index, pendingReply } = st;
+    const curLine = pendingReply || scene.lines[index];
+    if (!curLine) {
+      this.finishStoryScene();
+      return;
+    }
+
+    const charId = (this.run && this.run.charId) || this.meta.selectedCharId || 'fighter';
+    const hero = GAME_DATA.characters[charId] || GAME_DATA.characters.fighter;
+    const npc = se.NPCS[curLine.npcId] || se.NPCS.durnan;
+    const isHeroSpeaking = curLine.speaker === 'hero';
+
+    const chapEl = document.getElementById('story-stage-chapter');
+    const titleEl = document.getElementById('story-stage-title');
+    if (chapEl) chapEl.textContent = scene.chapter;
+    if (titleEl) titleEl.textContent = scene.title;
+
+    const heroSlot = document.getElementById('story-hero-slot');
+    const npcSlot = document.getElementById('story-npc-slot');
+    if (heroSlot) {
+      heroSlot.className = `story-actor-slot actor-left ${isHeroSpeaking ? 'speaking' : 'listening'}`;
+      heroSlot.innerHTML = `
+        <div class="story-actor-sprite">${hero.avatarSvg}</div>
+        <div class="story-actor-tag">${hero.name.split(' ')[0]}</div>
+      `;
+    }
+    if (npcSlot) {
+      npcSlot.className = `story-actor-slot actor-right ${!isHeroSpeaking ? 'speaking' : 'listening'}`;
+      npcSlot.innerHTML = `
+        <div class="story-actor-sprite">${npc.svg}</div>
+        <div class="story-actor-tag" style="border-color:${npc.accent}; color:${npc.accent};">${npc.icon} ${npc.name.split(' ')[0]}</div>
+      `;
+    }
+
+    const speakerEl = document.getElementById('story-speaker-badge');
+    const factionEl = document.getElementById('story-faction-tag');
+    const textEl = document.getElementById('story-dialogue-text');
+    const progEl = document.getElementById('story-progress-pill');
+    const choicesEl = document.getElementById('story-choices-row');
+    const nextBtn = document.getElementById('story-next-btn');
+
+    if (speakerEl) {
+      speakerEl.textContent = isHeroSpeaking ? `⚔️ ${hero.name}` : `${npc.icon} ${npc.name}`;
+      speakerEl.style.color = isHeroSpeaking ? '#74b9ff' : npc.accent;
+    }
+    if (factionEl) {
+      factionEl.textContent = isHeroSpeaking ? hero.heroName : `${npc.title} · ${npc.faction}`;
+    }
+    if (textEl) textEl.textContent = curLine.text;
+    if (progEl) {
+      progEl.textContent = pendingReply ? '대화 마무리' : `${index + 1} / ${scene.lines.length}`;
+    }
+
+    if (choicesEl) {
+      choicesEl.innerHTML = '';
+      if (!pendingReply && curLine.choices && curLine.choices.length > 0) {
+        if (nextBtn) nextBtn.classList.add('hidden');
+        curLine.choices.forEach((chOpt, idx) => {
+          const btn = document.createElement('button');
+          btn.className = 'story-choice-btn';
+          btn.innerHTML = `<span class="kbd-hint">${idx + 1}</span> ${chOpt.label}`;
+          btn.onclick = () => this.selectStoryChoice(idx);
+          choicesEl.appendChild(btn);
+        });
+      } else {
+        if (nextBtn) {
+          nextBtn.classList.remove('hidden');
+          const isLast = !!pendingReply || index >= scene.lines.length - 1;
+          nextBtn.textContent = isLast ? '대화 마치고 계속 진행 ➔' : '다음 대사 [Space] ➔';
+        }
+      }
+    }
+  },
+
+  selectStoryChoice(choiceIdx) {
+    const st = this._storyState;
+    if (!st) return;
+    const curLine = st.scene.lines[st.index];
+    const opt = curLine && curLine.choices && curLine.choices[choiceIdx];
+    if (!opt) return;
+    SfxEngine.play('card');
+    st.pendingReply = {
+      speaker: opt.replySpeaker || 'npc',
+      npcId: opt.replyNpcId || curLine.npcId,
+      text: opt.reply
+    };
+    this.renderStoryScreen();
+  },
+
+  advanceStoryDialogue() {
+    const st = this._storyState;
+    if (!st) return;
+    const curLine = st.scene.lines[st.index];
+    if (!st.pendingReply && curLine && curLine.choices && curLine.choices.length > 0) {
+      // If player presses Space/Enter when choices are shown, pick the last quick-continue option!
+      this.selectStoryChoice(curLine.choices.length - 1);
+      return;
+    }
+    SfxEngine.play('card');
+    if (st.pendingReply) {
+      st.pendingReply = null;
+      st.index += 1;
+    } else {
+      st.index += 1;
+    }
+    if (st.index >= st.scene.lines.length) {
+      this.finishStoryScene();
+    } else {
+      this.renderStoryScreen();
+    }
+  },
+
+  finishStoryScene() {
+    const st = this._storyState;
+    this._storyState = null;
+    if (st && typeof st.onComplete === 'function') {
+      st.onComplete();
+    } else {
+      this.showHub();
+    }
   },
 
   closeStoryCutin() {
     const modal = typeof document !== 'undefined' ? document.getElementById('modal-story-cutin') : null;
     if (modal) modal.classList.add('hidden');
+    if (this._storyState) this.finishStoryScene();
   },
 
   openStoryChronicleModal() {
@@ -1401,7 +1573,10 @@ const Game = {
           <div class="chronicle-card ${unlocked ? 'unlocked' : 'locked'}">
             <div class="chronicle-head">
               <span class="story-chap-pill">${chap.chapter}</span>
-              <span style="font-size:0.72rem; color:${unlocked ? '#55efc4' : '#95a5a6'};">${unlocked ? '🔓 열람 가능' : `🔒 제${act}계층 도달 시 해금`}</span>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span style="font-size:0.72rem; color:${unlocked ? '#55efc4' : '#95a5a6'};">${unlocked ? '🔓 열람 가능' : `🔒 제${act}계층 도달 시 해금`}</span>
+                ${unlocked ? `<button class="hud-btn" style="padding:2px 8px; font-size:0.68rem; border-color:#f6c967; color:#ffeaa7;" onclick="Game.replayActStoryScene(${act})">🎬 대화 씬 재생</button>` : ''}
+              </div>
             </div>
             <h4>${unlocked ? chap.title : `??? (제${act}계층 스토리 미해금)`}</h4>
             <div class="story-loc-tag">📍 ${unlocked ? chap.location : '미지의 영역'}</div>
@@ -2107,7 +2282,37 @@ const Game = {
     });
 
     this.updateAchievementBadges();
+    this.renderLobbyNpcBar();
     this.renderSelectedCharPanel();
+  },
+
+  renderLobbyNpcBar() {
+    const bar = document.getElementById('hub-npc-bar');
+    const se = typeof window !== 'undefined' ? window.STORY_ENGINE : null;
+    if (!bar || !se || !se.NPCS) return;
+    const talked = this.meta.talkedNpcs || {};
+    bar.innerHTML = `
+      <div class="hub-npc-bar-head">
+        <span>🍺 <strong>하품하는 포털 주점 NPC와 대화하기</strong> <small>(터치하면 대화 전용 화면으로 입장 · 첫 대화 보너스 💎+20)</small></span>
+        <button class="hud-btn btn-story-hud" style="padding:3px 9px; font-size:0.72rem;" onclick="Game.openStoryChronicleModal()">📖 메인 스토리 연대기</button>
+      </div>
+      <div class="hub-npc-chips">
+        ${Object.values(se.NPCS)
+          .map(npc => {
+            const isNew = !talked[npc.id];
+            return `
+              <button class="npc-talk-chip ${isNew ? 'npc-new' : ''}" onclick="Game.openTavernNpcDialogue('${npc.id}')" title="${npc.title}">
+                <div class="npc-chip-sprite">${npc.svg}</div>
+                <div class="npc-chip-info">
+                  <strong style="color:${npc.accent};">${npc.name.split(' ')[0]}</strong>
+                  <span>${isNew ? '💬 NEW +20💎' : '💬 대화하기'}</span>
+                </div>
+              </button>
+            `;
+          })
+          .join('')}
+      </div>
+    `;
   },
 
   renderSelectedCharPanel() {
@@ -2593,7 +2798,7 @@ const Game = {
     this.switchScreen('screen-map');
     this.renderMap();
     this.openNeowBlessingScreen();
-    this.showStoryCutin(1);
+    this.showStoryCutin(1, () => this.openNeowBlessingScreen());
   },
 
   // Slay the Spire 1 + BG3 Astral Prism Guardian Blessing at Act 1 Floor 1
@@ -2878,7 +3083,10 @@ const Game = {
         );
         this.switchScreen('screen-map');
         this.renderMap();
-        this.showStoryCutin(this.run.act);
+        this.showStoryCutin(this.run.act, () => {
+          this.switchScreen('screen-map');
+          this.renderMap();
+        });
       } else {
         this.recordTowerProgress();
         this.showGameOverModal(true);
@@ -5869,6 +6077,24 @@ const Game = {
 
     document.getElementById('event-title').textContent = ev.title;
     document.getElementById('event-desc').textContent = ev.desc;
+    const evNpcBox = document.getElementById('event-npc-portrait');
+    const se = typeof window !== 'undefined' ? window.STORY_ENGINE : null;
+    if (evNpcBox) {
+      const npc = ev.npcId && se && se.NPCS[ev.npcId];
+      if (npc) {
+        evNpcBox.classList.remove('hidden');
+        evNpcBox.innerHTML = `
+          <div class="event-npc-sprite">${npc.svg}</div>
+          <div>
+            <strong style="color:${npc.accent};">${npc.icon} ${npc.name}</strong>
+            <div style="font-size:0.74rem; color:#95a5a6;">${npc.title}</div>
+          </div>
+        `;
+      } else {
+        evNpcBox.classList.add('hidden');
+        evNpcBox.innerHTML = '';
+      }
+    }
 
     const choicesBox = document.getElementById('event-choices');
     choicesBox.innerHTML = '';
