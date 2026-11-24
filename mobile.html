@@ -10,6 +10,9 @@
   <link rel="stylesheet" href="mobile.css" />
 </head>
 <body class="mobile-edition">
+  <!-- DYNAMIC PIXEL-ART WORLD BACKDROP (Lobby Tavern / 20 Boss-Themed Spire Domains) -->
+  <div id="pixel-bg-layer" class="pixel-bg-layer" aria-hidden="true"></div>
+
   <!-- COMPACT MOBILE TOP HUD -->
   <header id="top-bar" class="top-bar">
     <div class="brand-box" onclick="Game.showHub()">
@@ -78,6 +81,7 @@
         <div class="map-header">
           <div>
             <h2 id="map-act-title">🏰 제1계층: 언더마운틴 입구</h2>
+            <div style="margin:4px 0;"><span id="map-theme-badge" class="theme-pill-badge">🎨 1층 · 언더마운틴</span></div>
             <p id="map-act-subtitle">스테이지 선택지를 터치해 전진하세요!</p>
           </div>
           <button class="btn-primary" onclick="Game.openRunStatModal()">
@@ -103,6 +107,7 @@
 
         <!-- Battlefield Vertical Stack on Mobile -->
         <div class="battlefield-row">
+          <div id="combat-theme-badge" class="theme-pill-badge combat-theme-pill">🏰 1층 · 언더마운틴</div>
           <!-- Enemies at Top on Mobile for natural thumb reach below -->
           <div id="enemies-zone" class="enemies-zone"></div>
 
@@ -326,6 +331,7 @@
 
   <script src="data.js"></script>
   <script src="sprites.js"></script>
+  <script src="backgrounds.js"></script>
   <script src="game.js"></script>
 </body>
 </html>

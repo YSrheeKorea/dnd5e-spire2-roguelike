@@ -1186,10 +1186,29 @@ const Game = {
     VfxEngine.floatText(targetType, text, colorClass, enemyIdx);
   },
 
+  syncSceneBackground(screenId = null) {
+    if (typeof window === 'undefined' || !window.PIXEL_BACKGROUNDS) return;
+    let activeId = screenId;
+    if (!activeId && typeof document !== 'undefined') {
+      const cur = document.querySelector('.screen.active');
+      activeId = cur ? cur.id : 'screen-hub';
+    }
+    if (activeId === 'screen-hub' || !this.run) {
+      window.PIXEL_BACKGROUNDS.applyTheme('lobby', 0);
+      return;
+    }
+    const actNum = this.run.act || 1;
+    const bossId =
+      (this.run.selectedBosses && this.run.selectedBosses[actNum]) ||
+      (GAME_DATA.acts[actNum - 1] && GAME_DATA.acts[actNum - 1].bossPool[0]);
+    window.PIXEL_BACKGROUNDS.applyTheme(bossId, actNum);
+  },
+
   switchScreen(screenId) {
     document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
     const target = document.getElementById(screenId);
     if (target) target.classList.add('active');
+    this.syncSceneBackground(screenId);
     this.updateTopHud();
   },
 
@@ -2023,6 +2042,7 @@ const Game = {
       if (curEl) curEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 60);
 
+    this.syncSceneBackground('screen-map');
     this.updateTopHud();
   },
 

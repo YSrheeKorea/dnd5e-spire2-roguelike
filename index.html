@@ -16,6 +16,9 @@
   </script>
 </head>
 <body>
+  <!-- DYNAMIC PIXEL-ART WORLD BACKDROP (Lobby Tavern / 20 Boss-Themed Spire Domains) -->
+  <div id="pixel-bg-layer" class="pixel-bg-layer" aria-hidden="true"></div>
+
   <!-- TOP GLOBAL HUD BAR -->
   <header id="top-bar" class="top-bar">
     <div class="brand-box" onclick="Game.showHub()">
@@ -101,7 +104,10 @@
       <div class="map-container">
         <div class="map-header">
           <div>
-            <h2 id="map-act-title">🏰 제1계층: 언더마운틴 입구 & 고블린 성채</h2>
+            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:4px;">
+              <h2 id="map-act-title" style="margin-bottom:0;">🏰 제1계층: 언더마운틴 입구 & 고블린 성채</h2>
+              <span id="map-theme-badge" class="theme-pill-badge">🎨 1층 · 재나타의 암흑 길드 금고</span>
+            </div>
             <p id="map-act-subtitle">현재 층은 총 15개 스테이지(갈림길 분기 지도)로 구성됩니다. 연결된 루트(전투/엘리트/D20 이벤트/상점/모닥불) 중 원하는 경로를 선택해 전진하세요!</p>
           </div>
           <div style="display:flex; gap:10px; align-items:center;">
@@ -131,6 +137,7 @@
 
         <!-- Battlefield Row: Player + STS2 Companion/Orbs vs Monsters -->
         <div class="battlefield-row">
+          <div id="combat-theme-badge" class="theme-pill-badge combat-theme-pill">🏰 1층 · 언더마운틴</div>
           <div class="allies-zone">
             <div id="player-unit-card" class="unit-card player-unit">
               <div id="player-avatar-box" class="unit-avatar"></div>
@@ -374,6 +381,7 @@
 
   <script src="data.js"></script>
   <script src="sprites.js"></script>
+  <script src="backgrounds.js"></script>
   <script src="game.js"></script>
 </body>
 </html>
