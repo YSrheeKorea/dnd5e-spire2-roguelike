@@ -918,6 +918,22 @@ const Game = {
       return;
     }
 
+    if (isVisible('modal-story-cutin')) {
+      if (key === 'Enter' || key === ' ' || key === 'Escape') {
+        e.preventDefault();
+        this.closeStoryCutin();
+      }
+      return;
+    }
+
+    if (isVisible('modal-story')) {
+      if (key === 'Escape') {
+        e.preventDefault();
+        this.closeStoryChronicleModal();
+      }
+      return;
+    }
+
     // 2. Global Run Hotkeys (Deck, SP Allocation)
     if (this.run && !isActiveScreen('screen-hub')) {
       if (lower === 'd') {
@@ -1282,12 +1298,161 @@ const Game = {
   },
 
   closeAllNavModals() {
-    ['modal-achievements', 'modal-gear', 'modal-mastery', 'modal-deck', 'modal-run-stats', 'modal-settings'].forEach(id => {
+    ['modal-achievements', 'modal-gear', 'modal-mastery', 'modal-deck', 'modal-run-stats', 'modal-settings', 'modal-story'].forEach(id => {
       const el = typeof document !== 'undefined' ? document.getElementById(id) : null;
       if (el) el.classList.add('hidden');
     });
     this._pendingResetKey = null;
     this.updateMobileNavActive('hub');
+  },
+
+  // --------------------------------------------------------------------------
+  // BALDUR'S GATE 1·2·3 MAIN STORY CUT-INS & CHRONICLE CODEX
+  // --------------------------------------------------------------------------
+  isStoryCutinEnabled() {
+    try {
+      return localStorage.getItem('DND5E_SPIRE_2_STORY_OFF') !== '1';
+    } catch (e) {
+      return true;
+    }
+  },
+
+  toggleStoryCutinPref() {
+    const on = this.isStoryCutinEnabled();
+    try {
+      localStorage.setItem('DND5E_SPIRE_2_STORY_OFF', on ? '1' : '0');
+    } catch (e) { }
+    this.renderSettingsModal();
+    this.showToast(on ? '📖 자동 챕터 스토리 컷인 꺼짐 (연대기에서 언제든 열람 가능)' : '📖 자동 챕터 스토리 컷인 켜짐', 'info');
+  },
+
+  showStoryCutin(actNum = 1) {
+    const se = typeof window !== 'undefined' ? window.STORY_ENGINE : null;
+    const modal = typeof document !== 'undefined' ? document.getElementById('modal-story-cutin') : null;
+    if (!se || !modal || !this.isStoryCutinEnabled()) return;
+    const chap = se.ACT_CHAPTERS[actNum] || se.ACT_CHAPTERS[1];
+    const ch = this.run && GAME_DATA.characters[this.run.charId];
+    const origin = ch && se.CLASS_ORIGINS[ch.id];
+
+    const body = document.getElementById('story-cutin-body');
+    if (!body) return;
+    const bossId = this.run && this.run.selectedBosses && this.run.selectedBosses[actNum];
+    const bgUrl =
+      typeof window !== 'undefined' && window.PIXEL_BACKGROUNDS
+        ? window.PIXEL_BACKGROUNDS.getSceneDataUrl(bossId || 'lobby', actNum)
+        : '';
+
+    const originHtml =
+      actNum === 1 && origin && ch
+        ? `<div class="story-origin-box">
+             <div class="story-origin-avatar">${ch.avatarSvg}</div>
+             <div>
+               <div class="story-origin-tag">⚔️ ${ch.name} 오리진 · ${origin.title}</div>
+               <p class="story-origin-quote">${origin.quote}</p>
+             </div>
+           </div>`
+        : '';
+
+    body.innerHTML = `
+      <div class="story-cutin-banner">
+        ${bgUrl ? `<img class="story-cutin-bg" src="${bgUrl}" alt="" />` : ''}
+        <div class="story-cutin-banner-text">
+          <span class="story-chap-pill">${chap.chapter}</span>
+          <h2>${chap.title}</h2>
+          <div class="story-loc-tag">📍 ${chap.location}</div>
+        </div>
+      </div>
+      <div class="story-speaker-line">${chap.speaker}</div>
+      <div class="story-paragraphs">
+        ${chap.paragraphs.map(p => `<p>${p}</p>`).join('')}
+      </div>
+      ${originHtml}
+      <div class="story-objective-box">${chap.objective}</div>
+      <button class="btn-primary" style="width:100%; margin-top:12px; padding:12px;" onclick="Game.closeStoryCutin()">
+        ⚔️ 이야기 계속 진행 [Enter / Space] ➔
+      </button>
+    `;
+    modal.classList.remove('hidden');
+  },
+
+  closeStoryCutin() {
+    const modal = typeof document !== 'undefined' ? document.getElementById('modal-story-cutin') : null;
+    if (modal) modal.classList.add('hidden');
+  },
+
+  openStoryChronicleModal() {
+    this.closeAllNavModals();
+    const modal = typeof document !== 'undefined' ? document.getElementById('modal-story') : null;
+    const body = typeof document !== 'undefined' ? document.getElementById('story-chronicle-body') : null;
+    const se = typeof window !== 'undefined' ? window.STORY_ENGINE : null;
+    if (!modal || !body || !se) return;
+
+    const maxAct = Math.max(this.meta.bestAct || 1, (this.meta.achStats && this.meta.achStats.maxActReached) || 1, (this.run && this.run.act) || 1);
+    const hasVictory = !!(this.meta.achStats && this.meta.achStats.totalVictories > 0);
+    const curCharId = (this.run && this.run.charId) || this.meta.selectedCharId || 'fighter';
+    const curChar = GAME_DATA.characters[curCharId];
+    const origin = se.CLASS_ORIGINS[curCharId];
+
+    const chaptersHtml = [1, 2, 3, 4, 5]
+      .map(act => {
+        const chap = se.ACT_CHAPTERS[act];
+        const unlocked = act <= maxAct;
+        return `
+          <div class="chronicle-card ${unlocked ? 'unlocked' : 'locked'}">
+            <div class="chronicle-head">
+              <span class="story-chap-pill">${chap.chapter}</span>
+              <span style="font-size:0.72rem; color:${unlocked ? '#55efc4' : '#95a5a6'};">${unlocked ? '🔓 열람 가능' : `🔒 제${act}계층 도달 시 해금`}</span>
+            </div>
+            <h4>${unlocked ? chap.title : `??? (제${act}계층 스토리 미해금)`}</h4>
+            <div class="story-loc-tag">📍 ${unlocked ? chap.location : '미지의 영역'}</div>
+            ${
+              unlocked
+                ? `<div class="chronicle-text">${chap.paragraphs.map(p => `<p>${p}</p>`).join('')}</div>`
+                : `<p class="chronicle-locked-hint">첨탑 제${act}계층에 도달하면 발더스 게이트 연대기의 다음 장이 해금됩니다.</p>`
+            }
+          </div>
+        `;
+      })
+      .join('');
+
+    const epilogueHtml = `
+      <div class="chronicle-card ${hasVictory ? 'unlocked epilogue' : 'locked'}">
+        <div class="chronicle-head">
+          <span class="story-chap-pill">${se.VICTORY_EPILOGUE.chapter}</span>
+          <span style="font-size:0.72rem; color:${hasVictory ? '#f6c967' : '#95a5a6'};">${hasVictory ? '👑 최종 클리어 달성' : '🔒 제5계층 최종 클리어 시 해금'}</span>
+        </div>
+        <h4>${hasVictory ? se.VICTORY_EPILOGUE.title : '??? (최종 결전 에필로그)'}</h4>
+        ${
+          hasVictory
+            ? `<div class="chronicle-text">${se.VICTORY_EPILOGUE.paragraphs.map(p => `<p>${p}</p>`).join('')}</div>`
+            : `<p class="chronicle-locked-hint">제5계층 최종 보스를 토벌하면 발더스 게이트와 소드 코스트의 결말이 공개됩니다.</p>`
+        }
+      </div>
+    `;
+
+    body.innerHTML = `
+      ${
+        curChar && origin
+          ? `<div class="story-origin-box" style="margin-bottom:12px;">
+               <div class="story-origin-avatar">${curChar.avatarSvg}</div>
+               <div>
+                 <div class="story-origin-tag">⚔️ ${curChar.name} 오리진 스토리 · ${origin.title}</div>
+                 <p class="story-origin-quote">${origin.quote}</p>
+               </div>
+             </div>`
+          : ''
+      }
+      <div class="chronicle-list">
+        ${chaptersHtml}
+        ${epilogueHtml}
+      </div>
+    `;
+    modal.classList.remove('hidden');
+  },
+
+  closeStoryChronicleModal() {
+    const modal = typeof document !== 'undefined' ? document.getElementById('modal-story') : null;
+    if (modal) modal.classList.add('hidden');
   },
 
   // --------------------------------------------------------------------------
@@ -1462,6 +1627,15 @@ const Game = {
             ${bgOn ? '켜짐 (ON)' : '꺼짐'}
           </button>
         </div>
+        <div class="settings-toggle-row">
+          <div>
+            <strong>📖 메인 스토리 컷인 자동 표시</strong>
+            <p>새 계층(1~5막) 진입 시 발더스 게이트 스토리 컷인 출력</p>
+          </div>
+          <button class="settings-pill-btn ${this.isStoryCutinEnabled() ? 'on' : 'off'}" onclick="Game.toggleStoryCutinPref()">
+            ${this.isStoryCutinEnabled() ? '켜짐 (ON)' : '꺼짐'}
+          </button>
+        </div>
       </div>
 
       <div class="settings-section">
@@ -1473,6 +1647,9 @@ const Game = {
           <span>🏔️ 최고: <strong>${this.meta.bestAct || 1}층 ${this.meta.bestStage || 1}F</strong></span>
         </div>
         <div class="settings-action-grid">
+          <button class="hud-btn" style="border-color:#f6c967; color:#ffeaa7;" onclick="Game.openStoryChronicleModal()">
+            📖 메인 스토리 연대기 보기
+          </button>
           <button class="hud-btn" style="border-color:#2ed573; color:#55efc4;" onclick="if(window.PwaInstaller) PwaInstaller.install();">
             ${isStandalone ? '✅ 설치된 앱으로 실행 중' : '📲 홈 화면에 앱 설치'}
           </button>
@@ -2416,15 +2593,16 @@ const Game = {
     this.switchScreen('screen-map');
     this.renderMap();
     this.openNeowBlessingScreen();
+    this.showStoryCutin(1);
   },
 
-  // Slay the Spire 1: Neow's Blessing at the start of Act 1 Floor 1
+  // Slay the Spire 1 + BG3 Astral Prism Guardian Blessing at Act 1 Floor 1
   openNeowBlessingScreen() {
     if (!this.run || !GAME_DATA.neowBlessings) return;
     this.switchScreen('screen-event');
-    document.getElementById('event-title').textContent = '🐋 태고의 고래 니오우(Neow)의 축복 — 첨탑 입구';
+    document.getElementById('event-title').textContent = '🔮 아스트랄 프리즘 수호자(니오우)의 축복 — 추락한 해변';
     document.getElementById('event-desc').textContent =
-      '"다시 첨탑의 밑바닥에서 눈을 떴구나, 모험가여... 언더마운틴을 오르기 전 내가 내리는 4가지 축복 중 하나를 선택하여라." (슬레이 더 스파이어 1 시작 보너스)';
+      '"노틸로이드 추락에서 살아남았구나, 모험가여… 머릿속 일리시드 올챙이가 깨어나기 전에 절대자 교단의 5계층을 돌파해야 한다. 출격 전 내가 내리는 4가지 축복 중 하나를 선택하여라."';
 
     const choicesBox = document.getElementById('event-choices');
     choicesBox.innerHTML = '';
@@ -2700,6 +2878,7 @@ const Game = {
         );
         this.switchScreen('screen-map');
         this.renderMap();
+        this.showStoryCutin(this.run.act);
       } else {
         this.recordTowerProgress();
         this.showGameOverModal(true);
@@ -3196,6 +3375,19 @@ const Game = {
     this.applyStartOfCombatEffects();
     this.switchScreen('screen-combat');
     this.startPlayerTurn(true);
+    if (
+      encounterType === 'boss' &&
+      typeof window !== 'undefined' &&
+      window.STORY_ENGINE &&
+      enemies[0] &&
+      window.STORY_ENGINE.BOSS_INTROS[enemies[0].id]
+    ) {
+      const intro = window.STORY_ENGINE.BOSS_INTROS[enemies[0].id];
+      this.combat.log = `👑 ${enemies[0].name}: ${intro}`;
+      VfxEngine.banner(`👑 ${enemies[0].name}`, 'gold');
+      this.showToast(`👑 ${enemies[0].name}: ${intro}`, 'warn');
+      this.renderCombat();
+    }
   },
 
   applyStartOfCombatEffects() {
@@ -5108,6 +5300,7 @@ const Game = {
 
     const shownCost = this.getCardEffectiveCost(cardInst, !!onClickFn && !!this.combat);
     const isCostReduced = cardInst.upgraded && tpl.upgradeCost !== undefined && tpl.upgradeCost < tpl.cost;
+    const flavorHtml = tpl.flavor ? `<div class="card-flavor" title="${tpl.flavor.replace(/"/g, '&quot;')}">${tpl.flavor}</div>` : '';
     el.innerHTML = `
       <div>
         <div class="card-top-row">
@@ -5121,6 +5314,7 @@ const Game = {
         <div class="card-art-banner">${iconArt}</div>
       </div>
       <div class="card-desc">${this.formatCardDesc(cardInst)}</div>
+      ${flavorHtml}
       ${mutHtml}
     `;
     return el;
@@ -6003,9 +6197,11 @@ const Game = {
     const desc = document.getElementById('gameover-desc');
 
     if (isVictory) {
-      title.textContent = '👑 언더마운틴 5계층(75 스테이지) & 오색룡의 여신 티아마트 토벌 완료!';
-      desc.textContent =
-        '포가튼 렐름의 전설이 되었습니다! 클리어 보상으로 등반 마석 +800개가 지급되었습니다. 다른 클래스와 32가지 하위 직업 빌드로 새로운 모험에 도전해보세요!';
+      const se = typeof window !== 'undefined' ? window.STORY_ENGINE : null;
+      title.textContent = se ? `👑 ${se.VICTORY_EPILOGUE.title}` : '👑 언더마운틴 5계층(75 스테이지) 완전 정복!';
+      desc.textContent = se
+        ? `${se.VICTORY_EPILOGUE.paragraphs.join(' ')} (클리어 보상: 💎 등반 마석 +800 지급!)`
+        : '포가튼 렐름의 전설이 되었습니다! 클리어 보상으로 등반 마석 +800개가 지급되었습니다.';
     } else {
       title.textContent = `💀 모험 실패 (제${this.run.act}계층 Stage ${this.run.stage}/15)`;
       desc.textContent =

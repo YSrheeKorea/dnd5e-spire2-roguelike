@@ -429,7 +429,8 @@ body.mobile-edition {
 /* Blocking combat/run modals sit above bottom nav so rewards/D20 cannot be bypassed */
 .mobile-edition #modal-reward,
 .mobile-edition #modal-d20,
-.mobile-edition #modal-gameover {
+.mobile-edition #modal-gameover,
+.mobile-edition #modal-story-cutin {
   z-index: 300;
   padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   align-items: center;
