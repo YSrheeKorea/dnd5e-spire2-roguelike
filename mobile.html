@@ -1,17 +1,21 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="theme-color" content="#0b0d14" />
   <title>D&D 5E SPIRE II [MOBILE EDITION]</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="mobile.css" />
+  <link rel="stylesheet" href="style.css?v=6" />
+  <link rel="stylesheet" href="mobile.css?v=6" />
 </head>
+
 <body class="mobile-edition">
   <!-- DYNAMIC PIXEL-ART WORLD BACKDROP (Lobby Tavern / 20 Boss-Themed Spire Domains) -->
-  <div id="pixel-bg-layer" class="pixel-bg-layer" aria-hidden="true"></div>
+  <div id="pixel-bg-layer" class="pixel-bg-layer" aria-hidden="true">
+    <img id="pixel-bg-img" class="pixel-bg-img" alt="" />
+  </div>
 
   <!-- COMPACT MOBILE TOP HUD -->
   <header id="top-bar" class="top-bar">
@@ -55,6 +59,7 @@
     <!-- 1. MOBILE HUB SCREEN -->
     <section id="screen-hub" class="screen active">
       <div class="hub-hero">
+        <img id="lobby-bg-img" class="scene-banner-img" alt="" aria-hidden="true" />
         <div class="hub-header-text">
           <span class="badge-tag">📱 MOBILE TOUCH EDITION · 8클래스 첨탑 등반</span>
           <h1>워터딥 첨탑 등반 (모바일 버전)</h1>
@@ -78,10 +83,15 @@
     <!-- 2. MOBILE 5-ACT x 30-STAGE DUNGEON MAP -->
     <section id="screen-map" class="screen">
       <div class="map-container">
+        <div class="map-theme-banner">
+          <img id="map-bg-img" class="scene-banner-img" alt="" aria-hidden="true" />
+          <div class="map-theme-banner-overlay">
+            <span id="map-theme-badge" class="theme-pill-badge">🎨 1층 · 언더마운틴</span>
+          </div>
+        </div>
         <div class="map-header">
           <div>
             <h2 id="map-act-title">🏰 제1계층: 언더마운틴 입구</h2>
-            <div style="margin:4px 0;"><span id="map-theme-badge" class="theme-pill-badge">🎨 1층 · 언더마운틴</span></div>
             <p id="map-act-subtitle">스테이지 선택지를 터치해 전진하세요!</p>
           </div>
           <button class="btn-primary" onclick="Game.openRunStatModal()">
@@ -107,6 +117,7 @@
 
         <!-- Battlefield Vertical Stack on Mobile -->
         <div class="battlefield-row">
+          <img id="battlefield-bg-img" class="battlefield-bg-img" alt="" aria-hidden="true" />
           <div id="combat-theme-badge" class="theme-pill-badge combat-theme-pill">🏰 1층 · 언더마운틴</div>
           <!-- Enemies at Top on Mobile for natural thumb reach below -->
           <div id="enemies-zone" class="enemies-zone"></div>
@@ -329,10 +340,11 @@
   <!-- NON-BLOCKING IN-GAME TOAST STACK -->
   <div id="toast-container" class="toast-container"></div>
 
-  <script src="data.js"></script>
-  <script src="sprites.js"></script>
-  <script src="backgrounds.js"></script>
-  <script src="card_art.js"></script>
-  <script src="game.js"></script>
+  <script src="data.js?v=6"></script>
+  <script src="sprites.js?v=6"></script>
+  <script src="backgrounds.js?v=6"></script>
+  <script src="card_art.js?v=6"></script>
+  <script src="game.js?v=6"></script>
 </body>
+
 </html>

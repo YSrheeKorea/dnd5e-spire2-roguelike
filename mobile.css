@@ -4,7 +4,8 @@
    ============================================================================ */
 
 body.mobile-edition {
-  padding-bottom: 64px; /* Space for bottom dock */
+  padding-bottom: 64px;
+  /* Space for bottom dock */
   max-width: 540px;
   margin: 0 auto;
   border-left: 1px solid #25304d;
@@ -350,17 +351,21 @@ body.mobile-edition {
   right: 10px;
   max-width: none;
 }
+
 .mobile-edition .continue-run-banner {
   padding: 10px 12px;
   gap: 8px;
 }
+
 .mobile-edition .continue-run-info {
   font-size: 0.78rem;
 }
+
 .mobile-edition .map-floor-row.branch-row .floor-nodes-group {
   grid-template-columns: repeat(3, 1fr);
   gap: 6px;
 }
+
 .mobile-edition .map-floor-row.branch-row .map-node-btn {
   font-size: 0.72rem;
   padding: 8px 4px;
@@ -374,6 +379,7 @@ body.mobile-edition {
   font-size: 0.88rem;
   padding: 7px 16px;
 }
+
 .mobile-edition .btn-sfx-toggle {
   padding: 4px 8px;
   font-size: 0.85rem;
@@ -384,18 +390,40 @@ body.mobile-edition {
 .mobile-edition .player-lunge {
   animation: mobilePlayerLunge 0.24s cubic-bezier(0.22, 1, 0.36, 1);
 }
+
 @keyframes mobilePlayerLunge {
-  0% { transform: translate3d(0, 0, 0) scale(1); }
-  35% { transform: translate3d(0, -18px, 0) scale(1.06); }
-  100% { transform: translate3d(0, 0, 0) scale(1); }
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  35% {
+    transform: translate3d(0, -18px, 0) scale(1.06);
+  }
+
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
 }
+
 .mobile-edition .enemy-hit-recoil {
   animation: mobileEnemyRecoil 0.26s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
 @keyframes mobileEnemyRecoil {
-  0% { transform: translate3d(0, 0, 0) scale(1); filter: brightness(2.6); }
-  25% { transform: translate3d(0, -14px, 0) scale(0.95); filter: brightness(1.8); }
-  100% { transform: translate3d(0, 0, 0) scale(1); filter: brightness(1); }
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: brightness(2.6);
+  }
+
+  25% {
+    transform: translate3d(0, -14px, 0) scale(0.95);
+    filter: brightness(1.8);
+  }
+
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: brightness(1);
+  }
 }
 
 
@@ -405,36 +433,56 @@ body.mobile-edition {
   height: 68px;
   min-height: 68px;
 }
+
 .mobile-edition .unit-avatar .pixel-sprite {
   width: 64px;
   height: 64px;
 }
+
 .mobile-edition .unit-avatar .pixel-sprite.px-boss {
   width: 80px;
   height: 80px;
 }
+
 .mobile-edition .char-avatar-wrap .pixel-sprite {
   width: 56px;
   height: 56px;
 }
+
 .mobile-edition .enemy-lunge {
   animation: mobileEnemyLunge 0.28s cubic-bezier(0.22, 1, 0.36, 1);
 }
+
 @keyframes mobileEnemyLunge {
-  0% { transform: translate3d(0, 0, 0) scale(1); }
-  35% { transform: translate3d(0, 16px, 0) scale(1.06); }
-  100% { transform: translate3d(0, 0, 0) scale(1); }
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  35% {
+    transform: translate3d(0, 16px, 0) scale(1.06);
+  }
+
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
 }
 
 /* Mobile Pixel-Art Stage & Theme Badge Overrides */
+.mobile-edition .map-theme-banner {
+  height: 78px;
+  margin-bottom: 8px;
+}
+
 .mobile-edition .battlefield-row {
   padding-top: 30px;
 }
+
 .mobile-edition .combat-theme-pill {
   top: 5px;
   font-size: 0.66rem;
   padding: 2px 8px;
 }
+
 .mobile-edition .theme-pill-badge {
   font-size: 0.68rem;
 }

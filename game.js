@@ -768,6 +768,7 @@ const Game = {
     VfxEngine.init();
     this.loadMeta();
     this.bindKeyboardControls();
+    this.syncSceneBackground('screen-hub');
     this.updateTopHud();
     this.renderHub();
   },
@@ -1967,9 +1968,8 @@ const Game = {
     const currentBossObj = GAME_DATA.enemies[currentBossId];
 
     document.getElementById('map-act-title').textContent = `🏰 ${actInfo.name} (Stage ${this.run.stage} / 15)`;
-    document.getElementById('map-act-subtitle').innerHTML = `${actInfo.subtitle} — <strong style="color:#ff7675">15F 보스 예고: ${
-      currentBossObj ? currentBossObj.name : ''
-    }</strong> | <span style="color:#f6c967">🗺️ 슬더스 분기 지도: 이전 경로와 연결된 갈림길(인접 레인) 중 원하는 루트를 선택하세요!</span>`;
+    document.getElementById('map-act-subtitle').innerHTML = `${actInfo.subtitle} — <strong style="color:#ff7675">15F 보스 예고: ${currentBossObj ? currentBossObj.name : ''
+      }</strong> | <span style="color:#f6c967">🗺️ 슬더스 분기 지도: 이전 경로와 연결된 갈림길(인접 레인) 중 원하는 루트를 선택하세요!</span>`;
 
     const spCountEl = document.getElementById('map-sp-count');
     if (spCountEl) spCountEl.textContent = this.run.sp;
@@ -2021,8 +2021,7 @@ const Game = {
           const kbdBadge = isReachable && row.nodes.length > 1 ? `<span class="kbd-hint">${availIdx}</span> ` : '';
           const typeClass = `node-type-${n.type}`;
           return `
-            <button class="map-node-btn ${typeClass} ${stateClass}" style="flex:1; justify-content:center;" ${
-              isReachable ? `onclick="Game.enterMapNode('${n.id}', '${n.type}', ${n.lane})"` : 'disabled'
+            <button class="map-node-btn ${typeClass} ${stateClass}" style="flex:1; justify-content:center;" ${isReachable ? `onclick="Game.enterMapNode('${n.id}', '${n.type}', ${n.lane})"` : 'disabled'
             }>
               ${kbdBadge}${n.label}${isChosenPast ? ' ✔' : ''}
             </button>
@@ -2073,9 +2072,8 @@ const Game = {
     if (this.run.relics.includes('ectoplasm_slime')) goldBonus = 0;
     this.run.gold += goldBonus;
 
-    let msg = `🎁 고대 보물상자 개방! ${relic ? `[${relic.icon} ${relic.name}] 획득!` : '모든 유물 수집 완료!'}${
-      goldBonus > 0 ? ` (+${goldBonus} GP)` : ''
-    }`;
+    let msg = `🎁 고대 보물상자 개방! ${relic ? `[${relic.icon} ${relic.name}] 획득!` : '모든 유물 수집 완료!'}${goldBonus > 0 ? ` (+${goldBonus} GP)` : ''
+      }`;
     if (this.run.relics.includes('cursed_key')) {
       this.run.deck.push(this.createCardInstance('curse_pain'));
       msg += ` ⚠️ [저주받은 열쇠] 페널티로 심연의 저주 추가!`;
@@ -2146,103 +2144,103 @@ const Game = {
     const gained = Math.round(rawExp * 1.45 * mult);
     this.run.runExp += gained;
 
-      let leveledUp = 0;
-      while (this.run.runExp >= this.run.runNextExp && this.run.runLv < 20) {
-        this.run.runExp -= this.run.runNextExp;
-        this.run.runLv += 1;
-        this.run.sp += 1; // +1 SP per Level
-        this.run.pendingCardDrafts = (this.run.pendingCardDrafts || 0) + 1; // +1 Card Draft per Level-Up!
-        this.run.maxHp += 2;
-        this.run.hp = Math.min(this.run.maxHp, this.run.hp + 2);
-        this.run.runNextExp = Math.round(this.run.runNextExp * 1.2 + 25);
-        leveledUp += 1;
-      }
-      this.updateTopHud();
-      return { gained, leveledUp };
-    },
+    let leveledUp = 0;
+    while (this.run.runExp >= this.run.runNextExp && this.run.runLv < 20) {
+      this.run.runExp -= this.run.runNextExp;
+      this.run.runLv += 1;
+      this.run.sp += 1; // +1 SP per Level
+      this.run.pendingCardDrafts = (this.run.pendingCardDrafts || 0) + 1; // +1 Card Draft per Level-Up!
+      this.run.maxHp += 2;
+      this.run.hp = Math.min(this.run.maxHp, this.run.hp + 2);
+      this.run.runNextExp = Math.round(this.run.runNextExp * 1.2 + 25);
+      leveledUp += 1;
+    }
+    this.updateTopHud();
+    return { gained, leveledUp };
+  },
 
-    // 5-Act Build Progression Rarity Curve:
-    // - Act 1 (Foundation): Common 74% / Uncommon 24% / Rare 2% / Legendary 0% (Act 1 Boss gives first Rare!)
-    // - Act 2 (Mid-Build I): Common 44% / Uncommon 40% / Rare 14% / Legendary 2%
-    // - Act 3 (Mid-Build II): Common 28% / Uncommon 42% / Rare 24% / Legendary 6%
-    // - Act 4~5 (Final Capstone Build): Common 14% / Uncommon 34% / Rare 36% / Legendary 16%+
-    rollWeightedCardChoices(count = 3, sourceType = 'levelup') {
-      const ch = GAME_DATA.characters[this.run.charId];
-      const basicIds = new Set([ch.sharedCards[0], ch.sharedCards[1]]);
-      const poolByRarity = { common: [], uncommon: [], rare: [], legendary: [] };
+  // 5-Act Build Progression Rarity Curve:
+  // - Act 1 (Foundation): Common 74% / Uncommon 24% / Rare 2% / Legendary 0% (Act 1 Boss gives first Rare!)
+  // - Act 2 (Mid-Build I): Common 44% / Uncommon 40% / Rare 14% / Legendary 2%
+  // - Act 3 (Mid-Build II): Common 28% / Uncommon 42% / Rare 24% / Legendary 6%
+  // - Act 4~5 (Final Capstone Build): Common 14% / Uncommon 34% / Rare 36% / Legendary 16%+
+  rollWeightedCardChoices(count = 3, sourceType = 'levelup') {
+    const ch = GAME_DATA.characters[this.run.charId];
+    const basicIds = new Set([ch.sharedCards[0], ch.sharedCards[1]]);
+    const poolByRarity = { common: [], uncommon: [], rare: [], legendary: [] };
 
-      ch.cardPool.forEach(cid => {
-        if (basicIds.has(cid)) return;
-        const tpl = GAME_DATA.cards[cid];
-        const r = tpl && poolByRarity[tpl.rarity] ? tpl.rarity : 'common';
-        poolByRarity[r].push(cid);
-      });
+    ch.cardPool.forEach(cid => {
+      if (basicIds.has(cid)) return;
+      const tpl = GAME_DATA.cards[cid];
+      const r = tpl && poolByRarity[tpl.rarity] ? tpl.rarity : 'common';
+      poolByRarity[r].push(cid);
+    });
 
-      const act = Math.max(1, Math.min(5, this.run.act || 1));
-      const rankLv = (this.run.permStats && this.run.permStats.rankLevel) || 0; // C=0, B=1, A=2, S=3
+    const act = Math.max(1, Math.min(5, this.run.act || 1));
+    const rankLv = (this.run.permStats && this.run.permStats.rankLevel) || 0; // C=0, B=1, A=2, S=3
 
-      const actBaseWeights = {
-        1: { common: 74, uncommon: 24, rare: 2,  legendary: 0  },
-        2: { common: 44, uncommon: 40, rare: 14, legendary: 2  },
-        3: { common: 28, uncommon: 42, rare: 24, legendary: 6  },
-        4: { common: 16, uncommon: 34, rare: 36, legendary: 14 },
-        5: { common: 10, uncommon: 28, rare: 40, legendary: 22 }
+    const actBaseWeights = {
+      1: { common: 74, uncommon: 24, rare: 2, legendary: 0 },
+      2: { common: 44, uncommon: 40, rare: 14, legendary: 2 },
+      3: { common: 28, uncommon: 42, rare: 24, legendary: 6 },
+      4: { common: 16, uncommon: 34, rare: 36, legendary: 14 },
+      5: { common: 10, uncommon: 28, rare: 40, legendary: 22 }
+    };
+    const base = actBaseWeights[act] || actBaseWeights[1];
+    let weights = { ...base };
+
+    if (sourceType === 'boss') {
+      weights = {
+        common: 0,
+        uncommon: act === 1 ? 55 : act === 2 ? 25 : 10,
+        rare: act === 1 ? 45 : act === 2 ? 60 : act === 3 ? 60 : 48,
+        legendary: act === 1 ? 0 : act === 2 ? 15 : act === 3 ? 30 : 42
       };
-      const base = actBaseWeights[act] || actBaseWeights[1];
-      let weights = { ...base };
+    } else if (sourceType === 'midboss') {
+      weights = {
+        common: Math.max(5, base.common - 24),
+        uncommon: base.uncommon + 10,
+        rare: base.rare + 12,
+        legendary: act >= 2 ? base.legendary + 4 : 0
+      };
+    } else if (sourceType === 'shop') {
+      weights = {
+        common: Math.max(12, base.common - 12),
+        uncommon: base.uncommon + 6,
+        rare: base.rare + 5,
+        legendary: act >= 2 ? base.legendary + 2 : 0
+      };
+    }
 
-      if (sourceType === 'boss') {
-        weights = {
-          common: 0,
-          uncommon: act === 1 ? 55 : act === 2 ? 25 : 10,
-          rare: act === 1 ? 45 : act === 2 ? 60 : act === 3 ? 60 : 48,
-          legendary: act === 1 ? 0 : act === 2 ? 15 : act === 3 ? 30 : 42
-        };
-      } else if (sourceType === 'midboss') {
-        weights = {
-          common: Math.max(5, base.common - 24),
-          uncommon: base.uncommon + 10,
-          rare: base.rare + 12,
-          legendary: act >= 2 ? base.legendary + 4 : 0
-        };
-      } else if (sourceType === 'shop') {
-        weights = {
-          common: Math.max(12, base.common - 12),
-          uncommon: base.uncommon + 6,
-          rare: base.rare + 5,
-          legendary: act >= 2 ? base.legendary + 2 : 0
-        };
+    // Rank Promotion Bonus: boosts Rare/Legendary luck gently without breaking the Act 1 foundation curve!
+    if (rankLv > 0) {
+      weights.rare += rankLv * 3;
+      if (act >= 2) weights.legendary += rankLv * 2;
+    }
+
+    const pickedIds = [];
+    const totalWeight = weights.common + weights.uncommon + weights.rare + weights.legendary;
+
+    for (let i = 0; i < count; i++) {
+      let roll = Math.random() * totalWeight;
+      let chosenRarity = 'common';
+      if (roll < weights.legendary) chosenRarity = 'legendary';
+      else if ((roll -= weights.legendary) < weights.rare) chosenRarity = 'rare';
+      else if ((roll -= weights.rare) < weights.uncommon) chosenRarity = 'uncommon';
+      else chosenRarity = 'common';
+
+      let candidates = poolByRarity[chosenRarity].filter(id => !pickedIds.includes(id));
+      if (candidates.length === 0) {
+        candidates = ch.cardPool.filter(id => !basicIds.has(id) && !pickedIds.includes(id));
       }
-
-      // Rank Promotion Bonus: boosts Rare/Legendary luck gently without breaking the Act 1 foundation curve!
-      if (rankLv > 0) {
-        weights.rare += rankLv * 3;
-        if (act >= 2) weights.legendary += rankLv * 2;
+      if (candidates.length > 0) {
+        const cid = candidates[Math.floor(Math.random() * candidates.length)];
+        pickedIds.push(cid);
       }
+    }
 
-      const pickedIds = [];
-      const totalWeight = weights.common + weights.uncommon + weights.rare + weights.legendary;
-
-      for (let i = 0; i < count; i++) {
-        let roll = Math.random() * totalWeight;
-        let chosenRarity = 'common';
-        if (roll < weights.legendary) chosenRarity = 'legendary';
-        else if ((roll -= weights.legendary) < weights.rare) chosenRarity = 'rare';
-        else if ((roll -= weights.rare) < weights.uncommon) chosenRarity = 'uncommon';
-        else chosenRarity = 'common';
-
-        let candidates = poolByRarity[chosenRarity].filter(id => !pickedIds.includes(id));
-        if (candidates.length === 0) {
-          candidates = ch.cardPool.filter(id => !basicIds.has(id) && !pickedIds.includes(id));
-        }
-        if (candidates.length > 0) {
-          const cid = candidates[Math.floor(Math.random() * candidates.length)];
-          pickedIds.push(cid);
-        }
-      }
-
-      return pickedIds.map(cid => this.createCardInstance(cid));
-    },
+    return pickedIds.map(cid => this.createCardInstance(cid));
+  },
 
   openRunStatModal() {
     if (!this.run) return;
@@ -4268,8 +4266,8 @@ const Game = {
             oType === 'fire'
               ? `🔥 화염 구체 #${i + 1} (전체 ${dmgPerDrone})`
               : oType === 'frost'
-              ? `❄️ 냉기 구체 #${i + 1} (🛡️${frostBlk} / 동상+1)`
-              : `⚡ 번개 구체 #${i + 1} (낙뢰 ${dmgPerDrone + 2})`;
+                ? `❄️ 냉기 구체 #${i + 1} (🛡️${frostBlk} / 동상+1)`
+                : `⚡ 번개 구체 #${i + 1} (낙뢰 ${dmgPerDrone + 2})`;
           compHtml += `<div class="drone-orb-chip">${orbLabel}</div>`;
         });
       } else {

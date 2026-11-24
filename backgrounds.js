@@ -1008,19 +1008,26 @@
     const key = resolveKey(keyOrBossId, actNum);
     const meta = getSceneMeta(key, actNum);
     const url = getSceneDataUrl(key, actNum);
+    const lobbyUrl = getSceneDataUrl('lobby', 0);
     const root = document.documentElement;
     if (root && url) {
       root.style.setProperty('--pixel-bg-img', `url("${url}")`);
       root.style.setProperty('--pixel-bg-accent', meta.accent);
       root.dataset.pixelTheme = key;
     }
-    // Also populate Lobby hero banner image once
-    if (!urlCache.lobby) {
-      urlCache.lobby = buildCanvas('lobby').toDataURL();
+    if (root && lobbyUrl) {
+      root.style.setProperty('--pixel-lobby-img', `url("${lobbyUrl}")`);
     }
-    if (root && urlCache.lobby) {
-      root.style.setProperty('--pixel-lobby-img', `url("${urlCache.lobby}")`);
-    }
+    // Directly bind crisp pixelated <img> elements so backgrounds ALWAYS render visibly!
+    const fullImg = document.getElementById('pixel-bg-img');
+    if (fullImg && url) fullImg.src = url;
+    const bfImg = document.getElementById('battlefield-bg-img');
+    if (bfImg && url) bfImg.src = url;
+    const mapImg = document.getElementById('map-bg-img');
+    if (mapImg && url) mapImg.src = url;
+    const lobbyImg = document.getElementById('lobby-bg-img');
+    if (lobbyImg && lobbyUrl) lobbyImg.src = lobbyUrl;
+
     const badge = document.getElementById('map-theme-badge');
     if (badge) {
       badge.textContent = `🎨 ${meta.title}`;
@@ -1044,4 +1051,13 @@
     getSceneMeta,
     applyTheme
   };
+
+  // Auto-apply Lobby pixel-art background as soon as DOM is ready!
+  if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => applyTheme('lobby', 0));
+    } else {
+      applyTheme('lobby', 0);
+    }
+  }
 })();

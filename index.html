@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>D&D 5E SPIRE II: TALES OF UNDERMOUNTAIN (8클래스 32직업 · 5계층 × 15스테이지)</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=6" />
   <script>
     (function () {
       var params = new URLSearchParams(window.location.search);
@@ -15,9 +16,12 @@
     })();
   </script>
 </head>
+
 <body>
   <!-- DYNAMIC PIXEL-ART WORLD BACKDROP (Lobby Tavern / 20 Boss-Themed Spire Domains) -->
-  <div id="pixel-bg-layer" class="pixel-bg-layer" aria-hidden="true"></div>
+  <div id="pixel-bg-layer" class="pixel-bg-layer" aria-hidden="true">
+    <img id="pixel-bg-img" class="pixel-bg-img" alt="" />
+  </div>
 
   <!-- TOP GLOBAL HUD BAR -->
   <header id="top-bar" class="top-bar">
@@ -76,10 +80,12 @@
     <!-- 1. YAWNING PORTAL TAVERN HUB (8 CLASSES TOWER CLIMB) -->
     <section id="screen-hub" class="screen active">
       <div class="hub-hero">
+        <img id="lobby-bg-img" class="scene-banner-img" alt="" aria-hidden="true" />
         <div class="hub-header-text">
           <span class="badge-tag">DUNGEONS & DRAGONS 5E · SLAY THE SPIRE 2 ROGUELIKE</span>
           <h1>워터딥 첨탑 등반 출격 — 8대 클래스 선택</h1>
-          <p>D&D 5판 공식 <strong>8대 클래스(전원 해금)</strong> 중 하나를 선택해 출격하세요! 첨탑을 오르며 <strong>클래스별 44종 카드(공용 4종 + 4개 하위직업 각 10종)</strong>를 수집하고 <strong>5개 층 × 15스테이지(슬더스 표준 템포)</strong> 정상을 정복하세요!</p>
+          <p>D&D 5판 공식 <strong>8대 클래스(전원 해금)</strong> 중 하나를 선택해 출격하세요! 첨탑을 오르며 <strong>클래스별 44종 카드(공용 4종 + 4개 하위직업 각
+              10종)</strong>를 수집하고 <strong>5개 층 × 15스테이지(슬더스 표준 템포)</strong> 정상을 정복하세요!</p>
         </div>
         <div class="hub-cta-group">
           <div class="mech-box" style="text-align:right; min-width:230px;">
@@ -102,13 +108,17 @@
     <!-- 2. UNDERMOUNTAIN 5-ACT x 30-STAGE DUNGEON MAP SCREEN -->
     <section id="screen-map" class="screen">
       <div class="map-container">
+        <div class="map-theme-banner">
+          <img id="map-bg-img" class="scene-banner-img" alt="" aria-hidden="true" />
+          <div class="map-theme-banner-overlay">
+            <span id="map-theme-badge" class="theme-pill-badge">🎨 1층 · 재나타의 암흑 길드 금고</span>
+          </div>
+        </div>
         <div class="map-header">
           <div>
-            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:4px;">
-              <h2 id="map-act-title" style="margin-bottom:0;">🏰 제1계층: 언더마운틴 입구 & 고블린 성채</h2>
-              <span id="map-theme-badge" class="theme-pill-badge">🎨 1층 · 재나타의 암흑 길드 금고</span>
-            </div>
-            <p id="map-act-subtitle">현재 층은 총 15개 스테이지(갈림길 분기 지도)로 구성됩니다. 연결된 루트(전투/엘리트/D20 이벤트/상점/모닥불) 중 원하는 경로를 선택해 전진하세요!</p>
+            <h2 id="map-act-title">🏰 제1계층: 언더마운틴 입구 & 고블린 성채</h2>
+            <p id="map-act-subtitle">현재 층은 총 15개 스테이지(갈림길 분기 지도)로 구성됩니다. 연결된 루트(전투/엘리트/D20 이벤트/상점/모닥불) 중 원하는 경로를 선택해
+              전진하세요!</p>
           </div>
           <div style="display:flex; gap:10px; align-items:center;">
             <button class="btn-primary" onclick="Game.openRunStatModal()">
@@ -137,6 +147,7 @@
 
         <!-- Battlefield Row: Player + STS2 Companion/Orbs vs Monsters -->
         <div class="battlefield-row">
+          <img id="battlefield-bg-img" class="battlefield-bg-img" alt="" aria-hidden="true" />
           <div id="combat-theme-badge" class="theme-pill-badge combat-theme-pill">🏰 1층 · 언더마운틴</div>
           <div class="allies-zone">
             <div id="player-unit-card" class="unit-card player-unit">
@@ -167,7 +178,8 @@
               <div class="energy-lbl">행동력(AP)</div>
             </div>
 
-            <div id="secondary-resource-box" class="secondary-orb" onclick="Game.triggerSecondaryBurst()" title="클래스 고유 자원 - 5 이상 모았을 때 클릭하면 클래스 궁극 개방 발동!">
+            <div id="secondary-resource-box" class="secondary-orb" onclick="Game.triggerSecondaryBurst()"
+              title="클래스 고유 자원 - 5 이상 모았을 때 클릭하면 클래스 궁극 개방 발동!">
               <div class="sec-icon" id="sec-res-icon">⚔️</div>
               <div class="sec-info">
                 <span id="sec-res-name" class="sec-name">우위 주사위</span>
@@ -193,7 +205,8 @@
           </div>
         </div>
         <div class="keyboard-guide-bar">
-          ⌨️ 단축키: <kbd>1~0</kbd> 카드 사용 · <kbd>Tab</kbd>/<kbd>←→</kbd> 타겟 전환 · <kbd>E</kbd>/<kbd>Space</kbd> 턴 종료 · <kbd>Q</kbd> 클래스 개방 · <kbd>Z/X/V</kbd> 물약 · <kbd>A/S/D</kbd> 덱 보기 · <kbd>C</kbd> 능력치(SP)
+          ⌨️ 단축키: <kbd>1~0</kbd> 카드 사용 · <kbd>Tab</kbd>/<kbd>←→</kbd> 타겟 전환 · <kbd>E</kbd>/<kbd>Space</kbd> 턴 종료 ·
+          <kbd>Q</kbd> 클래스 개방 · <kbd>Z/X/V</kbd> 물약 · <kbd>A/S/D</kbd> 덱 보기 · <kbd>C</kbd> 능력치(SP)
         </div>
       </div>
     </section>
@@ -368,7 +381,8 @@
       </div>
       <div id="d20-dc-badge" class="d20-dc-badge">DC 12 — 판정 성공!</div>
       <p id="d20-outcome-desc" class="d20-outcome-desc"></p>
-      <button class="btn-primary" style="margin-top:14px; width:100%;" onclick="Game.closeD20Modal()">계속 전진 [Enter / Space] ➔</button>
+      <button class="btn-primary" style="margin-top:14px; width:100%;" onclick="Game.closeD20Modal()">계속 전진 [Enter /
+        Space] ➔</button>
     </div>
   </div>
 
@@ -379,10 +393,11 @@
   <!-- NON-BLOCKING IN-GAME TOAST STACK -->
   <div id="toast-container" class="toast-container"></div>
 
-  <script src="data.js"></script>
-  <script src="sprites.js"></script>
-  <script src="backgrounds.js"></script>
-  <script src="card_art.js"></script>
-  <script src="game.js"></script>
+  <script src="data.js?v=6"></script>
+  <script src="sprites.js?v=6"></script>
+  <script src="backgrounds.js?v=6"></script>
+  <script src="card_art.js?v=6"></script>
+  <script src="game.js?v=6"></script>
 </body>
+
 </html>
