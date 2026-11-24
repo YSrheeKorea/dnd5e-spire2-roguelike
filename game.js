@@ -2016,6 +2016,7 @@ const Game = {
   },
 
   openClassCompendium(charId, filterSubId = 'all') {
+    this.closeAllNavModals();
     const ch = GAME_DATA.characters[charId];
     const modal = document.getElementById('modal-deck');
     const titleEl = document.getElementById('deck-modal-title');
@@ -2550,6 +2551,7 @@ const Game = {
 
   openRunStatModal() {
     if (!this.run) return;
+    this.closeAllNavModals();
     document.getElementById('modal-run-stats').classList.remove('hidden');
     this.renderRunStatModal();
   },
@@ -5133,6 +5135,7 @@ const Game = {
 
   openDeckModal(mode = 'all') {
     if (!this.run) return;
+    this.closeAllNavModals();
     this.deckModalMode = mode;
     const modal = document.getElementById('modal-deck');
     const titleEl = document.getElementById('deck-modal-title');

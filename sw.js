@@ -63,7 +63,7 @@ self.addEventListener('fetch', event => {
         caches.match(event.request).then(cached => {
           if (cached) return cached;
           if (event.request.mode === 'navigate') {
-            return caches.match('./index.html');
+            return caches.match(url.pathname.includes('mobile') ? './mobile.html' : './index.html');
           }
           return new Response('Offline', { status: 503 });
         })
