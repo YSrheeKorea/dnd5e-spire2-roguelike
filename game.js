@@ -232,7 +232,8 @@ const VfxEngine = {
   init() {
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
     this.reducedMotion =
-      window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) ||
+      this.isVfxDisabledByUser();
     this.canvas = document.getElementById('vfx-canvas');
     if (!this.canvas || !this.canvas.getContext) return;
     this.ctx = this.canvas.getContext('2d');
@@ -241,6 +242,21 @@ const VfxEngine = {
       this._resizeBound = true;
       window.addEventListener('resize', () => this.resize(), { passive: true });
     }
+  },
+
+  isVfxDisabledByUser() {
+    try {
+      return localStorage.getItem('DND5E_SPIRE_2_VFX_OFF') === '1';
+    } catch (e) {
+      return false;
+    }
+  },
+
+  setVfxEnabled(enabled) {
+    try {
+      localStorage.setItem('DND5E_SPIRE_2_VFX_OFF', enabled ? '0' : '1');
+    } catch (e) { }
+    this.reducedMotion = !enabled;
   },
 
   resize() {
@@ -771,6 +787,7 @@ const Game = {
   init() {
     SfxEngine.init();
     VfxEngine.init();
+    this.applySavedUserPrefs();
     this.loadMeta();
     this.bindKeyboardControls();
     this.syncSceneBackground('screen-hub');
@@ -889,6 +906,14 @@ const Game = {
       if (key === 'Escape') {
         e.preventDefault();
         this.closeAchievementsModal();
+      }
+      return;
+    }
+
+    if (isVisible('modal-settings')) {
+      if (key === 'Escape') {
+        e.preventDefault();
+        this.closeSettingsModal();
       }
       return;
     }
@@ -1106,6 +1131,7 @@ const Game = {
         this.meta.achStats.bossesKilled = Math.max(1, this.meta.bestAct - 1);
       }
       this.meta.achSchemaV2 = true;
+      this.saveMeta();
     } else {
       if (!this.meta.unlocked) this.meta.unlocked = {};
       starterClasses.forEach(cid => { this.meta.unlocked[cid] = true; });
@@ -1117,11 +1143,53 @@ const Game = {
       if (!this.meta.achStats.classBestStageNum) this.meta.achStats.classBestStageNum = {};
     }
 
-    if (!this.meta.selectedCharId || !GAME_DATA.characters[this.meta.selectedCharId]) {
+    if (!this.meta.selectedCharId || !GAME_DATA.characters[this.meta.selectedCharId] || !this.isClassUnlocked(this.meta.selectedCharId)) {
       this.meta.selectedCharId = 'fighter';
     }
     // Re-sync any rewards from already earned achievements silently
     this.checkAchievements(true);
+  },
+
+  createFreshDefaultMeta() {
+    const sys = typeof window !== 'undefined' ? window.ACHIEVEMENT_SYSTEM : null;
+    const starterClasses = sys ? sys.STARTER_CLASSES : ['fighter', 'rogue', 'wizard'];
+    const unlocked = {};
+    const ranks = {};
+    const levels = {};
+    const classBestFloor = {};
+    Object.keys(GAME_DATA.characters).forEach(cid => {
+      unlocked[cid] = starterClasses.includes(cid);
+      ranks[cid] = 'C';
+      levels[cid] = 1;
+      classBestFloor[cid] = '1층 1F';
+    });
+    return {
+      gems: 300,
+      selectedCharId: 'fighter',
+      bestAct: 1,
+      bestStage: 1,
+      totalClimbs: 0,
+      achSchemaV2: true,
+      unlocked,
+      unlockedSubclasses: sys ? sys.getDefaultUnlockedSubclasses(GAME_DATA) : {},
+      unlockedLegendaries: {},
+      achievements: {},
+      achStats: sys ? sys.createDefaultStats() : {},
+      ranks,
+      levels,
+      classBestFloor,
+      gearUnlocked: { c_dagger: true, c_vest: true, c_ring: true },
+      gearLevels: { c_dagger: 0, c_vest: 0, c_ring: 0 },
+      equipped: { weapon: 'c_dagger', armor: 'c_vest', accessory: 'c_ring' },
+      masteryLevels: {
+        vitality_training: 0,
+        mana_circulation: 0,
+        tactical_intel: 0,
+        guild_funding: 0,
+        exp_accelerator: 0,
+        core_overdrive: 0
+      }
+    };
   },
 
   isClassUnlocked(charId) {
@@ -1214,11 +1282,225 @@ const Game = {
   },
 
   closeAllNavModals() {
-    ['modal-achievements', 'modal-gear', 'modal-mastery', 'modal-deck', 'modal-run-stats'].forEach(id => {
+    ['modal-achievements', 'modal-gear', 'modal-mastery', 'modal-deck', 'modal-run-stats', 'modal-settings'].forEach(id => {
       const el = typeof document !== 'undefined' ? document.getElementById(id) : null;
       if (el) el.classList.add('hidden');
     });
+    this._pendingResetKey = null;
     this.updateMobileNavActive('hub');
+  },
+
+  // --------------------------------------------------------------------------
+  // DEDICATED SETTINGS TAB: AUDIO / VFX / PIXEL BG / PWA CACHE / SAFE 2-STEP RESET
+  // --------------------------------------------------------------------------
+  applySavedUserPrefs() {
+    if (typeof document === 'undefined') return;
+    try {
+      const bgOff = localStorage.getItem('DND5E_SPIRE_2_BG_OFF') === '1';
+      document.documentElement.classList.toggle('pixel-bg-off', bgOff);
+    } catch (e) { }
+  },
+
+  openSettingsModal() {
+    this.closeAllNavModals();
+    this._pendingResetKey = null;
+    const modal = document.getElementById('modal-settings');
+    if (!modal) return;
+    this.renderSettingsModal();
+    modal.classList.remove('hidden');
+    this.updateMobileNavActive('settings');
+  },
+
+  closeSettingsModal() {
+    this._pendingResetKey = null;
+    const modal = document.getElementById('modal-settings');
+    if (modal) modal.classList.add('hidden');
+    this.updateMobileNavActive(this.run && !document.getElementById('screen-hub').classList.contains('active') ? 'run' : 'hub');
+  },
+
+  toggleVfxPref() {
+    const currentlyEnabled = !VfxEngine.isVfxDisabledByUser();
+    VfxEngine.setVfxEnabled(!currentlyEnabled);
+    this.renderSettingsModal();
+    this.showToast(!currentlyEnabled ? '✨ 타격감 이펙트 & 화면 흔들림 활성화됨' : '✨ 타격감 이펙트 최소화(성능 모드) 활성화됨', 'info');
+  },
+
+  togglePixelBgPref() {
+    let bgOff = false;
+    try {
+      bgOff = localStorage.getItem('DND5E_SPIRE_2_BG_OFF') === '1';
+      localStorage.setItem('DND5E_SPIRE_2_BG_OFF', bgOff ? '0' : '1');
+    } catch (e) { }
+    this.applySavedUserPrefs();
+    this.renderSettingsModal();
+    this.showToast(bgOff ? '🖼️ 도트 배경 표시 켜짐' : '🖼️ 도트 배경 표시 꺼짐 (단색 다크 모드)', 'info');
+  },
+
+  async refreshAppCache() {
+    try {
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
+      }
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map(r => r.unregister()));
+      }
+    } catch (e) { }
+    this.showToast('🔄 캐시를 비우고 최신 버전으로 새로고침합니다...', 'success');
+    setTimeout(() => {
+      if (typeof window !== 'undefined' && window.location) window.location.reload();
+    }, 350);
+  },
+
+  requestTwoStepReset(kind) {
+    if (this._pendingResetKey !== kind) {
+      this._pendingResetKey = kind;
+      this.renderSettingsModal();
+      this.showToast('⚠️ 한 번 더 누르면 즉시 초기화됩니다! (실수 방지 2단계 확인)', 'warn');
+      return;
+    }
+    this._pendingResetKey = null;
+    if (kind === 'run_only') {
+      this.abandonSavedRun();
+      this.renderSettingsModal();
+    } else if (kind === 'achievements_only') {
+      this.resetAchievementsOnly();
+    } else if (kind === 'full_account') {
+      this.resetFullAccountData();
+    }
+  },
+
+  resetAchievementsOnly() {
+    const sys = typeof window !== 'undefined' ? window.ACHIEVEMENT_SYSTEM : null;
+    const starterClasses = sys ? sys.STARTER_CLASSES : ['fighter', 'rogue', 'wizard'];
+    const unlocked = {};
+    Object.keys(GAME_DATA.characters).forEach(cid => {
+      unlocked[cid] = starterClasses.includes(cid);
+    });
+    this.meta.unlocked = unlocked;
+    this.meta.unlockedSubclasses = sys ? sys.getDefaultUnlockedSubclasses(GAME_DATA) : {};
+    this.meta.unlockedLegendaries = {};
+    this.meta.achievements = {};
+    this.meta.achStats = sys ? sys.createDefaultStats() : {};
+    this.meta.achSchemaV2 = true;
+    if (!this.isClassUnlocked(this.meta.selectedCharId)) {
+      this.meta.selectedCharId = 'fighter';
+    }
+    // Abandon saved run if it used a newly re-locked class
+    const saved = this.loadSavedRun();
+    if (saved && !this.isClassUnlocked(saved.charId)) {
+      this.clearSavedRun();
+      this.run = null;
+      this.combat = null;
+    }
+    this.saveMeta();
+    this.updateAchievementBadges();
+    this.renderHub();
+    this.renderSettingsModal();
+    this.showToast('🏆 업적 & 해금 상태가 초기화되었습니다! 기본 3클래스(파이터·로그·위저드)부터 다시 해금하세요.', 'success');
+  },
+
+  resetFullAccountData() {
+    try {
+      localStorage.removeItem('DND5E_SPIRE_2_TOWER_META');
+      localStorage.removeItem('DND5E_SPIRE_2_ACTIVE_RUN');
+    } catch (e) { }
+    this.run = null;
+    this.combat = null;
+    this.meta = this.createFreshDefaultMeta();
+    this.saveMeta();
+    this.updateAchievementBadges();
+    this.closeSettingsModal();
+    this.showHub();
+    this.showToast('✅ 계정 데이터가 완전히 초기화되었습니다! 기본 3클래스 · 업적 0/28 · 마석 300으로 새로 시작합니다.', 'success');
+  },
+
+  renderSettingsModal() {
+    const body = document.getElementById('settings-modal-body');
+    if (!body) return;
+    const sfxOn = !SfxEngine.muted;
+    const vfxOn = !VfxEngine.isVfxDisabledByUser();
+    let bgOn = true;
+    try { bgOn = localStorage.getItem('DND5E_SPIRE_2_BG_OFF') !== '1'; } catch (e) { }
+    const sys = typeof window !== 'undefined' ? window.ACHIEVEMENT_SYSTEM : null;
+    const achTotal = sys ? sys.ACHIEVEMENTS.length : 28;
+    const achDone = sys ? sys.ACHIEVEMENTS.filter(a => this.meta.achievements && this.meta.achievements[a.id]).length : 0;
+    const unlockedCnt = Object.keys(GAME_DATA.characters).filter(cid => this.isClassUnlocked(cid)).length;
+    const hasSavedRun = !!this.loadSavedRun();
+    const isStandalone = typeof window !== 'undefined' && window.PwaInstaller && window.PwaInstaller.isStandalone();
+    const isMobilePage = typeof document !== 'undefined' && document.body && document.body.classList.contains('mobile-edition');
+
+    const pend = this._pendingResetKey;
+    body.innerHTML = `
+      <div class="settings-section">
+        <h3>🎛️ 사운드 & 그래픽 연출</h3>
+        <div class="settings-toggle-row">
+          <div>
+            <strong>🔊 효과음 (SFX)</strong>
+            <p>타격음, 주문 발동음, 업적 팡파레 효과음</p>
+          </div>
+          <button class="settings-pill-btn ${sfxOn ? 'on' : 'off'}" onclick="Game.toggleSound(); Game.renderSettingsModal();">
+            ${sfxOn ? '켜짐 (ON)' : '꺼짐 (OFF)'}
+          </button>
+        </div>
+        <div class="settings-toggle-row">
+          <div>
+            <strong>✨ 타격감 이펙트 & 화면 흔들림 (VFX)</strong>
+            <p>검기 파티클, 충격파, 치명타 섬광 및 화면 흔들림</p>
+          </div>
+          <button class="settings-pill-btn ${vfxOn ? 'on' : 'off'}" onclick="Game.toggleVfxPref()">
+            ${vfxOn ? '켜짐 (ON)' : '최소화'}
+          </button>
+        </div>
+        <div class="settings-toggle-row">
+          <div>
+            <strong>🖼️ 도트 배경 연출</strong>
+            <p>로비 주점 및 20종 보스 테마 도트 배경 표시</p>
+          </div>
+          <button class="settings-pill-btn ${bgOn ? 'on' : 'off'}" onclick="Game.togglePixelBgPref()">
+            ${bgOn ? '켜짐 (ON)' : '꺼짐'}
+          </button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>📱 앱 & 버전 관리</h3>
+        <div class="settings-account-summary">
+          <span>🏆 달성 업적: <strong>${achDone}/${achTotal}</strong></span>
+          <span>🧑 해금 클래스: <strong>${unlockedCnt}/8</strong></span>
+          <span>💎 마석: <strong>${this.meta.gems || 0}</strong></span>
+          <span>🏔️ 최고: <strong>${this.meta.bestAct || 1}층 ${this.meta.bestStage || 1}F</strong></span>
+        </div>
+        <div class="settings-action-grid">
+          <button class="hud-btn" style="border-color:#2ed573; color:#55efc4;" onclick="if(window.PwaInstaller) PwaInstaller.install();">
+            ${isStandalone ? '✅ 설치된 앱으로 실행 중' : '📲 홈 화면에 앱 설치'}
+          </button>
+          <button class="hud-btn" style="border-color:#74b9ff; color:#74b9ff;" onclick="Game.refreshAppCache()">
+            🔄 캐시 비우고 최신 버전 갱신
+          </button>
+          <a class="hud-btn" style="text-decoration:none; text-align:center; border-color:#a29bfe; color:#dfe6e9;" href="${isMobilePage ? 'index.html?force=pc' : 'mobile.html'}">
+            ${isMobilePage ? '💻 PC 와이드 버전으로 열기' : '📱 모바일 터치 버전으로 열기'}
+          </a>
+        </div>
+      </div>
+
+      <div class="settings-section settings-danger-zone">
+        <h3>⚠️ 계정 & 업적 데이터 초기화</h3>
+        <p class="settings-danger-note">이전 계정 데이터가 남아 업적·해금 체험이 꼬였다면 아래에서 안전하게 초기화할 수 있습니다. (실수 방지를 위해 2번 클릭해야 실행됩니다)</p>
+        <div class="settings-reset-col">
+          <button class="settings-reset-btn ${pend === 'achievements_only' ? 'confirming' : ''}" onclick="Game.requestTwoStepReset('achievements_only')">
+            ${pend === 'achievements_only' ? '⚠️ 정말 업적/해금만 초기화할까요? 한 번 더 클릭!' : '🏆 업적 & 해금만 초기화 (기본 3클래스 · 업적 0/28로 리셋)'}
+          </button>
+          <button class="settings-reset-btn ${pend === 'run_only' ? 'confirming' : ''}" onclick="Game.requestTwoStepReset('run_only')" ${hasSavedRun ? '' : 'disabled'}>
+            ${pend === 'run_only' ? '⚠️ 진행 중인 모험 세이브를 삭제할까요? 한 번 더 클릭!' : hasSavedRun ? '💾 진행 중인 모험(이어하기) 데이터만 삭제' : '💾 저장된 진행 중 모험 없음'}
+          </button>
+          <button class="settings-reset-btn danger-full ${pend === 'full_account' ? 'confirming' : ''}" onclick="Game.requestTwoStepReset('full_account')">
+            ${pend === 'full_account' ? '🚨 모든 계정 데이터(마석·레벨·무구·업적·세이브) 영구 삭제! 한 번 더 클릭!' : '💣 전체 계정 데이터 완전 초기화 (처음부터 새로 시작)'}
+          </button>
+        </div>
+      </div>
+    `;
   },
 
   updateMobileNavActive(activeTab) {
@@ -3832,6 +4114,7 @@ const Game = {
     }
 
     this.logCombat(`🎴 [${tpl.name}${cardInst.upgraded ? '+' : ''}] 발동!`);
+    this.checkAchievements();
     this.checkCombatEnd();
     this.renderCombat();
   },
@@ -3955,6 +4238,7 @@ const Game = {
       this.logCombat('🟣 [사역마 혈맹 제물 & 파멸 증폭] 행동력 +1, 카드 1장 드로우 및 적 전체에 파멸(Doom) +6 부여!');
     }
 
+    this.checkAchievements();
     this.checkCombatEnd();
     this.renderCombat();
   },
@@ -4263,6 +4547,7 @@ const Game = {
     if (this.combat.player.frail > 0) this.combat.player.frail -= 1;
 
     if (this.checkCombatEnd()) return;
+    this.checkAchievements();
     this.startPlayerTurn(false);
   },
 
