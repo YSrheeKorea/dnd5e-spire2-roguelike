@@ -5,6 +5,438 @@
 // - C / B / A / S Rank Promotion + D&D 6 Ability Scores + Feats + Magic Gear
 // ============================================================================
 
+// ============================================================================
+// PROCEDURAL WEB AUDIO SFX ENGINE & 60FPS ON-DEMAND CANVAS VFX ENGINE
+// (Zero external assets, 0% idle CPU/GPU usage when no particles active!)
+// ============================================================================
+const SfxEngine = {
+  ctx: null,
+  muted: false,
+
+  init() {
+    try {
+      this.muted = localStorage.getItem('DND5E_SPIRE_2_SFX_MUTED') === '1';
+    } catch (e) { }
+    this.syncToggleButtons();
+  },
+
+  toggleMute() {
+    this.muted = !this.muted;
+    try {
+      localStorage.setItem('DND5E_SPIRE_2_SFX_MUTED', this.muted ? '1' : '0');
+    } catch (e) { }
+    this.syncToggleButtons();
+    if (!this.muted) this.play('gold');
+    if (typeof Game !== 'undefined' && Game.showToast) {
+      Game.showToast(this.muted ? '🔇 효과음 음소거됨' : '🔊 효과음 활성화됨', 'info');
+    }
+  },
+
+  syncToggleButtons() {
+    if (typeof document === 'undefined' || !document.querySelectorAll) return;
+    document.querySelectorAll('.btn-sfx-toggle').forEach(btn => {
+      btn.textContent = this.muted ? '🔇' : '🔊';
+      btn.title = this.muted ? '효과음 켜기' : '효과음 끄기';
+    });
+  },
+
+  ensureCtx() {
+    if (this.muted || typeof window === 'undefined') return null;
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return null;
+    if (!this.ctx) {
+      try {
+        this.ctx = new AudioCtx();
+      } catch (e) {
+        return null;
+      }
+    }
+    if (this.ctx.state === 'suspended') {
+      try { this.ctx.resume(); } catch (e) { }
+    }
+    return this.ctx;
+  },
+
+  tone(freq, endFreq, dur, type = 'triangle', gainVal = 0.08, delay = 0) {
+    const ctx = this.ensureCtx();
+    if (!ctx) return;
+    const now = ctx.currentTime + delay;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(Math.max(40, freq), now);
+    if (endFreq !== freq) {
+      osc.frequency.exponentialRampToValueAtTime(Math.max(40, endFreq), now + dur);
+    }
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.linearRampToValueAtTime(gainVal, now + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(now);
+    osc.stop(now + dur + 0.02);
+  },
+
+  play(kind) {
+    if (this.muted) return;
+    if (kind === 'card') {
+      this.tone(360, 560, 0.07, 'sine', 0.05);
+    } else if (kind === 'hit') {
+      this.tone(190, 68, 0.11, 'sawtooth', 0.09);
+      this.tone(420, 120, 0.07, 'triangle', 0.05, 0.015);
+    } else if (kind === 'crit') {
+      this.tone(240, 55, 0.18, 'sawtooth', 0.12);
+      this.tone(680, 960, 0.13, 'square', 0.06, 0.02);
+    } else if (kind === 'block') {
+      this.tone(520, 390, 0.09, 'triangle', 0.07);
+      this.tone(780, 620, 0.08, 'sine', 0.05, 0.025);
+    } else if (kind === 'heal') {
+      this.tone(523, 659, 0.14, 'sine', 0.06);
+      this.tone(659, 880, 0.16, 'sine', 0.06, 0.07);
+    } else if (kind === 'fire') {
+      this.tone(260, 95, 0.2, 'sawtooth', 0.08);
+      this.tone(480, 180, 0.16, 'triangle', 0.06, 0.03);
+    } else if (kind === 'frost') {
+      this.tone(1100, 740, 0.14, 'sine', 0.06);
+      this.tone(1480, 980, 0.12, 'triangle', 0.05, 0.03);
+    } else if (kind === 'lightning') {
+      this.tone(920, 220, 0.09, 'sawtooth', 0.07);
+      this.tone(1280, 310, 0.09, 'square', 0.05, 0.04);
+    } else if (kind === 'poison') {
+      this.tone(310, 210, 0.14, 'sine', 0.06);
+      this.tone(240, 155, 0.14, 'triangle', 0.05, 0.05);
+    } else if (kind === 'holy') {
+      this.tone(587, 880, 0.16, 'sine', 0.07);
+      this.tone(880, 1175, 0.2, 'triangle', 0.06, 0.06);
+    } else if (kind === 'doom') {
+      this.tone(165, 52, 0.32, 'sawtooth', 0.12);
+      this.tone(220, 73, 0.28, 'square', 0.06, 0.05);
+    } else if (kind === 'burst') {
+      this.tone(392, 587, 0.14, 'triangle', 0.08);
+      this.tone(587, 988, 0.22, 'sine', 0.08, 0.07);
+    } else if (kind === 'dice') {
+      this.tone(480, 620, 0.05, 'triangle', 0.06);
+      this.tone(540, 720, 0.05, 'triangle', 0.06, 0.06);
+      this.tone(660, 880, 0.11, 'sine', 0.07, 0.12);
+    } else if (kind === 'gold') {
+      this.tone(988, 1318, 0.09, 'sine', 0.05);
+      this.tone(1318, 1568, 0.11, 'sine', 0.05, 0.05);
+    } else if (kind === 'victory') {
+      this.tone(523, 523, 0.12, 'triangle', 0.07, 0);
+      this.tone(659, 659, 0.12, 'triangle', 0.07, 0.1);
+      this.tone(784, 1046, 0.26, 'sine', 0.09, 0.2);
+    } else if (kind === 'defeat') {
+      this.tone(330, 260, 0.18, 'sawtooth', 0.07, 0);
+      this.tone(240, 130, 0.32, 'sawtooth', 0.08, 0.16);
+    }
+  }
+};
+
+const VfxEngine = {
+  canvas: null,
+  ctx: null,
+  dpr: 1,
+  w: 0,
+  h: 0,
+  rafId: null,
+  particles: [],
+  slashes: [],
+  rings: [],
+  bolts: [],
+  reducedMotion: false,
+
+  PALETTES: {
+    fire: ['#ff6b6b', '#ff9f43', '#feca57', '#fff200'],
+    frost: ['#74b9ff', '#00d2d3', '#c7ecee', '#ffffff'],
+    lightning: ['#f6e58d', '#7ed6df', '#ffffff', '#e056fd'],
+    blood: ['#eb3b5a', '#fc5c65', '#ff6b81', '#b33939'],
+    poison: ['#2ed573', '#7bed9f', '#badc58', '#1dd1a1'],
+    holy: ['#f6c967', '#ffeaa7', '#ffffff', '#f9ca24'],
+    doom: ['#9b59b6', '#e056fd', '#ff4757', '#2f3542'],
+    block: ['#74b9ff', '#00d2d3', '#dff9fb', '#54a0ff'],
+    heal: ['#2ed573', '#55efc4', '#ffeaa7', '#ffffff'],
+    trap: ['#ff9f43', '#f6c967', '#55efc4', '#ff6b6b'],
+    gold: ['#f6c967', '#ffd32a', '#ffeaa7', '#ffffff']
+  },
+
+  init() {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    this.reducedMotion =
+      window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this.canvas = document.getElementById('vfx-canvas');
+    if (!this.canvas || !this.canvas.getContext) return;
+    this.ctx = this.canvas.getContext('2d');
+    this.resize();
+    if (!this._resizeBound) {
+      this._resizeBound = true;
+      window.addEventListener('resize', () => this.resize(), { passive: true });
+    }
+  },
+
+  resize() {
+    if (!this.canvas || !this.ctx || typeof window === 'undefined') return;
+    this.dpr = Math.min(window.devicePixelRatio || 1, 2);
+    this.w = window.innerWidth;
+    this.h = window.innerHeight;
+    this.canvas.width = Math.floor(this.w * this.dpr);
+    this.canvas.height = Math.floor(this.h * this.dpr);
+    this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+  },
+
+  getAnchor(targetType, enemyIdx = 0) {
+    if (typeof document === 'undefined') return null;
+    let el = null;
+    if (targetType === 'player') {
+      el = document.getElementById('player-unit-card');
+    } else if (targetType === 'enemy') {
+      el =
+        document.querySelector(`#enemies-zone .enemy-unit[data-en-idx="${enemyIdx}"]`) ||
+        document.querySelectorAll('#enemies-zone .enemy-unit')[enemyIdx] ||
+        document.querySelector('#enemies-zone .enemy-unit');
+    }
+    if (!el || !el.getBoundingClientRect) return null;
+    const r = el.getBoundingClientRect();
+    if (r.width === 0 && r.height === 0) return null;
+    return { x: r.left + r.width * 0.5, y: r.top + r.height * 0.44, rect: r, el };
+  },
+
+  ensureRunning() {
+    if (this.rafId || !this.ctx || typeof requestAnimationFrame === 'undefined') return;
+    const step = () => {
+      this.tick();
+      if (this.particles.length || this.slashes.length || this.rings.length || this.bolts.length) {
+        this.rafId = requestAnimationFrame(step);
+      } else {
+        this.ctx.clearRect(0, 0, this.w, this.h);
+        this.rafId = null;
+      }
+    };
+    this.rafId = requestAnimationFrame(step);
+  },
+
+  burst(x, y, theme = 'fire', count = 16) {
+    if (this.reducedMotion || !this.ctx) return;
+    const colors = this.PALETTES[theme] || this.PALETTES.fire;
+    const n = this.w < 768 ? Math.ceil(count * 0.65) : count;
+    for (let i = 0; i < n; i++) {
+      const ang = (Math.PI * 2 * i) / n + (Math.random() - 0.5) * 0.5;
+      const spd = 2.2 + Math.random() * 5.2;
+      this.particles.push({
+        x,
+        y,
+        vx: Math.cos(ang) * spd,
+        vy: Math.sin(ang) * spd - (theme === 'heal' || theme === 'fire' ? 1.8 : 0.4),
+        size: 2.2 + Math.random() * 3.8,
+        color: colors[i % colors.length],
+        alpha: 1,
+        life: 0,
+        maxLife: 22 + Math.floor(Math.random() * 16),
+        gravity: theme === 'heal' ? -0.09 : theme === 'frost' ? 0.04 : 0.14
+      });
+    }
+    this.ensureRunning();
+  },
+
+  slash(x, y, color = '#ffeaa7', isDouble = false) {
+    if (this.reducedMotion || !this.ctx) return;
+    const addArc = angle => {
+      this.slashes.push({ x, y, angle, color, life: 0, maxLife: 16, radius: 52 + Math.random() * 18 });
+    };
+    addArc(-0.65 + (Math.random() - 0.5) * 0.4);
+    if (isDouble) addArc(0.65 + (Math.random() - 0.5) * 0.3);
+    this.ensureRunning();
+  },
+
+  ring(x, y, color = '#74b9ff', maxRadius = 68) {
+    if (this.reducedMotion || !this.ctx) return;
+    this.rings.push({ x, y, color, radius: 10, maxRadius, life: 0, maxLife: 22 });
+    this.ensureRunning();
+  },
+
+  bolt(x1, y1, x2, y2, color = '#7ed6df') {
+    if (this.reducedMotion || !this.ctx) return;
+    const pts = [{ x: x1, y: y1 }];
+    const segs = 6;
+    for (let i = 1; i < segs; i++) {
+      const t = i / segs;
+      pts.push({
+        x: x1 + (x2 - x1) * t + (Math.random() - 0.5) * 34,
+        y: y1 + (y2 - y1) * t + (Math.random() - 0.5) * 28
+      });
+    }
+    pts.push({ x: x2, y: y2 });
+    this.bolts.push({ pts, color, life: 0, maxLife: 15 });
+    this.ensureRunning();
+  },
+
+  effectOnTarget(targetType, enemyIdx, kind) {
+    const a = this.getAnchor(targetType, enemyIdx);
+    if (!a) return;
+    const p = this.getAnchor('player');
+    if (kind === 'slash') {
+      this.slash(a.x, a.y, '#ffeaa7', false);
+      this.burst(a.x, a.y, 'blood', 10);
+    } else if (kind === 'crit') {
+      this.slash(a.x, a.y, '#f6c967', true);
+      this.ring(a.x, a.y, '#f6c967', 74);
+      this.burst(a.x, a.y, 'fire', 20);
+      this.screenShake('heavy');
+    } else if (kind === 'fire') {
+      this.ring(a.x, a.y, '#ff9f43', 68);
+      this.burst(a.x, a.y, 'fire', 18);
+    } else if (kind === 'frost') {
+      this.ring(a.x, a.y, '#00d2d3', 62);
+      this.burst(a.x, a.y, 'frost', 16);
+    } else if (kind === 'lightning') {
+      if (p) this.bolt(p.x, p.y, a.x, a.y, '#7ed6df');
+      this.burst(a.x, a.y, 'lightning', 14);
+    } else if (kind === 'poison') {
+      this.burst(a.x, a.y, 'poison', 14);
+    } else if (kind === 'holy') {
+      if (p && targetType === 'enemy') this.bolt(p.x, p.y, a.x, a.y, '#f6c967');
+      this.ring(a.x, a.y, '#f6c967', 68);
+      this.burst(a.x, a.y, 'holy', 16);
+    } else if (kind === 'doom') {
+      this.ring(a.x, a.y, '#e056fd', 92);
+      this.burst(a.x, a.y, 'doom', 26);
+      this.screenShake('heavy');
+    } else if (kind === 'block') {
+      this.ring(a.x, a.y, '#74b9ff', 62);
+      this.burst(a.x, a.y, 'block', 10);
+    } else if (kind === 'heal') {
+      this.burst(a.x, a.y, 'heal', 14);
+    } else if (kind === 'trap') {
+      this.ring(a.x, a.y, '#ff9f43', 58);
+      this.burst(a.x, a.y, 'trap', 14);
+    } else if (kind === 'blood') {
+      this.slash(a.x, a.y, '#ff4757', false);
+      this.burst(a.x, a.y, 'blood', 16);
+    }
+  },
+
+  floatText(targetType, text, colorClass = 'vfx-dmg', enemyIdx = 0) {
+    const layer = typeof document !== 'undefined' ? document.getElementById('vfx-layer') : null;
+    const anchor = this.getAnchor(targetType, enemyIdx);
+    if (!layer || !anchor) return;
+    const pop = document.createElement('div');
+    pop.className = `floating-vfx ${colorClass}`;
+    pop.textContent = text;
+    const jitterX = (Math.random() - 0.5) * 44;
+    const jitterY = (Math.random() - 0.5) * 18;
+    pop.style.left = `${Math.round(anchor.x + jitterX)}px`;
+    pop.style.top = `${Math.round(anchor.y - 12 + jitterY)}px`;
+    layer.appendChild(pop);
+    if (colorClass === 'vfx-dmg' || colorClass === 'vfx-crit' || colorClass === 'vfx-doom') {
+      this.screenShake(colorClass === 'vfx-dmg' ? 'light' : 'heavy');
+    }
+    setTimeout(() => {
+      if (pop.parentNode) pop.parentNode.removeChild(pop);
+    }, 900);
+  },
+
+  banner(text, theme = 'gold') {
+    const layer = typeof document !== 'undefined' ? document.getElementById('vfx-layer') : null;
+    if (!layer || this.reducedMotion) return;
+    const old = layer.querySelector('.vfx-callout-banner');
+    if (old && old.parentNode) old.parentNode.removeChild(old);
+    const el = document.createElement('div');
+    el.className = `vfx-callout-banner banner-${theme}`;
+    el.textContent = text;
+    layer.appendChild(el);
+    setTimeout(() => {
+      if (el.parentNode) el.parentNode.removeChild(el);
+    }, 1150);
+  },
+
+  screenShake(intensity = 'light') {
+    if (this.reducedMotion || typeof document === 'undefined') return;
+    const arena = document.querySelector('#screen-combat .combat-arena');
+    if (!arena) return;
+    const cls = intensity === 'heavy' ? 'arena-shake-heavy' : 'arena-shake-light';
+    arena.classList.remove('arena-shake-light', 'arena-shake-heavy');
+    void arena.offsetWidth;
+    arena.classList.add(cls);
+  },
+
+  tick() {
+    const ctx = this.ctx;
+    ctx.clearRect(0, 0, this.w, this.h);
+
+    // 1. Expanding Shockwave Rings
+    for (let i = this.rings.length - 1; i >= 0; i--) {
+      const r = this.rings[i];
+      r.life++;
+      const p = r.life / r.maxLife;
+      const curR = r.radius + (r.maxRadius - r.radius) * (1 - Math.pow(1 - p, 3));
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, 1 - p);
+      ctx.strokeStyle = r.color;
+      ctx.lineWidth = Math.max(1, 5 * (1 - p));
+      ctx.beginPath();
+      ctx.arc(r.x, r.y, curR, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+      if (r.life >= r.maxLife) this.rings.splice(i, 1);
+    }
+
+    // 2. Curved Blade Slashes
+    for (let i = this.slashes.length - 1; i >= 0; i--) {
+      const s = this.slashes[i];
+      s.life++;
+      const p = s.life / s.maxLife;
+      ctx.save();
+      ctx.translate(s.x, s.y);
+      ctx.rotate(s.angle);
+      ctx.globalAlpha = Math.max(0, 1 - p);
+      ctx.strokeStyle = s.color;
+      ctx.lineWidth = Math.max(1.5, 7 * (1 - p));
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.arc(0, 0, s.radius, -0.9 + p * 0.5, 0.9 - p * 0.2);
+      ctx.stroke();
+      ctx.restore();
+      if (s.life >= s.maxLife) this.slashes.splice(i, 1);
+    }
+
+    // 3. Jagged Lightning / Holy Beams
+    for (let i = this.bolts.length - 1; i >= 0; i--) {
+      const b = this.bolts[i];
+      b.life++;
+      const p = b.life / b.maxLife;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, 1 - p);
+      ctx.strokeStyle = b.color;
+      ctx.shadowColor = b.color;
+      ctx.shadowBlur = 12;
+      ctx.lineWidth = Math.max(1, 4.5 * (1 - p));
+      ctx.beginPath();
+      b.pts.forEach((pt, idx) => (idx === 0 ? ctx.moveTo(pt.x, pt.y) : ctx.lineTo(pt.x, pt.y)));
+      ctx.stroke();
+      ctx.restore();
+      if (b.life >= b.maxLife) this.bolts.splice(i, 1);
+    }
+
+    // 4. Particles
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+      const pt = this.particles[i];
+      pt.life++;
+      pt.x += pt.vx;
+      pt.y += pt.vy;
+      pt.vy += pt.gravity;
+      pt.vx *= 0.96;
+      const p = pt.life / pt.maxLife;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, 1 - p);
+      ctx.fillStyle = pt.color;
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, Math.max(0.8, pt.size * (1 - p * 0.6)), 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+      if (pt.life >= pt.maxLife) this.particles.splice(i, 1);
+    }
+  }
+};
+
 const Game = {
   meta: {
     gems: 300, // Earned by climbing the Spire! Used for Class Rank Promotion, Magic Gear & Feats
@@ -85,10 +517,16 @@ const Game = {
   pendingShopCost: 0,
 
   init() {
+    SfxEngine.init();
+    VfxEngine.init();
     this.loadMeta();
     this.bindKeyboardControls();
     this.updateTopHud();
     this.renderHub();
+  },
+
+  toggleSound() {
+    SfxEngine.toggleMute();
   },
 
   // --------------------------------------------------------------------------
@@ -461,6 +899,7 @@ const Game = {
 
   // D20 Dice Roll Result Modal (Replaces alert() for D&D fate checks!)
   showD20Modal(roll, dc, title, outcomeText, isSuccess, onClose = null) {
+    SfxEngine.play('dice');
     this._d20OnClose = onClose;
     const modal = document.getElementById('modal-d20');
     if (!modal) {
@@ -495,29 +934,9 @@ const Game = {
     if (cb) cb();
   },
 
-  // Floating Combat VFX & Hit Shake
+  // Floating Combat VFX & Hit Shake (Rendered on persistent #vfx-layer so renderCombat() never clips animations!)
   spawnFloatingVfx(targetType, text, colorClass = 'vfx-dmg', enemyIdx = 0) {
-    let host = null;
-    if (targetType === 'player') {
-      host = document.getElementById('player-unit-card');
-    } else {
-      const enCards = document.querySelectorAll('#enemies-zone .enemy-unit');
-      host = enCards[enemyIdx] || enCards[0];
-    }
-    if (!host) return;
-    const pop = document.createElement('div');
-    pop.className = `floating-vfx ${colorClass}`;
-    pop.textContent = text;
-    pop.style.left = `${35 + Math.floor(Math.random() * 30)}%`;
-    host.appendChild(pop);
-    if (colorClass === 'vfx-dmg' || colorClass === 'vfx-crit' || colorClass === 'vfx-doom') {
-      host.classList.remove('unit-hit-shake');
-      void host.offsetWidth;
-      host.classList.add('unit-hit-shake');
-    }
-    setTimeout(() => {
-      if (pop.parentNode) pop.parentNode.removeChild(pop);
-    }, 900);
+    VfxEngine.floatText(targetType, text, colorClass, enemyIdx);
   },
 
   switchScreen(screenId) {
@@ -1677,22 +2096,30 @@ const Game = {
     document.getElementById('hud-deck-count').textContent = this.run.deck.length;
 
     const relicsBox = document.getElementById('hud-relics');
-    relicsBox.innerHTML = this.run.relics
-      .map(rid => {
-        const r = GAME_DATA.relics[rid];
-        return r ? `<div class="relic-chip" title="${r.name}: ${r.desc}">${r.icon}</div>` : '';
-      })
-      .join('');
+    const relicsSig = this.run.relics.join(',');
+    if (this._hudRelicsSig !== relicsSig) {
+      this._hudRelicsSig = relicsSig;
+      relicsBox.innerHTML = this.run.relics
+        .map(rid => {
+          const r = GAME_DATA.relics[rid];
+          return r ? `<div class="relic-chip" title="${r.name}: ${r.desc}">${r.icon}</div>` : '';
+        })
+        .join('');
+    }
 
     const potionsBox = document.getElementById('hud-potions');
-    potionsBox.innerHTML = this.run.potions
-      .map((pid, idx) => {
-        const p = GAME_DATA.potions[pid];
-        return p
-          ? `<div class="potion-chip" onclick="Game.usePotion(${idx})" title="[클릭하여 사용] ${p.name}: ${p.desc}">${p.icon}</div>`
-          : '';
-      })
-      .join('');
+    const potionsSig = this.run.potions.join(',');
+    if (this._hudPotionsSig !== potionsSig) {
+      this._hudPotionsSig = potionsSig;
+      potionsBox.innerHTML = this.run.potions
+        .map((pid, idx) => {
+          const p = GAME_DATA.potions[pid];
+          return p
+            ? `<div class="potion-chip" onclick="Game.usePotion(${idx})" title="[클릭하여 사용] ${p.name}: ${p.desc}">${p.icon}</div>`
+            : '';
+        })
+        .join('');
+    }
   },
 
   usePotion(idx) {
@@ -2194,14 +2621,25 @@ const Game = {
     if (alive.length === 0) return;
     const pwr = 6 + Math.floor(Math.max(0, this.combat.player.strength) * 0.5);
     if (orbType === 'fire') {
-      alive.forEach(en => this.dealDamageToEnemy(en, pwr, true));
+      SfxEngine.play('fire');
+      alive.forEach(en => {
+        VfxEngine.effectOnTarget('enemy', this.combat.enemies.indexOf(en), 'fire');
+        this.dealDamageToEnemy(en, pwr, true);
+      });
       this.logCombat(`🔥 [화염 구체 발현(Evoke)!] 적 전체에게 화염 폭발 ${pwr} 피해!`);
     } else if (orbType === 'frost') {
+      SfxEngine.play('frost');
+      VfxEngine.effectOnTarget('player', 0, 'block');
       this.combat.player.block += 6 + Math.floor(Math.max(0, this.combat.player.dexterity) * 0.5);
-      alive.forEach(en => (en.frostbite = (en.frostbite || 0) + 2));
+      alive.forEach(en => {
+        en.frostbite = (en.frostbite || 0) + 2;
+        VfxEngine.effectOnTarget('enemy', this.combat.enemies.indexOf(en), 'frost');
+      });
       this.logCombat(`❄️ [냉기 구체 발현(Evoke)!] 방어도 획득 및 적 전체에 동상 +2 부여!`);
     } else {
+      SfxEngine.play('lightning');
       const t = alive[Math.floor(Math.random() * alive.length)];
+      VfxEngine.effectOnTarget('enemy', this.combat.enemies.indexOf(t), 'lightning');
       this.dealDamageToEnemy(t, pwr + 3, true);
       this.logCombat(`⚡ [번개 구체 발현(Evoke)!] ${t.name}에게 낙뢰 ${pwr + 3} 피해!`);
     }
@@ -2214,6 +2652,12 @@ const Game = {
     const actualHeal = Math.min(missing, amount);
     const overheal = Math.max(0, amount - missing);
     this.run.hp += actualHeal;
+
+    if (actualHeal > 0 || overheal > 0) {
+      SfxEngine.play('heal');
+      VfxEngine.effectOnTarget('player', 0, 'heal');
+      this.spawnFloatingVfx('player', overheal > 0 ? `+${actualHeal} / 🛡️+${overheal}` : `+${actualHeal}`, 'vfx-heal');
+    }
 
     if (this.run.charId === 'cleric' && this.combat) {
       if (overheal > 0) {
@@ -2230,11 +2674,13 @@ const Game = {
     this.combat.enemies.forEach(en => {
       if (en.hp > 0 && (en.holyBrand || 0) > 0) {
         const radDmg = Math.min(en.holyBrand + Math.floor(healOrBlockAmt * 0.2), 10);
+        VfxEngine.effectOnTarget('enemy', this.combat.enemies.indexOf(en), 'holy');
         this.dealDamageToEnemy(en, radDmg, true);
         triggered = true;
       }
     });
     if (triggered) {
+      SfxEngine.play('holy');
       this.combat.clericBrandTriggersThisTurn = (this.combat.clericBrandTriggersThisTurn || 0) + 1;
     }
   },
@@ -2279,6 +2725,9 @@ const Game = {
         if (canExecute) {
           en.hp = 0;
           const eIdx = this.combat.enemies.indexOf(en);
+          SfxEngine.play('doom');
+          VfxEngine.effectOnTarget('enemy', eIdx, 'doom');
+          VfxEngine.banner(`💀 파멸(Doom) 즉시 처형!`, 'doom');
           this.spawnFloatingVfx('enemy', `💀 파멸 처형!`, 'vfx-doom', eIdx);
           this.logCombat(`💀 [파멸(Doom) 처형 발동!] ${en.name}이(가) 파멸(${en.doom})에 삼켜져 즉시 처형되었습니다!`);
           if (this.run.charId === 'warlock') {
@@ -2491,6 +2940,7 @@ const Game = {
 
     this.combat.energy -= effectiveCost;
     this.combat.cardsPlayedThisTurn = (this.combat.cardsPlayedThisTurn || 0) + 1;
+    SfxEngine.play('card');
 
     // Slay the Spire 1 Gremlin Nob Skill Enrage: Playing a Skill card enrages enemies with skillEnrage!
     if (tpl.type === 'skill') {
@@ -2517,6 +2967,9 @@ const Game = {
     if (tpl.gainEnergy) this.combat.energy += tpl.gainEnergy;
     if (stats.block > 0) {
       this.combat.player.block += stats.block;
+      SfxEngine.play('block');
+      VfxEngine.effectOnTarget('player', 0, 'block');
+      this.spawnFloatingVfx('player', `🛡️+${stats.block}`, 'vfx-block');
       // Cleric Holy Brand triggers radiant damage whenever Cleric gains block!
       if (this.run.charId === 'cleric') {
         this.triggerClericHolyBrandReflection(stats.block);
@@ -2538,6 +2991,8 @@ const Game = {
       if (this.combat.comboCount >= 3 && !this.combat.comboApGrantedThisTurn) {
         this.combat.comboApGrantedThisTurn = true;
         this.combat.energy += 1;
+        SfxEngine.play('burst');
+        VfxEngine.banner('⚔️ 3연격 콤보 달성! AP +1', 'gold');
         this.logCombat(`⚔️ [3연격 콤보 달성!] 추가 행동력(AP) +1 획득!`);
       }
     }
@@ -2585,8 +3040,13 @@ const Game = {
       if (this.combat.devotion >= 10) {
         this.combat.devotion -= 10;
         this.combat.energy += 1;
+        SfxEngine.play('holy');
+        VfxEngine.banner('🌟 신앙심 10: 천상 기적!', 'holy');
         this.combat.enemies.forEach(en => {
-          if (en.hp > 0) this.dealDamageToEnemy(en, 8 + this.run.act * 2, true);
+          if (en.hp > 0) {
+            VfxEngine.effectOnTarget('enemy', this.combat.enemies.indexOf(en), 'holy');
+            this.dealDamageToEnemy(en, 8 + this.run.act * 2, true);
+          }
         });
         this.logCombat(`🌟 [신앙심 10 달성: 천상 기적!] 행동력(AP) +1 및 적 전체에 광휘 심판 ${8 + this.run.act * 2} 피해!`);
       }
@@ -2676,9 +3136,13 @@ const Game = {
 
     targets.forEach(en => {
       // Allow Paladin detonateSeal & Rogue 5-combo AP refund even if base hit just slew the target!
+      const eIdx = this.combat.enemies.indexOf(en);
       if (tpl.detonateSeal && (en.seal || 0) > 0) {
         const sealCnt = en.seal;
         en.seal = 0;
+        SfxEngine.play('holy');
+        VfxEngine.effectOnTarget('enemy', eIdx, 'holy');
+        VfxEngine.banner(`⚖️ 심판의 문장 ${sealCnt} 폭발!`, 'holy');
         if (en.hp > 0) this.dealDamageToEnemy(en, sealCnt * 2, true);
         this.combat.player.block += sealCnt;
         this.logCombat(`⚖️ [심판의 문장 ${sealCnt}개 폭발!] 추가 광휘 피해 +${sealCnt * 2} 및 방어도 +${sealCnt}!`);
@@ -2689,6 +3153,9 @@ const Game = {
           en.comboPoints -= 5;
           const evisDmg = 12 + this.run.act * 2 + Math.floor(Math.max(0, this.combat.player.strength) * 0.5);
           const poisonBurst = en.poison > 0 ? Math.min(8, Math.ceil(en.poison * 0.5)) : 0;
+          SfxEngine.play('crit');
+          VfxEngine.effectOnTarget('enemy', eIdx, 'crit');
+          VfxEngine.banner('💀 5연계 마무리 일격!', 'blood');
           if (en.hp > 0) this.dealDamageToEnemy(en, evisDmg + poisonBurst, true);
           let apMsg = '';
           if (!this.combat.rogueFinisherApUsed) {
@@ -2813,6 +3280,9 @@ const Game = {
     this.combat.burstUsedThisTurn = true;
     this.combat.burstCost = cost + 2; // Escalating cost (5 -> 7 -> 9) prevents infinite stalling!
     const cid = this.run.charId;
+    SfxEngine.play('burst');
+    VfxEngine.effectOnTarget('player', 0, cid === 'warlock' ? 'doom' : cid === 'cleric' || cid === 'paladin' ? 'holy' : 'fire');
+    VfxEngine.banner(`🔥 ${GAME_DATA.characters[cid].name.split(' ')[0]} 궁극 개방!`, 'gold');
 
     if (cid === 'fighter') {
       this.combat.energy += 1;
@@ -2971,7 +3441,10 @@ const Game = {
     enemy.hp = Math.max(0, enemy.hp - dmg);
     if (totalShown > 0 && this.combat && this.combat.enemies) {
       const eIdx = this.combat.enemies.indexOf(enemy);
-      this.spawnFloatingVfx('enemy', dmg > 0 ? `-${dmg}` : `🛡️막힘`, dmg >= 15 ? 'vfx-crit' : 'vfx-dmg', eIdx);
+      const isCrit = dmg >= 15;
+      SfxEngine.play(isCrit ? 'crit' : 'hit');
+      VfxEngine.effectOnTarget('enemy', eIdx, isCrit ? 'crit' : 'slash');
+      this.spawnFloatingVfx('enemy', dmg > 0 ? `-${dmg}` : `🛡️막힘`, isCrit ? 'vfx-crit' : 'vfx-dmg', eIdx);
     }
     // Slay the Spire Curl-Up mechanic (Louse / Cube / Rust Monster): first time taking HP damage, gains immediate block!
     if (dmg > 0 && enemy.hp > 0 && enemy.curlUp > 0) {
@@ -3071,6 +3544,7 @@ const Game = {
           this.combat.traps -= 1;
           trapTriggered = true;
           const trapDmg = 6 + Math.max(0, this.combat.player.dexterity);
+          VfxEngine.effectOnTarget('enemy', this.combat.enemies.indexOf(en), 'trap');
           this.dealDamageToEnemy(en, trapDmg, true);
           en.quarry = (en.quarry || 0) + 1;
           this.logCombat(`🪤 [전술 함정 격발!] 공격하려던 ${en.name}에게 ${trapDmg} 피해 & 공격력 20% 감소!`);
@@ -3184,12 +3658,16 @@ const Game = {
     }
     if (remaining > 0) {
       this.run.hp = Math.max(0, this.run.hp - remaining);
+      SfxEngine.play('hit');
+      VfxEngine.effectOnTarget('player', 0, 'blood');
       this.spawnFloatingVfx('player', `-${remaining}`, 'vfx-dmg');
       // Barbarian gains +1 Rage whenever taking unblocked HP damage!
       if (this.run.charId === 'barbarian') {
         this.combat.secondaryResource += 1;
       }
     } else if (dmg > 0) {
+      SfxEngine.play('block');
+      VfxEngine.effectOnTarget('player', 0, 'block');
       this.spawnFloatingVfx('player', `🛡️방어!`, 'vfx-block');
     }
   },
@@ -3209,6 +3687,8 @@ const Game = {
   },
 
   handleCombatVictory() {
+    SfxEngine.play('victory');
+    VfxEngine.banner('🏆 전투 승리!', 'gold');
     const type = this.combat.encounterType;
     // Clear any Snecko Eye tempCost mutations on run deck cards after combat
     if (this.run && this.run.deck) {
@@ -3331,7 +3811,11 @@ const Game = {
       stanceEl.textContent = `${this.run.subclassObj.icon} ${this.run.subclassObj.name.split(' ')[0]}`;
     }
 
-    document.getElementById('player-avatar-box').innerHTML = ch.avatarSvg;
+    // Cache player avatar SVG so we don't re-parse SVG DOM on every card play!
+    if (this._lastPlayerAvatarChar !== this.run.charId) {
+      this._lastPlayerAvatarChar = this.run.charId;
+      document.getElementById('player-avatar-box').innerHTML = ch.avatarSvg;
+    }
     document.getElementById('combat-player-name').innerHTML = `<span class="rank-badge rank-${this.run.rank}">${this.run.rank}급</span> ${ch.name.split(' ')[0]}`;
 
     const pBlockEl = document.getElementById('player-block-badge');
@@ -3452,6 +3936,7 @@ const Game = {
     compZone.innerHTML = compHtml;
 
     const enZone = document.getElementById('enemies-zone');
+    const enFrag = document.createDocumentFragment ? document.createDocumentFragment() : enZone;
     enZone.innerHTML = '';
     this.combat.enemies.forEach((en, idx) => {
       if (en.hp <= 0) return;
@@ -3510,6 +3995,7 @@ const Game = {
 
       const enCard = document.createElement('div');
       enCard.className = `unit-card enemy-unit ${isTargeted ? 'targeted' : ''}`;
+      if (enCard.setAttribute) enCard.setAttribute('data-en-idx', String(idx));
       enCard.onclick = () => {
         this.combat.targetIndex = idx;
         this.renderCombat();
@@ -3533,8 +4019,9 @@ const Game = {
           ${enBuffs.map(b => `<span class="buff-pill">${b}</span>`).join('')}
         </div>
       `;
-      enZone.appendChild(enCard);
+      enFrag.appendChild(enCard);
     });
+    if (enFrag !== enZone) enZone.appendChild(enFrag);
 
     document.getElementById('combat-energy').textContent = this.combat.energy;
     document.getElementById('combat-max-energy').textContent = this.combat.maxEnergy;
@@ -3559,6 +4046,7 @@ const Game = {
     document.getElementById('discard-pile-count').textContent = this.combat.discardPile.length;
 
     const handEl = document.getElementById('hand-container');
+    const handFrag = document.createDocumentFragment ? document.createDocumentFragment() : handEl;
     handEl.innerHTML = '';
     this.combat.hand.forEach((cardInst, idx) => {
       const cardEl = this.createCardElement(cardInst, () => this.playCardFromHand(idx));
@@ -3572,8 +4060,9 @@ const Game = {
       badge.className = 'hotkey-badge';
       badge.textContent = hotkeyLabel;
       cardEl.appendChild(badge);
-      handEl.appendChild(cardEl);
+      handFrag.appendChild(cardEl);
     });
+    if (handFrag !== handEl) handEl.appendChild(handFrag);
 
     this.updateTopHud();
   },
@@ -4503,6 +4992,7 @@ const Game = {
   },
 
   showGameOverModal(isVictory) {
+    SfxEngine.play(isVictory ? 'victory' : 'defeat');
     this.clearSavedRun();
     const modal = document.getElementById('modal-gameover');
     const title = document.getElementById('gameover-title');

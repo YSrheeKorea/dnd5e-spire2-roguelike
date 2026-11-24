@@ -366,3 +366,15 @@ body.mobile-edition {
   padding: 8px 4px;
   text-align: center;
 }
+
+
+/* Mobile V3 VFX Banner & Sound Toggle Tuning */
+.mobile-edition .vfx-callout-banner {
+  top: 76px;
+  font-size: 0.88rem;
+  padding: 7px 16px;
+}
+.mobile-edition .btn-sfx-toggle {
+  padding: 4px 8px;
+  font-size: 0.85rem;
+}

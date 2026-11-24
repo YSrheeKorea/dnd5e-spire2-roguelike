@@ -58,6 +58,9 @@
       <a href="mobile.html" class="hud-btn" style="text-decoration:none; border-color:#00d2d3; color:#00d2d3;">
         📱 모바일 버전
       </a>
+      <button class="hud-btn btn-sfx-toggle" onclick="Game.toggleSound()" title="효과음 끄기/켜기">
+        🔊
+      </button>
       <button class="hud-btn danger-btn" onclick="Game.showHub()">
         🍺 주점 로비
       </button>
@@ -361,6 +364,10 @@
       <button class="btn-primary" style="margin-top:14px; width:100%;" onclick="Game.closeD20Modal()">계속 전진 [Enter / Space] ➔</button>
     </div>
   </div>
+
+  <!-- PERSISTENT GPU CANVAS PARTICLES & FLOATING VFX OVERLAY -->
+  <canvas id="vfx-canvas" class="vfx-canvas"></canvas>
+  <div id="vfx-layer" class="vfx-layer"></div>
 
   <!-- NON-BLOCKING IN-GAME TOAST STACK -->
   <div id="toast-container" class="toast-container"></div>

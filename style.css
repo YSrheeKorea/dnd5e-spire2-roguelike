@@ -1884,3 +1884,110 @@ body {
   50% { transform: translateX(6px); }
   75% { transform: translateX(-4px); }
 }
+
+
+/* ==========================================================================
+   V3 OPTIMIZATION (CONTAINMENT & GPU COMPOSITING) + FULLSCREEN VFX OVERLAY
+   ========================================================================== */
+.vfx-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9400;
+}
+.vfx-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9500;
+  overflow: hidden;
+}
+.vfx-layer .floating-vfx {
+  position: fixed;
+  will-change: transform, opacity;
+}
+.floating-vfx.vfx-heal {
+  color: #55efc4;
+  font-size: 1.15rem;
+}
+
+/* Epic Combat Callout Banner (Combo / Eviscerate / Miracle / Doom / Burst) */
+.vfx-callout-banner {
+  position: fixed;
+  top: 96px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 26px;
+  border-radius: 99px;
+  font-size: 1.08rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  color: #fff;
+  background: linear-gradient(135deg, rgba(24, 30, 48, 0.94), rgba(14, 18, 30, 0.96));
+  border: 2px solid #f6c967;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.65), 0 0 22px rgba(246, 201, 103, 0.4);
+  animation: calloutPop 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  white-space: nowrap;
+}
+.vfx-callout-banner.banner-holy {
+  border-color: #ffeaa7;
+  color: #ffeaa7;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.65), 0 0 26px rgba(255, 234, 167, 0.5);
+}
+.vfx-callout-banner.banner-doom {
+  border-color: #e056fd;
+  color: #f3a6ff;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.7), 0 0 28px rgba(224, 86, 253, 0.55);
+}
+.vfx-callout-banner.banner-blood {
+  border-color: #ff4757;
+  color: #ff9ff3;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.7), 0 0 26px rgba(255, 71, 87, 0.5);
+}
+@keyframes calloutPop {
+  0% { opacity: 0; transform: translate(-50%, -18px) scale(0.72); }
+  18% { opacity: 1; transform: translate(-50%, 0) scale(1.06); }
+  75% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -16px) scale(0.95); }
+}
+
+/* Combat Arena Punch Shake (persists cleanly even across renderCombat!) */
+.arena-shake-light {
+  animation: arenaShakeLight 0.2s ease;
+}
+.arena-shake-heavy {
+  animation: arenaShakeHeavy 0.32s ease;
+}
+@keyframes arenaShakeLight {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  30% { transform: translate3d(-4px, 2px, 0); }
+  65% { transform: translate3d(4px, -2px, 0); }
+}
+@keyframes arenaShakeHeavy {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  20% { transform: translate3d(-8px, 4px, 0); }
+  45% { transform: translate3d(8px, -4px, 0); }
+  70% { transform: translate3d(-5px, 2px, 0); }
+}
+
+/* Layout Containment & GPU Acceleration for Smooth 60fps Hand & Unit Rendering */
+.game-card,
+.unit-card,
+.char-roster-card {
+  contain: layout style;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vfx-canvas,
+  .vfx-callout-banner {
+    display: none !important;
+  }
+  .arena-shake-light,
+  .arena-shake-heavy,
+  .unit-hit-shake {
+    animation: none !important;
+  }
+}

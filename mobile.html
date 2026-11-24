@@ -21,6 +21,9 @@
       <div class="stat-pill gem-pill" title="보유 마석">
         💎 <span id="hud-gems">1200</span>
       </div>
+      <button class="hud-btn btn-sfx-toggle" onclick="Game.toggleSound()" title="효과음 켜기/끄기">
+        🔊
+      </button>
       <a href="index.html?force=pc" class="hud-btn pc-switch-btn" title="PC 와이드 버전으로 전환">
         💻 PC버전
       </a>
@@ -313,6 +316,10 @@
       <button class="btn-primary" style="margin-top:14px; width:100%;" onclick="Game.closeD20Modal()">계속 전진 ➔</button>
     </div>
   </div>
+
+  <!-- PERSISTENT GPU CANVAS PARTICLES & FLOATING VFX OVERLAY -->
+  <canvas id="vfx-canvas" class="vfx-canvas"></canvas>
+  <div id="vfx-layer" class="vfx-layer"></div>
 
   <!-- NON-BLOCKING IN-GAME TOAST STACK -->
   <div id="toast-container" class="toast-container"></div>
