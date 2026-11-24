@@ -57,6 +57,41 @@ const SfxEngine = {
     return this.ctx;
   },
 
+  noiseBuf: null,
+
+  ensureNoiseBuf(ctx) {
+    if (this.noiseBuf && this.noiseBuf.sampleRate === ctx.sampleRate) return this.noiseBuf;
+    const len = Math.floor(ctx.sampleRate * 0.25);
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (len * 0.35));
+    }
+    this.noiseBuf = buf;
+    return buf;
+  },
+
+  noise(dur = 0.09, filterFreq = 1600, q = 1.2, gainVal = 0.12, delay = 0) {
+    const ctx = this.ensureCtx();
+    if (!ctx) return;
+    const now = ctx.currentTime + delay;
+    const src = ctx.createBufferSource();
+    src.buffer = this.ensureNoiseBuf(ctx);
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(filterFreq, now);
+    filter.Q.setValueAtTime(q, now);
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.linearRampToValueAtTime(gainVal, now + 0.006);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+    src.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    src.start(now);
+    src.stop(now + dur + 0.02);
+  },
+
   tone(freq, endFreq, dur, type = 'triangle', gainVal = 0.08, delay = 0) {
     const ctx = this.ensureCtx();
     if (!ctx) return;
@@ -64,12 +99,12 @@ const SfxEngine = {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = type;
-    osc.frequency.setValueAtTime(Math.max(40, freq), now);
+    osc.frequency.setValueAtTime(Math.max(30, freq), now);
     if (endFreq !== freq) {
-      osc.frequency.exponentialRampToValueAtTime(Math.max(40, endFreq), now + dur);
+      osc.frequency.exponentialRampToValueAtTime(Math.max(30, endFreq), now + dur);
     }
     gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.linearRampToValueAtTime(gainVal, now + 0.012);
+    gain.gain.linearRampToValueAtTime(gainVal, now + 0.008);
     gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
     osc.connect(gain);
     gain.connect(ctx.destination);
@@ -77,43 +112,75 @@ const SfxEngine = {
     osc.stop(now + dur + 0.02);
   },
 
+  playHit(isCrit = false, hitStep = 0) {
+    if (this.muted) return;
+    const pitch = 1 + Math.min(hitStep, 5) * 0.09;
+    if (isCrit) {
+      // Heavy sub-bass thump + crisp metallic crunch + golden ring!
+      this.tone(155 * pitch, 34, 0.22, 'sine', 0.2);
+      this.tone(260 * pitch, 65, 0.16, 'sawtooth', 0.11);
+      this.noise(0.14, 2400 * pitch, 0.9, 0.18);
+      this.tone(820 * pitch, 1240 * pitch, 0.14, 'triangle', 0.07, 0.02);
+    } else {
+      // Meaty punch + sharp blade snap!
+      this.tone(130 * pitch, 40, 0.13, 'sine', 0.15);
+      this.tone(220 * pitch, 78, 0.1, 'sawtooth', 0.08);
+      this.noise(0.08, 1900 * pitch, 1.3, 0.13);
+    }
+  },
+
   play(kind) {
     if (this.muted) return;
     if (kind === 'card') {
-      this.tone(360, 560, 0.07, 'sine', 0.05);
+      this.noise(0.05, 2800, 2.0, 0.05);
+      this.tone(340, 560, 0.06, 'sine', 0.045);
     } else if (kind === 'hit') {
-      this.tone(190, 68, 0.11, 'sawtooth', 0.09);
-      this.tone(420, 120, 0.07, 'triangle', 0.05, 0.015);
+      this.playHit(false, 0);
     } else if (kind === 'crit') {
-      this.tone(240, 55, 0.18, 'sawtooth', 0.12);
-      this.tone(680, 960, 0.13, 'square', 0.06, 0.02);
+      this.playHit(true, 0);
+    } else if (kind === 'kill') {
+      this.tone(140, 32, 0.34, 'sine', 0.22);
+      this.noise(0.22, 1100, 0.7, 0.2);
+      this.tone(440, 880, 0.18, 'triangle', 0.07, 0.04);
+    } else if (kind === 'playerHit') {
+      this.tone(110, 32, 0.22, 'sine', 0.2);
+      this.tone(160, 54, 0.18, 'sawtooth', 0.12);
+      this.noise(0.14, 850, 1.0, 0.16);
     } else if (kind === 'block') {
-      this.tone(520, 390, 0.09, 'triangle', 0.07);
-      this.tone(780, 620, 0.08, 'sine', 0.05, 0.025);
+      // Metallic shield clang!
+      this.noise(0.06, 3600, 2.8, 0.1);
+      this.tone(620, 420, 0.11, 'triangle', 0.09);
+      this.tone(1180, 860, 0.1, 'sine', 0.06, 0.015);
     } else if (kind === 'heal') {
       this.tone(523, 659, 0.14, 'sine', 0.06);
       this.tone(659, 880, 0.16, 'sine', 0.06, 0.07);
     } else if (kind === 'fire') {
-      this.tone(260, 95, 0.2, 'sawtooth', 0.08);
-      this.tone(480, 180, 0.16, 'triangle', 0.06, 0.03);
+      this.noise(0.22, 720, 0.7, 0.17);
+      this.tone(240, 62, 0.22, 'sawtooth', 0.1);
     } else if (kind === 'frost') {
-      this.tone(1100, 740, 0.14, 'sine', 0.06);
-      this.tone(1480, 980, 0.12, 'triangle', 0.05, 0.03);
+      this.noise(0.11, 4400, 2.2, 0.11);
+      this.tone(1240, 740, 0.15, 'sine', 0.07);
+      this.tone(1680, 1080, 0.13, 'triangle', 0.05, 0.025);
     } else if (kind === 'lightning') {
-      this.tone(920, 220, 0.09, 'sawtooth', 0.07);
-      this.tone(1280, 310, 0.09, 'square', 0.05, 0.04);
+      this.noise(0.13, 3200, 0.8, 0.17);
+      this.tone(980, 180, 0.1, 'sawtooth', 0.09);
+      this.tone(1420, 260, 0.1, 'square', 0.06, 0.035);
     } else if (kind === 'poison') {
-      this.tone(310, 210, 0.14, 'sine', 0.06);
-      this.tone(240, 155, 0.14, 'triangle', 0.05, 0.05);
+      this.noise(0.14, 1400, 2.4, 0.08);
+      this.tone(310, 180, 0.15, 'sine', 0.06);
     } else if (kind === 'holy') {
-      this.tone(587, 880, 0.16, 'sine', 0.07);
-      this.tone(880, 1175, 0.2, 'triangle', 0.06, 0.06);
+      this.tone(587, 880, 0.16, 'sine', 0.08);
+      this.tone(880, 1318, 0.22, 'triangle', 0.07, 0.05);
+      this.noise(0.08, 3400, 1.5, 0.07, 0.02);
     } else if (kind === 'doom') {
-      this.tone(165, 52, 0.32, 'sawtooth', 0.12);
-      this.tone(220, 73, 0.28, 'square', 0.06, 0.05);
+      this.tone(140, 36, 0.38, 'sine', 0.22);
+      this.tone(165, 48, 0.34, 'sawtooth', 0.13);
+      this.noise(0.24, 650, 0.8, 0.18, 0.03);
     } else if (kind === 'burst') {
-      this.tone(392, 587, 0.14, 'triangle', 0.08);
-      this.tone(587, 988, 0.22, 'sine', 0.08, 0.07);
+      this.tone(150, 52, 0.2, 'sine', 0.15);
+      this.tone(392, 659, 0.15, 'triangle', 0.09);
+      this.tone(659, 1046, 0.24, 'sine', 0.09, 0.06);
+      this.noise(0.14, 2200, 1.0, 0.1, 0.02);
     } else if (kind === 'dice') {
       this.tone(480, 620, 0.05, 'triangle', 0.06);
       this.tone(540, 720, 0.05, 'triangle', 0.06, 0.06);
@@ -122,12 +189,12 @@ const SfxEngine = {
       this.tone(988, 1318, 0.09, 'sine', 0.05);
       this.tone(1318, 1568, 0.11, 'sine', 0.05, 0.05);
     } else if (kind === 'victory') {
-      this.tone(523, 523, 0.12, 'triangle', 0.07, 0);
-      this.tone(659, 659, 0.12, 'triangle', 0.07, 0.1);
-      this.tone(784, 1046, 0.26, 'sine', 0.09, 0.2);
+      this.tone(523, 523, 0.12, 'triangle', 0.08, 0);
+      this.tone(659, 659, 0.12, 'triangle', 0.08, 0.1);
+      this.tone(784, 1046, 0.28, 'sine', 0.1, 0.2);
     } else if (kind === 'defeat') {
-      this.tone(330, 260, 0.18, 'sawtooth', 0.07, 0);
-      this.tone(240, 130, 0.32, 'sawtooth', 0.08, 0.16);
+      this.tone(330, 260, 0.18, 'sawtooth', 0.08, 0);
+      this.tone(240, 110, 0.36, 'sawtooth', 0.1, 0.16);
     }
   }
 };
@@ -140,9 +207,12 @@ const VfxEngine = {
   h: 0,
   rafId: null,
   particles: [],
+  sparks: [],
   slashes: [],
   rings: [],
   bolts: [],
+  flashes: [],
+  projectiles: [],
   reducedMotion: false,
 
   PALETTES: {
@@ -204,7 +274,15 @@ const VfxEngine = {
     if (this.rafId || !this.ctx || typeof requestAnimationFrame === 'undefined') return;
     const step = () => {
       this.tick();
-      if (this.particles.length || this.slashes.length || this.rings.length || this.bolts.length) {
+      if (
+        this.particles.length ||
+        this.sparks.length ||
+        this.slashes.length ||
+        this.rings.length ||
+        this.bolts.length ||
+        this.flashes.length ||
+        this.projectiles.length
+      ) {
         this.rafId = requestAnimationFrame(step);
       } else {
         this.ctx.clearRect(0, 0, this.w, this.h);
@@ -212,6 +290,72 @@ const VfxEngine = {
       }
     };
     this.rafId = requestAnimationFrame(step);
+  },
+
+  haptic(ms = 16) {
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      try { navigator.vibrate(ms); } catch (e) { }
+    }
+  },
+
+  flash(x, y, radius = 58, color = '#ffffff') {
+    if (this.reducedMotion || !this.ctx) return;
+    this.flashes.push({ x, y, radius, color, life: 0, maxLife: 9 });
+    this.ensureRunning();
+  },
+
+  sparkSpray(x, y, count = 12, color = '#ffeaa7', dirX = 1) {
+    if (this.reducedMotion || !this.ctx) return;
+    const n = this.w < 768 ? Math.ceil(count * 0.65) : count;
+    for (let i = 0; i < n; i++) {
+      const spread = (Math.random() - 0.5) * 1.9;
+      const baseAngle = dirX >= 0 ? spread : Math.PI + spread;
+      const spd = 6.5 + Math.random() * 9.5;
+      this.sparks.push({
+        x,
+        y,
+        vx: Math.cos(baseAngle) * spd,
+        vy: Math.sin(baseAngle) * spd - 1.2,
+        len: 10 + Math.random() * 14,
+        color,
+        life: 0,
+        maxLife: 13 + Math.floor(Math.random() * 9)
+      });
+    }
+    this.ensureRunning();
+  },
+
+  projectile(x1, y1, x2, y2, color = '#ffeaa7') {
+    if (this.reducedMotion || !this.ctx) return;
+    this.projectiles.push({ x1, y1, x2, y2, color, life: 0, maxLife: 8 });
+    this.ensureRunning();
+  },
+
+  damageVignette() {
+    const layer = typeof document !== 'undefined' ? document.getElementById('vfx-layer') : null;
+    if (!layer || this.reducedMotion) return;
+    const old = layer.querySelector('.vfx-damage-vignette');
+    if (old && old.parentNode) old.parentNode.removeChild(old);
+    const el = document.createElement('div');
+    el.className = 'vfx-damage-vignette';
+    layer.appendChild(el);
+    setTimeout(() => {
+      if (el.parentNode) el.parentNode.removeChild(el);
+    }, 380);
+  },
+
+  killBurst(enemyIdx = 0) {
+    const a = this.getAnchor('enemy', enemyIdx);
+    if (!a) return;
+    SfxEngine.play('kill');
+    this.haptic(38);
+    this.flash(a.x, a.y, 92, '#ffeaa7');
+    this.ring(a.x, a.y, '#f6c967', 105);
+    this.ring(a.x, a.y, '#ff6b81', 78);
+    this.sparkSpray(a.x, a.y, 20, '#f6c967', 1);
+    this.sparkSpray(a.x, a.y, 12, '#ff6b81', -1);
+    this.burst(a.x, a.y, 'fire', 28);
+    this.screenShake('heavy');
   },
 
   burst(x, y, theme = 'fire', count = 16) {
@@ -273,44 +417,79 @@ const VfxEngine = {
     const a = this.getAnchor(targetType, enemyIdx);
     if (!a) return;
     const p = this.getAnchor('player');
+    const dirX = targetType === 'enemy' ? 1 : -1;
     if (kind === 'slash') {
+      if (p && targetType === 'enemy') this.projectile(p.x, p.y, a.x, a.y, '#ffeaa7');
+      this.flash(a.x, a.y, 52, '#ffffff');
       this.slash(a.x, a.y, '#ffeaa7', false);
-      this.burst(a.x, a.y, 'blood', 10);
+      this.sparkSpray(a.x, a.y, 11, '#ffeaa7', dirX);
+      this.burst(a.x, a.y, 'blood', 12);
+      this.haptic(14);
     } else if (kind === 'crit') {
+      if (p && targetType === 'enemy') this.projectile(p.x, p.y, a.x, a.y, '#f6c967');
+      this.flash(a.x, a.y, 88, '#fff7cc');
       this.slash(a.x, a.y, '#f6c967', true);
-      this.ring(a.x, a.y, '#f6c967', 74);
-      this.burst(a.x, a.y, 'fire', 20);
+      this.ring(a.x, a.y, '#f6c967', 86);
+      this.sparkSpray(a.x, a.y, 20, '#f6c967', dirX);
+      this.burst(a.x, a.y, 'fire', 22);
       this.screenShake('heavy');
+      this.haptic(32);
     } else if (kind === 'fire') {
-      this.ring(a.x, a.y, '#ff9f43', 68);
-      this.burst(a.x, a.y, 'fire', 18);
+      if (p && targetType === 'enemy') this.projectile(p.x, p.y, a.x, a.y, '#ff9f43');
+      this.flash(a.x, a.y, 68, '#ffd27d');
+      this.ring(a.x, a.y, '#ff9f43', 74);
+      this.sparkSpray(a.x, a.y, 14, '#ff9f43', dirX);
+      this.burst(a.x, a.y, 'fire', 20);
+      this.haptic(18);
     } else if (kind === 'frost') {
-      this.ring(a.x, a.y, '#00d2d3', 62);
+      if (p && targetType === 'enemy') this.projectile(p.x, p.y, a.x, a.y, '#74b9ff');
+      this.flash(a.x, a.y, 58, '#dff9fb');
+      this.ring(a.x, a.y, '#00d2d3', 66);
+      this.sparkSpray(a.x, a.y, 12, '#74b9ff', dirX);
       this.burst(a.x, a.y, 'frost', 16);
+      this.haptic(14);
     } else if (kind === 'lightning') {
       if (p) this.bolt(p.x, p.y, a.x, a.y, '#7ed6df');
-      this.burst(a.x, a.y, 'lightning', 14);
+      this.flash(a.x, a.y, 66, '#e0f7fa');
+      this.sparkSpray(a.x, a.y, 14, '#f6e58d', dirX);
+      this.burst(a.x, a.y, 'lightning', 16);
+      this.haptic(18);
     } else if (kind === 'poison') {
-      this.burst(a.x, a.y, 'poison', 14);
+      this.burst(a.x, a.y, 'poison', 16);
     } else if (kind === 'holy') {
       if (p && targetType === 'enemy') this.bolt(p.x, p.y, a.x, a.y, '#f6c967');
-      this.ring(a.x, a.y, '#f6c967', 68);
-      this.burst(a.x, a.y, 'holy', 16);
+      this.flash(a.x, a.y, 72, '#fff9d6');
+      this.ring(a.x, a.y, '#f6c967', 74);
+      this.sparkSpray(a.x, a.y, 14, '#ffeaa7', dirX);
+      this.burst(a.x, a.y, 'holy', 18);
+      this.haptic(20);
     } else if (kind === 'doom') {
-      this.ring(a.x, a.y, '#e056fd', 92);
-      this.burst(a.x, a.y, 'doom', 26);
+      this.flash(a.x, a.y, 96, '#f3a6ff');
+      this.ring(a.x, a.y, '#e056fd', 104);
+      this.sparkSpray(a.x, a.y, 22, '#e056fd', dirX);
+      this.burst(a.x, a.y, 'doom', 28);
       this.screenShake('heavy');
+      this.haptic(40);
     } else if (kind === 'block') {
-      this.ring(a.x, a.y, '#74b9ff', 62);
-      this.burst(a.x, a.y, 'block', 10);
+      this.flash(a.x, a.y, 44, '#c7ecee');
+      this.ring(a.x, a.y, '#74b9ff', 68);
+      this.sparkSpray(a.x, a.y, 10, '#74b9ff', -1);
+      this.burst(a.x, a.y, 'block', 12);
+      this.haptic(10);
     } else if (kind === 'heal') {
-      this.burst(a.x, a.y, 'heal', 14);
+      this.burst(a.x, a.y, 'heal', 16);
     } else if (kind === 'trap') {
-      this.ring(a.x, a.y, '#ff9f43', 58);
-      this.burst(a.x, a.y, 'trap', 14);
+      this.flash(a.x, a.y, 56, '#ffeaa7');
+      this.ring(a.x, a.y, '#ff9f43', 64);
+      this.sparkSpray(a.x, a.y, 14, '#ff9f43', dirX);
+      this.burst(a.x, a.y, 'trap', 16);
+      this.haptic(18);
     } else if (kind === 'blood') {
+      this.flash(a.x, a.y, 54, '#ffcccc');
       this.slash(a.x, a.y, '#ff4757', false);
-      this.burst(a.x, a.y, 'blood', 16);
+      this.sparkSpray(a.x, a.y, 14, '#ff4757', dirX);
+      this.burst(a.x, a.y, 'blood', 18);
+      this.haptic(20);
     }
   },
 
@@ -362,6 +541,50 @@ const VfxEngine = {
     const ctx = this.ctx;
     ctx.clearRect(0, 0, this.w, this.h);
 
+    // 0. Additive Impact Flashes
+    for (let i = this.flashes.length - 1; i >= 0; i--) {
+      const f = this.flashes[i];
+      f.life++;
+      const p = f.life / f.maxLife;
+      const r = f.radius * (0.4 + p * 0.75);
+      const grad = ctx.createRadialGradient(f.x, f.y, 2, f.x, f.y, r);
+      grad.addColorStop(0, f.color);
+      grad.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, (1 - p) * 0.9);
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(f.x, f.y, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+      if (f.life >= f.maxLife) this.flashes.splice(i, 1);
+    }
+
+    // 0.5. Fast Projectile Comet Streaks
+    for (let i = this.projectiles.length - 1; i >= 0; i--) {
+      const pr = this.projectiles[i];
+      pr.life++;
+      const p = pr.life / pr.maxLife;
+      const headX = pr.x1 + (pr.x2 - pr.x1) * Math.min(1, p * 1.25);
+      const headY = pr.y1 + (pr.y2 - pr.y1) * Math.min(1, p * 1.25);
+      const tailT = Math.max(0, p * 1.25 - 0.45);
+      const tailX = pr.x1 + (pr.x2 - pr.x1) * tailT;
+      const tailY = pr.y1 + (pr.y2 - pr.y1) * tailT;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, 1 - p * 0.85);
+      ctx.strokeStyle = pr.color;
+      ctx.shadowColor = pr.color;
+      ctx.shadowBlur = 14;
+      ctx.lineWidth = Math.max(2, 6 * (1 - p * 0.6));
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(tailX, tailY);
+      ctx.lineTo(headX, headY);
+      ctx.stroke();
+      ctx.restore();
+      if (pr.life >= pr.maxLife) this.projectiles.splice(i, 1);
+    }
+
     // 1. Expanding Shockwave Rings
     for (let i = this.rings.length - 1; i >= 0; i--) {
       const r = this.rings[i];
@@ -371,7 +594,7 @@ const VfxEngine = {
       ctx.save();
       ctx.globalAlpha = Math.max(0, 1 - p);
       ctx.strokeStyle = r.color;
-      ctx.lineWidth = Math.max(1, 5 * (1 - p));
+      ctx.lineWidth = Math.max(1, 5.5 * (1 - p));
       ctx.beginPath();
       ctx.arc(r.x, r.y, curR, 0, Math.PI * 2);
       ctx.stroke();
@@ -379,7 +602,7 @@ const VfxEngine = {
       if (r.life >= r.maxLife) this.rings.splice(i, 1);
     }
 
-    // 2. Curved Blade Slashes
+    // 2. Curved Blade Slashes (thicker & brighter!)
     for (let i = this.slashes.length - 1; i >= 0; i--) {
       const s = this.slashes[i];
       s.life++;
@@ -389,10 +612,12 @@ const VfxEngine = {
       ctx.rotate(s.angle);
       ctx.globalAlpha = Math.max(0, 1 - p);
       ctx.strokeStyle = s.color;
-      ctx.lineWidth = Math.max(1.5, 7 * (1 - p));
+      ctx.shadowColor = s.color;
+      ctx.shadowBlur = 14;
+      ctx.lineWidth = Math.max(2, 10 * (1 - p));
       ctx.lineCap = 'round';
       ctx.beginPath();
-      ctx.arc(0, 0, s.radius, -0.9 + p * 0.5, 0.9 - p * 0.2);
+      ctx.arc(0, 0, s.radius, -1.0 + p * 0.55, 1.0 - p * 0.15);
       ctx.stroke();
       ctx.restore();
       if (s.life >= s.maxLife) this.slashes.splice(i, 1);
@@ -407,13 +632,35 @@ const VfxEngine = {
       ctx.globalAlpha = Math.max(0, 1 - p);
       ctx.strokeStyle = b.color;
       ctx.shadowColor = b.color;
-      ctx.shadowBlur = 12;
-      ctx.lineWidth = Math.max(1, 4.5 * (1 - p));
+      ctx.shadowBlur = 14;
+      ctx.lineWidth = Math.max(1.5, 5.5 * (1 - p));
       ctx.beginPath();
       b.pts.forEach((pt, idx) => (idx === 0 ? ctx.moveTo(pt.x, pt.y) : ctx.lineTo(pt.x, pt.y)));
       ctx.stroke();
       ctx.restore();
       if (b.life >= b.maxLife) this.bolts.splice(i, 1);
+    }
+
+    // 3.5. High-Velocity Directional Sparks
+    for (let i = this.sparks.length - 1; i >= 0; i--) {
+      const sp = this.sparks[i];
+      sp.life++;
+      sp.x += sp.vx;
+      sp.y += sp.vy;
+      sp.vy += 0.28;
+      sp.vx *= 0.91;
+      const p = sp.life / sp.maxLife;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, 1 - p);
+      ctx.strokeStyle = sp.color;
+      ctx.lineWidth = Math.max(1.2, 3 * (1 - p));
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(sp.x, sp.y);
+      ctx.lineTo(sp.x - sp.vx * 1.4, sp.y - sp.vy * 1.4);
+      ctx.stroke();
+      ctx.restore();
+      if (sp.life >= sp.maxLife) this.sparks.splice(i, 1);
     }
 
     // 4. Particles
@@ -3097,6 +3344,22 @@ const Game = {
         this.applyDebuffToEnemy(target, 'poison', 3);
       }
 
+      // Player Lunge Visual when playing an attack card!
+      if (!this._hitVisuals) this._hitVisuals = { enemyHits: {}, playerLungeTs: 0, playerHurtTs: 0, playerBlockTs: 0 };
+      this._hitVisuals.playerLungeTs = Date.now();
+      const cardVfxTheme =
+        tpl.orbType === 'fire' || /화염|파이어|작열|불길|메테오/.test(tpl.name)
+          ? 'fire'
+          : tpl.orbType === 'frost' || tpl.frostbite || /냉기|빙결/.test(tpl.name)
+            ? 'frost'
+            : tpl.orbType === 'lightning' || /번개|라이트닝|뇌전/.test(tpl.name)
+              ? 'lightning'
+              : tpl.holyBrand || tpl.detonateSeal || /광휘|성스러운|신성|태양/.test(tpl.name)
+                ? 'holy'
+                : tpl.doom || tpl.doomAll || /파멸|암흑|저주/.test(tpl.name)
+                  ? 'doom'
+                  : 'slash';
+
       for (let h = 0; h < hits; h++) {
         targets.forEach(en => {
           if (en.hp > 0) {
@@ -3113,7 +3376,7 @@ const Game = {
               en.quarry = Math.max(0, en.quarry - 2);
             }
 
-            this.dealDamageToEnemy(en, dmg);
+            this.dealDamageToEnemy(en, dmg, false, h, cardVfxTheme);
 
             // Barbarian Bleed Burst on hit (20% of Bleed, capped at 4) + Bloodied Lifesteal (<50% HP)!
             if (cid === 'barbarian' && en.hp > 0 && (en.bleed || 0) > 0) {
@@ -3427,7 +3690,7 @@ const Game = {
     enemy[debuffKey] = (enemy[debuffKey] || 0) + amount;
   },
 
-  dealDamageToEnemy(enemy, rawDmg, ignoreWeak = false) {
+  dealDamageToEnemy(enemy, rawDmg, ignoreWeak = false, hitStep = 0, vfxTheme = null) {
     let dmg = rawDmg;
     if (!ignoreWeak && this.combat.player.weak > 0) dmg = Math.floor(dmg * 0.75);
     if (enemy.vuln > 0) dmg = Math.floor(dmg * 1.5);
@@ -3437,13 +3700,33 @@ const Game = {
       enemy.block -= absorbed;
       dmg -= absorbed;
     }
+    const wasAlive = enemy.hp > 0;
     enemy.hp = Math.max(0, enemy.hp - dmg);
+    const justKilled = wasAlive && enemy.hp === 0;
+
     if (totalShown > 0 && this.combat && this.combat.enemies) {
       const eIdx = this.combat.enemies.indexOf(enemy);
-      const isCrit = dmg >= 15;
-      SfxEngine.play(isCrit ? 'crit' : 'hit');
-      VfxEngine.effectOnTarget('enemy', eIdx, isCrit ? 'crit' : 'slash');
-      this.spawnFloatingVfx('enemy', dmg > 0 ? `-${dmg}` : `🛡️막힘`, isCrit ? 'vfx-crit' : 'vfx-dmg', eIdx);
+      const isCrit = dmg >= 14;
+      if (!this._hitVisuals) this._hitVisuals = { enemyHits: {}, playerLungeTs: 0, playerHurtTs: 0, playerBlockTs: 0 };
+      this._hitVisuals.enemyHits[eIdx] = { crit: isCrit, ts: Date.now() };
+
+      const fireImpact = () => {
+        if (justKilled) {
+          VfxEngine.killBurst(eIdx);
+        } else {
+          SfxEngine.playHit(isCrit, hitStep);
+          const fx = isCrit ? 'crit' : (vfxTheme || 'slash');
+          VfxEngine.effectOnTarget('enemy', eIdx, fx);
+        }
+        const label = dmg > 0 ? (isCrit ? `💥-${dmg}!` : `-${dmg}`) : `🛡️막힘`;
+        this.spawnFloatingVfx('enemy', label, isCrit ? 'vfx-crit' : 'vfx-dmg', eIdx);
+      };
+
+      if (hitStep > 0) {
+        setTimeout(fireImpact, hitStep * 75);
+      } else {
+        fireImpact();
+      }
     }
     // Slay the Spire Curl-Up mechanic (Louse / Cube / Rust Monster): first time taking HP damage, gains immediate block!
     if (dmg > 0 && enemy.hp > 0 && enemy.curlUp > 0) {
@@ -3655,19 +3938,24 @@ const Game = {
         this.logCombat(`💥 [${this.combat.summon.name}] 소환수가 대신 치명타를 막아내고 소멸했습니다!`);
       }
     }
+    if (!this._hitVisuals) this._hitVisuals = { enemyHits: {}, playerLungeTs: 0, playerHurtTs: 0, playerBlockTs: 0 };
     if (remaining > 0) {
       this.run.hp = Math.max(0, this.run.hp - remaining);
-      SfxEngine.play('hit');
+      this._hitVisuals.playerHurtTs = Date.now();
+      SfxEngine.play('playerHit');
       VfxEngine.effectOnTarget('player', 0, 'blood');
+      VfxEngine.damageVignette();
+      VfxEngine.screenShake('heavy');
       this.spawnFloatingVfx('player', `-${remaining}`, 'vfx-dmg');
       // Barbarian gains +1 Rage whenever taking unblocked HP damage!
       if (this.run.charId === 'barbarian') {
         this.combat.secondaryResource += 1;
       }
     } else if (dmg > 0) {
+      this._hitVisuals.playerBlockTs = Date.now();
       SfxEngine.play('block');
       VfxEngine.effectOnTarget('player', 0, 'block');
-      this.spawnFloatingVfx('player', `🛡️방어!`, 'vfx-block');
+      this.spawnFloatingVfx('player', `🛡️완벽방어!`, 'vfx-block');
     }
   },
 
@@ -3814,6 +4102,23 @@ const Game = {
     if (this._lastPlayerAvatarChar !== this.run.charId) {
       this._lastPlayerAvatarChar = this.run.charId;
       document.getElementById('player-avatar-box').innerHTML = ch.avatarSvg;
+    }
+
+    // Apply physical Player Lunge / Hurt Recoil / Block Pulse animations!
+    const pCardEl = document.getElementById('player-unit-card');
+    if (pCardEl && this._hitVisuals) {
+      const nowTs = Date.now();
+      pCardEl.classList.remove('player-lunge', 'player-hurt-recoil', 'player-block-pulse');
+      if (nowTs - (this._hitVisuals.playerHurtTs || 0) < 320) {
+        void pCardEl.offsetWidth;
+        pCardEl.classList.add('player-hurt-recoil');
+      } else if (nowTs - (this._hitVisuals.playerLungeTs || 0) < 260) {
+        void pCardEl.offsetWidth;
+        pCardEl.classList.add('player-lunge');
+      } else if (nowTs - (this._hitVisuals.playerBlockTs || 0) < 280) {
+        void pCardEl.offsetWidth;
+        pCardEl.classList.add('player-block-pulse');
+      }
     }
     document.getElementById('combat-player-name').innerHTML = `<span class="rank-badge rank-${this.run.rank}">${this.run.rank}급</span> ${ch.name.split(' ')[0]}`;
 
@@ -3993,7 +4298,14 @@ const Game = {
       }
 
       const enCard = document.createElement('div');
-      enCard.className = `unit-card enemy-unit ${isTargeted ? 'targeted' : ''}`;
+      const recentHit = this._hitVisuals && this._hitVisuals.enemyHits && this._hitVisuals.enemyHits[idx];
+      const hitCls =
+        recentHit && Date.now() - recentHit.ts < 300
+          ? recentHit.crit
+            ? 'enemy-crit-recoil'
+            : 'enemy-hit-recoil'
+          : '';
+      enCard.className = `unit-card enemy-unit ${isTargeted ? 'targeted' : ''} ${hitCls}`;
       if (enCard.setAttribute) enCard.setAttribute('data-en-idx', String(idx));
       enCard.onclick = () => {
         this.combat.targetIndex = idx;

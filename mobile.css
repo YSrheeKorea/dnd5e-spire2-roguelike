@@ -378,3 +378,22 @@ body.mobile-edition {
   padding: 4px 8px;
   font-size: 0.85rem;
 }
+
+
+/* Mobile Vertical Lunge Direction (Player is below Enemies on Mobile!) */
+.mobile-edition .player-lunge {
+  animation: mobilePlayerLunge 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes mobilePlayerLunge {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  35% { transform: translate3d(0, -18px, 0) scale(1.06); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
+}
+.mobile-edition .enemy-hit-recoil {
+  animation: mobileEnemyRecoil 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes mobileEnemyRecoil {
+  0% { transform: translate3d(0, 0, 0) scale(1); filter: brightness(2.6); }
+  25% { transform: translate3d(0, -14px, 0) scale(0.95); filter: brightness(1.8); }
+  100% { transform: translate3d(0, 0, 0) scale(1); filter: brightness(1); }
+}
