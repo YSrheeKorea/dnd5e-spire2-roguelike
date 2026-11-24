@@ -3,43 +3,85 @@
    Optimized for Portrait Smartphones, One-Hand Thumb Reach & Horizontal Swipe Hand
    ============================================================================ */
 
+html {
+  overflow-x: hidden;
+  width: 100%;
+}
+
 body.mobile-edition {
-  padding-bottom: 64px;
-  /* Space for bottom dock */
+  padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  /* Space for bottom dock + iOS/Android gesture bar */
+  width: 100%;
   max-width: 540px;
   margin: 0 auto;
   border-left: 1px solid #25304d;
   border-right: 1px solid #25304d;
   min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+.mobile-edition #app-container,
+.mobile-edition .screen {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 .mobile-edition .top-bar {
-  height: 50px;
-  padding: 0 12px;
+  height: auto;
+  min-height: calc(50px + env(safe-area-inset-top, 0px));
+  padding: calc(env(safe-area-inset-top, 0px) + 6px) 10px 6px;
+  gap: 6px;
+}
+
+.mobile-edition .brand-box {
+  min-width: 0;
+  gap: 4px;
+  flex-shrink: 1;
 }
 
 .mobile-edition .brand-logo {
-  font-size: 1.02rem;
+  font-size: 0.94rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mobile-edition .brand-sub {
+  display: none;
+}
+
+.mobile-edition .global-actions {
+  gap: 5px;
+  flex-shrink: 0;
 }
 
 .mobile-edition .pc-switch-btn {
   text-decoration: none;
   background: #273c75;
   border-color: #74b9ff;
-  font-size: 0.76rem;
-  padding: 5px 9px;
+  font-size: 0.7rem;
+  padding: 4px 7px;
+  white-space: nowrap;
+}
+
+@media (display-mode: standalone) {
+  .mobile-edition .pc-switch-btn {
+    display: none;
+  }
 }
 
 .mobile-run-strip {
   background: rgba(18, 23, 38, 0.96);
   border-bottom: 1px solid #3b4d80;
-  padding: 6px 10px;
+  padding: 6px 8px;
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 5px;
   justify-content: center;
   position: sticky;
-  top: 50px;
+  top: calc(50px + env(safe-area-inset-top, 0px));
   z-index: 95;
 }
 
@@ -69,39 +111,64 @@ body.mobile-edition {
 }
 
 .mobile-edition .hub-char-grid {
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
 }
 
 .mobile-edition .char-avatar-wrap {
-  width: 48px;
-  height: 48px;
-  margin: 12px 0 4px;
+  width: 44px;
+  height: 44px;
+  margin: 14px 0 4px;
 }
 
 .mobile-edition .char-roster-card {
-  padding: 8px 4px;
+  padding: 6px 3px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .mobile-edition .char-roster-card h3 {
-  font-size: 0.78rem;
+  font-size: 0.74rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.mobile-edition .char-archetype,
+.mobile-edition .char-curve-tag,
+.mobile-edition .char-roster-best {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .mobile-edition .hub-selected-panel {
-  grid-template-columns: 1fr;
-  padding: 12px 14px;
+  grid-template-columns: minmax(0, 1fr);
+  padding: 12px 12px;
   gap: 12px;
+  overflow: hidden;
+}
+
+.mobile-edition .selected-info-left,
+.mobile-edition .growth-dashboard-box {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .mobile-edition .subclass-grid {
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: 7px;
 }
 
 .mobile-edition .btn-start-run {
   width: 100%;
-  padding: 14px;
-  font-size: 1.05rem;
+  max-width: 100%;
+  padding: 14px 10px;
+  font-size: 0.98rem;
+  white-space: normal;
+  word-break: keep-all;
 }
 
 /* Mobile 30-Stage Map */
@@ -280,7 +347,7 @@ body.mobile-edition {
   grid-template-columns: 1fr;
 }
 
-/* Fixed Bottom Mobile Navigation Bar */
+/* Fixed Bottom Mobile Navigation Bar (Stays accessible above Hub/Tab Modals!) */
 .mobile-bottom-nav {
   position: fixed;
   bottom: 0;
@@ -288,29 +355,44 @@ body.mobile-edition {
   right: 0;
   max-width: 540px;
   margin: 0 auto;
-  height: 56px;
+  height: calc(56px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
   background: rgba(11, 13, 20, 0.98);
   border-top: 2px solid #4a5c8a;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  z-index: 150;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  z-index: 250;
 }
 
 .mobile-bottom-nav button {
   background: transparent;
   border: none;
-  color: #dfe6e9;
-  font-size: 0.76rem;
+  color: #b2bec3;
+  font-size: 0.69rem;
   font-weight: 800;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 2px;
+  padding: 4px 2px;
+  min-width: 0;
+  line-height: 1.15;
+}
+
+.mobile-bottom-nav button > span:first-child {
+  font-size: 1.05rem;
+}
+
+.mobile-bottom-nav button.nav-active {
+  color: #f6c967;
+  background: rgba(246, 201, 103, 0.12);
+  box-shadow: inset 0 2px 0 #f6c967;
 }
 
 .mobile-bottom-nav button:active {
-  background: rgba(253, 203, 110, 0.15);
+  background: rgba(253, 203, 110, 0.18);
   color: #fdcb6e;
 }
 
@@ -337,9 +419,83 @@ body.mobile-edition {
   padding: 2px 5px;
 }
 
+.mobile-edition .modal-backdrop {
+  padding: calc(10px + env(safe-area-inset-top, 0px)) 10px calc(64px + env(safe-area-inset-bottom, 0px));
+  align-items: flex-start;
+  z-index: 210;
+}
+
+/* Blocking combat/run modals sit above bottom nav so rewards/D20 cannot be bypassed */
+.mobile-edition #modal-reward,
+.mobile-edition #modal-d20,
+.mobile-edition #modal-gameover {
+  z-index: 300;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  align-items: center;
+}
+
 .mobile-edition .modal-box {
-  padding: 16px;
-  max-height: 86dvh;
+  width: 100%;
+  max-width: 520px;
+  min-width: 0;
+  padding: 14px 12px;
+  max-height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-edition .modal-header {
+  gap: 8px;
+}
+
+.mobile-edition .modal-header h2 {
+  font-size: 0.96rem;
+  line-height: 1.3;
+  min-width: 0;
+  word-break: keep-all;
+}
+
+.mobile-edition .btn-close {
+  flex-shrink: 0;
+}
+
+.mobile-edition .ach-tabs-row {
+  gap: 5px;
+}
+
+.mobile-edition .ach-tab-btn {
+  padding: 5px 8px;
+  font-size: 0.72rem;
+}
+
+.mobile-edition .ach-grid {
+  grid-template-columns: minmax(0, 1fr);
+  max-height: none;
+  overflow-y: visible;
+  padding-right: 0;
+}
+
+.mobile-edition .modal-box .game-card {
+  width: calc(50% - 5px);
+  flex: 0 0 calc(50% - 5px);
+  min-width: 0;
+  min-height: 186px;
+}
+
+.mobile-edition .deck-modal-grid,
+.mobile-edition .reward-cards-row,
+.mobile-edition .shop-cards-row {
+  gap: 8px;
+}
+
+.mobile-edition .shop-item-wrap {
+  width: calc(50% - 4px);
+}
+
+.mobile-edition .shop-item-wrap .game-card {
+  width: 100%;
+  flex: 0 0 auto;
 }
 
 

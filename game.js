@@ -1213,17 +1213,58 @@ const Game = {
     });
   },
 
+  closeAllNavModals() {
+    ['modal-achievements', 'modal-gear', 'modal-mastery', 'modal-deck', 'modal-run-stats'].forEach(id => {
+      const el = typeof document !== 'undefined' ? document.getElementById(id) : null;
+      if (el) el.classList.add('hidden');
+    });
+    this.updateMobileNavActive('hub');
+  },
+
+  updateMobileNavActive(activeTab) {
+    if (typeof document === 'undefined') return;
+    document.querySelectorAll('.mobile-bottom-nav button[data-nav]').forEach(btn => {
+      btn.classList.toggle('nav-active', btn.dataset.nav === activeTab);
+    });
+  },
+
+  returnToActiveRun() {
+    this.closeAllNavModals();
+    if (this.combat && !this.combat.ended) {
+      this.switchScreen('screen-combat');
+      this.renderCombat();
+      this.updateMobileNavActive('run');
+      return;
+    }
+    if (this.run && this.run.hp > 0) {
+      this.switchScreen('screen-map');
+      this.renderMap();
+      this.updateMobileNavActive('run');
+      return;
+    }
+    if (this.loadSavedRun()) {
+      this.continueSavedRun();
+      this.updateMobileNavActive('run');
+      return;
+    }
+    this.showHub();
+    this.showToast('🏔️ 로비에서 클래스를 선택하고 [첨탑 등반 시작]을 눌러주세요!', 'info');
+  },
+
   openAchievementsModal(filter = 'all') {
+    this.closeAllNavModals();
     const modal = document.getElementById('modal-achievements');
     if (!modal) return;
     this._achFilter = filter;
     this.renderAchievementsModal(filter);
     modal.classList.remove('hidden');
+    this.updateMobileNavActive('ach');
   },
 
   closeAchievementsModal() {
     const modal = document.getElementById('modal-achievements');
     if (modal) modal.classList.add('hidden');
+    this.updateMobileNavActive(this.run && !document.getElementById('screen-hub').classList.contains('active') ? 'run' : 'hub');
   },
 
   renderAchievementsModal(filter = 'all') {
@@ -1416,14 +1457,20 @@ const Game = {
   },
 
   switchScreen(screenId) {
+    this.closeAllNavModals();
     document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
     const target = document.getElementById(screenId);
     if (target) target.classList.add('active');
+    if (typeof window !== 'undefined' && window.scrollTo) {
+      try { window.scrollTo(0, 0); } catch (e) { }
+    }
+    this.updateMobileNavActive(screenId === 'screen-hub' ? 'hub' : 'run');
     this.syncSceneBackground(screenId);
     this.updateTopHud();
   },
 
   showHub() {
+    this.closeAllNavModals();
     if (this.run && this.run.hp > 0) {
       this.saveRun();
     }
@@ -1779,13 +1826,16 @@ const Game = {
   // --------------------------------------------------------------------------
 
   openGearModal() {
+    this.closeAllNavModals();
     document.getElementById('modal-gear').classList.remove('hidden');
     this.renderGearModal();
+    this.updateMobileNavActive('gear');
   },
 
   closeGearModal() {
     document.getElementById('modal-gear').classList.add('hidden');
     this.renderHub();
+    this.updateMobileNavActive(this.run && !document.getElementById('screen-hub').classList.contains('active') ? 'run' : 'hub');
   },
 
   renderGearModal() {
@@ -1901,13 +1951,16 @@ const Game = {
   },
 
   openMasteryModal() {
+    this.closeAllNavModals();
     document.getElementById('modal-mastery').classList.remove('hidden');
     this.renderMasteryModal();
+    this.updateMobileNavActive('mastery');
   },
 
   closeMasteryModal() {
     document.getElementById('modal-mastery').classList.add('hidden');
     this.renderHub();
+    this.updateMobileNavActive(this.run && !document.getElementById('screen-hub').classList.contains('active') ? 'run' : 'hub');
   },
 
   renderMasteryModal() {

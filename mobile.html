@@ -3,18 +3,18 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="D&D SPIRE II" />
   <meta name="theme-color" content="#0b0d14" />
-  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="manifest" href="manifest-mobile.webmanifest" />
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png" />
   <title>D&D 5E SPIRE II [MOBILE EDITION]</title>
-  <link rel="stylesheet" href="style.css?v=8" />
-  <link rel="stylesheet" href="mobile.css?v=8" />
+  <link rel="stylesheet" href="style.css?v=9" />
+  <link rel="stylesheet" href="mobile.css?v=9" />
 </head>
 
 <body class="mobile-edition">
@@ -258,11 +258,11 @@
 
   <!-- MOBILE BOTTOM NAVIGATION DOCK -->
   <nav class="mobile-bottom-nav" style="grid-template-columns: repeat(5, 1fr);">
-    <button onclick="Game.showHub()">🍺 로비</button>
-    <button onclick="Game.openAchievementsModal('all')">🏆 업적 <span id="mobile-ach-count" style="font-size:0.62rem; color:#f6c967;">0/28</span></button>
-    <button onclick="Game.openGearModal()">⚜️ 무구</button>
-    <button onclick="Game.openMasteryModal()">📜 특성</button>
-    <button onclick="window.location.href='index.html?force=pc'">💻 PC</button>
+    <button data-nav="hub" class="nav-active" onclick="Game.showHub()"><span>🍺</span><span>로비</span></button>
+    <button data-nav="run" onclick="Game.returnToActiveRun()"><span>🏰</span><span>모험</span></button>
+    <button data-nav="ach" onclick="Game.openAchievementsModal('all')"><span>🏆</span><span>업적 <em id="mobile-ach-count" style="font-style:normal; font-size:0.62rem; color:#f6c967;">0/28</em></span></button>
+    <button data-nav="gear" onclick="Game.openGearModal()"><span>⚜️</span><span>무구</span></button>
+    <button data-nav="mastery" onclick="Game.openMasteryModal()"><span>📜</span><span>특성</span></button>
   </nav>
 
   <!-- SHARED MODALS -->
@@ -368,13 +368,13 @@
   <!-- NON-BLOCKING IN-GAME TOAST STACK -->
   <div id="toast-container" class="toast-container"></div>
 
-  <script src="data.js?v=8"></script>
-  <script src="sprites.js?v=8"></script>
-  <script src="backgrounds.js?v=8"></script>
-  <script src="card_art.js?v=8"></script>
-  <script src="achievements.js?v=8"></script>
-  <script src="game.js?v=8"></script>
-  <script src="pwa.js?v=8"></script>
+  <script src="data.js?v=9"></script>
+  <script src="sprites.js?v=9"></script>
+  <script src="backgrounds.js?v=9"></script>
+  <script src="card_art.js?v=9"></script>
+  <script src="achievements.js?v=9"></script>
+  <script src="game.js?v=9"></script>
+  <script src="pwa.js?v=9"></script>
 </body>
 
 </html>
