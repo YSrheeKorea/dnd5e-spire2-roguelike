@@ -3942,6 +3942,13 @@ const Game = {
     if (remaining > 0) {
       this.run.hp = Math.max(0, this.run.hp - remaining);
       this._hitVisuals.playerHurtTs = Date.now();
+      if (attackerEnemy && this.combat && this.combat.enemies) {
+        const aIdx = this.combat.enemies.indexOf(attackerEnemy);
+        if (aIdx >= 0) {
+          if (!this._hitVisuals.enemyLunges) this._hitVisuals.enemyLunges = {};
+          this._hitVisuals.enemyLunges[aIdx] = Date.now();
+        }
+      }
       SfxEngine.play('playerHit');
       VfxEngine.effectOnTarget('player', 0, 'blood');
       VfxEngine.damageVignette();
@@ -4299,12 +4306,15 @@ const Game = {
 
       const enCard = document.createElement('div');
       const recentHit = this._hitVisuals && this._hitVisuals.enemyHits && this._hitVisuals.enemyHits[idx];
+      const recentLunge = this._hitVisuals && this._hitVisuals.enemyLunges && this._hitVisuals.enemyLunges[idx];
       const hitCls =
         recentHit && Date.now() - recentHit.ts < 300
           ? recentHit.crit
             ? 'enemy-crit-recoil'
             : 'enemy-hit-recoil'
-          : '';
+          : recentLunge && Date.now() - recentLunge < 320
+            ? 'enemy-lunge'
+            : '';
       enCard.className = `unit-card enemy-unit ${isTargeted ? 'targeted' : ''} ${hitCls}`;
       if (enCard.setAttribute) enCard.setAttribute('data-en-idx', String(idx));
       enCard.onclick = () => {

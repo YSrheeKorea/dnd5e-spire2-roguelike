@@ -397,3 +397,26 @@ body.mobile-edition {
   25% { transform: translate3d(0, -14px, 0) scale(0.95); filter: brightness(1.8); }
   100% { transform: translate3d(0, 0, 0) scale(1); filter: brightness(1); }
 }
+
+
+/* Mobile Pixel-Art Sprite Sizing & Vertical Enemy Lunge */
+.mobile-edition .unit-avatar .pixel-sprite {
+  width: 68px;
+  height: 68px;
+}
+.mobile-edition .unit-avatar .pixel-sprite.px-boss {
+  width: 82px;
+  height: 82px;
+}
+.mobile-edition .char-avatar-wrap .pixel-sprite {
+  width: 54px;
+  height: 54px;
+}
+.mobile-edition .enemy-lunge {
+  animation: mobileEnemyLunge 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes mobileEnemyLunge {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  35% { transform: translate3d(0, 16px, 0) scale(1.06); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
+}

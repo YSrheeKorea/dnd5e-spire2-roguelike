@@ -2078,3 +2078,121 @@ body {
   80% { opacity: 0.95; transform: translate(-50%, -48px) scale(1); }
   100% { opacity: 0; transform: translate(-50%, -64px) scale(0.85); }
 }
+
+
+/* ==========================================================================
+   V5 ANIMATED PIXEL-ART SPRITES (도트 아트 + 2프레임 모션 + 아우라)
+   ========================================================================== */
+.pixel-sprite {
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.72));
+  transform-origin: center bottom;
+}
+.unit-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible !important;
+}
+.unit-avatar .pixel-sprite {
+  width: 88px;
+  height: 88px;
+}
+.unit-avatar .pixel-sprite.px-boss {
+  width: 104px;
+  height: 104px;
+  filter: drop-shadow(0 0 12px rgba(246, 201, 103, 0.55)) drop-shadow(0 6px 8px rgba(0, 0, 0, 0.85));
+}
+.char-avatar-wrap .pixel-sprite {
+  width: 68px;
+  height: 68px;
+}
+
+/* Authentic 2-Frame Retro Pixel-Art Stepping (Frame 1 <-> Frame 2) */
+.pixel-sprite .px-f1 {
+  animation: pxFrame1 0.84s steps(1, end) infinite;
+}
+.pixel-sprite .px-f2 {
+  opacity: 0;
+  animation: pxFrame2 0.84s steps(1, end) infinite;
+}
+.pixel-sprite.px-motion-agile .px-f1,
+.pixel-sprite.px-motion-agile .px-f2 {
+  animation-duration: 0.62s;
+}
+.pixel-sprite.px-motion-heavy .px-f1,
+.pixel-sprite.px-motion-heavy .px-f2 {
+  animation-duration: 1.05s;
+}
+@keyframes pxFrame1 {
+  0%, 49.9% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+@keyframes pxFrame2 {
+  0%, 49.9% { opacity: 0; }
+  50%, 100% { opacity: 1; }
+}
+
+/* Distinct Per-Archetype Idle Motions (Float / Heavy / Agile / Squish) */
+.px-motion-float {
+  animation: pxMotionFloat 2.1s ease-in-out infinite;
+}
+@keyframes pxMotionFloat {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -6px, 0); }
+}
+
+.px-motion-heavy {
+  animation: pxMotionHeavy 1.6s ease-in-out infinite;
+}
+@keyframes pxMotionHeavy {
+  0%, 100% { transform: scale(1, 1); }
+  50% { transform: scale(1.04, 0.96); }
+}
+
+.px-motion-agile {
+  animation: pxMotionAgile 1.15s ease-in-out infinite;
+}
+@keyframes pxMotionAgile {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(0, -3px, 0) scale(1.02, 0.98); }
+}
+
+.px-motion-squish {
+  animation: pxMotionSquish 1.3s ease-in-out infinite;
+}
+@keyframes pxMotionSquish {
+  0%, 100% { transform: scale(1, 1); }
+  45% { transform: scale(1.08, 0.9); }
+  75% { transform: scale(0.95, 1.05); }
+}
+
+/* Subtle Boss / Class Aura Pulse */
+.pixel-sprite .px-aura {
+  animation: pxAuraPulse 1.8s ease-in-out infinite;
+}
+@keyframes pxAuraPulse {
+  0%, 100% { opacity: 0.16; }
+  50% { opacity: 0.34; }
+}
+
+/* Enemy Attack Lunge Motion */
+.enemy-lunge {
+  animation: enemyLungeAnim 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes enemyLungeAnim {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  35% { transform: translate3d(-24px, 4px, 0) scale(1.06) rotate(-2deg); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
+}
+
+/* Speed up pixel animation briefly during attack lunge! */
+.player-lunge .pixel-sprite .px-f1,
+.player-lunge .pixel-sprite .px-f2,
+.enemy-lunge .pixel-sprite .px-f1,
+.enemy-lunge .pixel-sprite .px-f2 {
+  animation-duration: 0.18s !important;
+}
