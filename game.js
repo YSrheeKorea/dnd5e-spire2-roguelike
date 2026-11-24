@@ -1565,41 +1565,40 @@ const Game = {
     } else if (encounterType === 'elite') {
       const eId = actInfo.elitePool[this.run.stage % actInfo.elitePool.length];
       const guardId = actInfo.normalPool[this.run.stage % actInfo.normalPool.length];
-      // Elites appear with a minion guard from Act 1 Stage 8+ or Act 2+ for real tactical pressure!
-      enemyTemplates = (this.run.act >= 2 || this.run.stage >= 8) ? [GAME_DATA.enemies[eId], GAME_DATA.enemies[guardId]] : [GAME_DATA.enemies[eId]];
+      // Act 1 elites fight solo (classic STS Nob/Lagavulin); Act 2+ elites bring a minion guard!
+      enemyTemplates = this.run.act >= 2 ? [GAME_DATA.enemies[eId], GAME_DATA.enemies[guardId]] : [GAME_DATA.enemies[eId]];
     } else {
       const pool = actInfo.normalPool;
       const e1 = GAME_DATA.enemies[pool[this.run.stage % pool.length]];
       const e2 = GAME_DATA.enemies[pool[(this.run.stage + 1) % pool.length]];
       const e3 = GAME_DATA.enemies[pool[(this.run.stage + 2) % pool.length]];
-      // Slay the Spire 1 "Easy Pool" (First 2 floors of Act 1 are single-monster warm-up encounters)
-      if (this.run.stage <= 2 && this.run.act === 1) {
+      // Slay the Spire "Easy Pool" (First 3 stages of Act 1 are single-monster warm-up encounters)
+      if (this.run.stage <= 3 && this.run.act === 1) {
         enemyTemplates = [e1];
-      } else if (this.run.stage >= 10 && this.run.stage % 3 === 1) {
+      } else if (this.run.act >= 2 && this.run.stage >= 10 && this.run.stage % 3 === 1) {
         enemyTemplates = [e1, e2, e3];
       } else {
         enemyTemplates = [e1, e2];
       }
     }
 
-    // Slay the Spire 2 Difficulty Scaling across 5 Acts x 15 Stages:
-    const hpScale = 1.15 + (this.run.act - 1) * 0.55 + (this.run.stage - 1) * 0.045;
-    const dmgScale = 1.15 + (this.run.act - 1) * 0.38 + (this.run.stage - 1) * 0.032;
+    // Slay the Spire 2 Authentic Difficulty Scaling across 5 Acts x 15 Stages:
+    // Base templates in data.js already scale per Act; this applies fine Act & Stage escalation!
+    const hpScale = 0.80 + (this.run.act - 1) * 0.16 + (this.run.stage - 1) * 0.022;
+    const dmgScale = 0.72 + (this.run.act - 1) * 0.14 + (this.run.stage - 1) * 0.018;
     const enragePerTurn =
       encounterType === 'boss'
-        ? Math.max(2, Math.floor(this.run.act * 1.2))
+        ? Math.max(1, Math.floor((this.run.act + 1) * 0.6))
         : encounterType === 'elite' || encounterType === 'midboss'
-          ? Math.max(1, Math.floor(this.run.act * 0.8))
-          : this.run.stage >= 11
-            ? 1
-            : 0;
+          ? (this.run.act >= 2 ? 1 : 0)
+          : 0;
 
     const enemies = enemyTemplates.map((t, i) => {
       const scaledMoves = t.moves.map(m => {
         const sm = { ...m };
         if (sm.dmg) sm.dmg = Math.round(sm.dmg * dmgScale);
         if (sm.block) sm.block = Math.round(sm.block * dmgScale);
-        if (sm.str) sm.str = Math.max(1, Math.round(sm.str * (1.15 + (this.run.act - 1) * 0.35)));
+        if (sm.str) sm.str = Math.max(1, Math.round(sm.str * (1.0 + (this.run.act - 1) * 0.2)));
         return sm;
       });
 
@@ -1618,8 +1617,8 @@ const Game = {
         maxHp: calcMaxHp,
         hp: useNeowLament ? 1 : calcMaxHp,
         expReward: t.expReward || 50,
-        block: useNeowLament ? 0 : encounterType === 'boss' ? this.run.act * 10 : encounterType === 'elite' || encounterType === 'midboss' ? this.run.act * 5 : 0,
-        strength: (encounterType === 'boss' ? this.run.act : 0) + (hasPhiloStone ? 1 : 0),
+        block: useNeowLament ? 0 : encounterType === 'boss' ? this.run.act * 8 : encounterType === 'elite' || encounterType === 'midboss' ? this.run.act * 4 : 0,
+        strength: (encounterType === 'boss' && this.run.act >= 2 ? this.run.act - 1 : 0) + (hasPhiloStone ? 1 : 0),
         thorns: t.thorns ? t.thorns + Math.floor((this.run.act - 1) * 0.8) : 0,
         regen: t.regen ? Math.round(t.regen * (1 + (this.run.act - 1) * 0.35)) : 0,
         artifact: t.artifact || (encounterType === 'boss' ? Math.min(3, Math.ceil(this.run.act * 0.6)) : 0),
@@ -1673,13 +1672,16 @@ const Game = {
       targetIndex: 0,
       firstAttackUsedThisTurn: false,
       // Class-Unique Combat State Systems!
-      comboCount: 0,               // Fighter: Turn Combo Chain (+15% dmg per combo, every 3 combos -> +1 AP & 1 Draw)
-      traps: 0,                    // Ranger: Tactical Traps (triggers when enemy attacks, dealing damage & reducing attack by 30%)
-      beastMode: 'assault',        // Ranger: Beast Stance ('assault' = 1.6x attack, 'guard' = tanks + generates block)
+      comboCount: 0,               // Fighter: Turn Combo Chain (+8% dmg per combo max 5, 4-combo grants +1 AP once/turn)
+      comboApGrantedThisTurn: false,
+      rogueFinisherApUsed: false,  // Rogue: Eviscerate +1 AP refund capped at once per turn
+      clericBrandTriggersThisTurn: 0, // Cleric: Holy Brand reflection capped at 3 triggers/turn
+      traps: 0,                    // Ranger: Tactical Traps (triggers when enemy attacks: 6 dmg & -20% enemy attack)
+      beastMode: 'assault',        // Ranger: Beast Stance ('assault' = 1.35x attack, 'guard' = tanks + generates block)
       orbList: [],                 // Wizard: Elemental Orbs Queue ('fire', 'frost', 'lightning')
-      devotion: 0,                 // Cleric: Devotion Mantra (at 10 -> auto Miracle Divinity + AoE Radiant blast)
-      paladinAura: 'retribution',  // Paladin: 'retribution' (Thorns reflect), 'devotion' (-20% dmg taken & block), 'crusader' (+30% atk)
-      auraPower: 5,
+      devotion: 0,                 // Cleric: Devotion Mantra (at 10 -> auto Miracle Wrath +1 AP & +6 AoE Radiant)
+      paladinAura: 'retribution',  // Paladin: 'retribution' (Thorns reflect), 'devotion' (-15% dmg & +3 block), 'crusader' (+15% atk)
+      auraPower: 3,
       player: {
         block: pStats.firstTurnBlock || 0,
         strength: pStats.bonusStr + rStats.str,
@@ -1720,46 +1722,46 @@ const Game = {
     const pStats = this.run.permStats;
     const rStats = this.run.allocatedStats;
 
-    // 8 Distinct Class Start-of-Combat Systems!
+    // 8 Distinct Class Start-of-Combat Systems (Balanced to Slay the Spire 2 starter relic power!)
     if (cid === 'fighter') {
       this.combat.secondaryResource += 1;
-      this.combat.player.parry += 4;
+      this.combat.player.parry += 3;
     }
     if (cid === 'barbarian') {
-      this.combat.secondaryResource += 2;
-      this.combat.enemies.forEach(en => (en.bleed += 3));
+      this.combat.secondaryResource += 1;
+      this.combat.enemies.forEach(en => (en.bleed += 2));
     }
     if (cid === 'rogue') {
       this.combat.enemies.forEach(en => {
         this.applyDebuffToEnemy(en, 'poison', 2);
-        en.comboPoints = 1;
       });
       // Generate 1 free 0-cost Shiv in opening hand!
       this.combat.hand.push(this.createCardInstance('token_shiv', 777));
     }
     if (cid === 'ranger') {
-      this.combat.secondaryResource += 2;
+      this.combat.secondaryResource += 1;
       this.combat.traps += 2;
-      this.combat.enemies.forEach(en => (en.quarry += 3));
+      this.summonOrBuffCompanion(6 + pStats.summonBoost, 3 + pStats.summonBoost);
+      this.combat.enemies.forEach(en => (en.quarry += 2));
     }
     if (cid === 'wizard') {
-      this.channelElementalOrb('frost');
       this.channelElementalOrb('lightning');
+      this.combat.player.block += 3;
     }
     if (cid === 'cleric') {
-      this.combat.drones += 1;
-      this.combat.devotion += 2;
-      this.combat.enemies.forEach(en => (en.holyBrand += 3));
+      this.combat.devotion += 1;
+      this.combat.enemies.forEach(en => (en.holyBrand += 1));
     }
     if (cid === 'paladin') {
       this.combat.player.block += 4;
       this.combat.secondaryResource += 1;
       this.combat.paladinAura = 'retribution';
+      this.combat.auraPower = 4;
       this.combat.enemies.forEach(en => (en.seal += 2));
     }
     if (cid === 'warlock') {
-      this.summonOrBuffCompanion(12 + pStats.summonBoost, 5 + pStats.summonBoost + rStats.mana);
-      this.combat.enemies.forEach(en => (en.doom += 10));
+      this.summonOrBuffCompanion(6 + pStats.summonBoost, 3 + pStats.summonBoost + rStats.mana);
+      this.combat.enemies.forEach(en => (en.doom += 2));
     }
 
     // Dynamic Archetype Synergy: Count how many cards of each subclass archetype are in the player's current deck!
@@ -1850,9 +1852,9 @@ const Game = {
     const atkCap = 22 + (this.run ? this.run.act * 5 : 5);
     if (!s.active) {
       s.active = true;
-      s.maxHp = Math.min(cap, Math.max(16, healAmt));
+      s.maxHp = Math.min(cap, Math.max(6, healAmt));
       s.hp = Math.min(s.maxHp, healAmt);
-      s.atk = Math.min(atkCap, Math.max(6, atkBoost));
+      s.atk = Math.min(atkCap, Math.max(3, atkBoost));
     } else {
       s.maxHp = Math.min(cap, s.maxHp + Math.round(healAmt * 0.25));
       s.hp = Math.min(s.maxHp, s.hp + Math.round(healAmt * 0.75));
@@ -1860,12 +1862,11 @@ const Game = {
     }
   },
 
-  // Helper: Barbarian Missing HP Bloodlust Multiplier
+  // Helper: Barbarian Missing HP Bloodlust Multiplier (Balanced: +6% per 10% missing HP, max +54%)
   getBarbarianBloodlustMult() {
     if (!this.run || this.run.charId !== 'barbarian') return 1;
     const missingPct = Math.max(0, (this.run.maxHp - this.run.hp) / this.run.maxHp);
-    // +12% damage per 10% missing HP (up to +108% at 10% HP!)
-    return 1 + Math.floor(missingPct * 10) * 0.12;
+    return 1 + Math.floor(missingPct * 10) * 0.06;
   },
 
   // Helper: Wizard 3-Elemental Orb Channel & Evoke System (Fire / Frost / Lightning)
@@ -1886,23 +1887,22 @@ const Game = {
     if (!this.combat) return;
     const alive = this.combat.enemies.filter(e => e.hp > 0);
     if (alive.length === 0) return;
-    const pwr = 8 + Math.max(0, this.combat.player.strength);
+    const pwr = 6 + Math.floor(Math.max(0, this.combat.player.strength) * 0.5);
     if (orbType === 'fire') {
       alive.forEach(en => this.dealDamageToEnemy(en, pwr, true));
       this.logCombat(`🔥 [화염 구체 발현(Evoke)!] 적 전체에게 화염 폭발 ${pwr} 피해!`);
     } else if (orbType === 'frost') {
-      this.combat.player.block += 9 + Math.max(0, this.combat.player.dexterity);
-      alive.forEach(en => (en.frostbite = (en.frostbite || 0) + 3));
-      this.logCombat(`❄️ [냉기 구체 발현(Evoke)!] 방어도 획득 및 적 전체에 동상 +3 부여!`);
+      this.combat.player.block += 6 + Math.floor(Math.max(0, this.combat.player.dexterity) * 0.5);
+      alive.forEach(en => (en.frostbite = (en.frostbite || 0) + 2));
+      this.logCombat(`❄️ [냉기 구체 발현(Evoke)!] 방어도 획득 및 적 전체에 동상 +2 부여!`);
     } else {
       const t = alive[Math.floor(Math.random() * alive.length)];
-      this.dealDamageToEnemy(t, pwr + 5, true);
-      this.drawCards(1);
-      this.logCombat(`⚡ [번개 구체 발현(Evoke)!] ${t.name}에게 낙뢰 ${pwr + 5} 피해 및 카드 1장 드로우!`);
+      this.dealDamageToEnemy(t, pwr + 3, true);
+      this.logCombat(`⚡ [번개 구체 발현(Evoke)!] ${t.name}에게 낙뢰 ${pwr + 3} 피해!`);
     }
   },
 
-  // Helper: Cleric Overheal Barrier & Holy Brand Radiant Reflection
+  // Helper: Cleric Overheal Barrier & Holy Brand Radiant Reflection (Capped at 3 triggers/turn)
   healPlayerWithClericMechanics(amount) {
     if (!this.run || amount <= 0) return;
     const missing = this.run.maxHp - this.run.hp;
@@ -1920,12 +1920,18 @@ const Game = {
 
   triggerClericHolyBrandReflection(healOrBlockAmt) {
     if (!this.combat || this.run.charId !== 'cleric') return;
+    if ((this.combat.clericBrandTriggersThisTurn || 0) >= 2) return;
+    let triggered = false;
     this.combat.enemies.forEach(en => {
       if (en.hp > 0 && (en.holyBrand || 0) > 0) {
-        const radDmg = Math.max(2, Math.round(healOrBlockAmt * 0.5) + en.holyBrand);
+        const radDmg = Math.min(en.holyBrand + Math.floor(healOrBlockAmt * 0.2), 10);
         this.dealDamageToEnemy(en, radDmg, true);
+        triggered = true;
       }
     });
+    if (triggered) {
+      this.combat.clericBrandTriggersThisTurn = (this.combat.clericBrandTriggersThisTurn || 0) + 1;
+    }
   },
 
   // Helper: Paladin Aura Cycling & Ranger Beast Mode Toggle
@@ -1936,8 +1942,8 @@ const Game = {
     this.combat.paladinAura = order[(idx + 1) % order.length];
     const names = {
       retribution: '🔥 응보의 오라 (피격 시 적에게 광휘 반사)',
-      devotion: '🛡️ 헌신의 오라 (받는 피해 20% 감소 & 매 턴 방어도)',
-      crusader: '⚔️ 성전의 오라 (모든 공격 피해량 +25% & 문장 추가)'
+      devotion: '🛡️ 헌신의 오라 (받는 피해 15% 감소 & 매 턴 방어도 +3)',
+      crusader: '⚔️ 성전의 오라 (모든 공격 피해량 +15% & 문장 추가)'
     };
     this.logCombat(`⚜️ 성기사 오라 전환: [${names[this.combat.paladinAura]}]`);
     this.renderCombat();
@@ -1948,22 +1954,30 @@ const Game = {
     this.combat.beastMode = this.combat.beastMode === 'assault' ? 'guard' : 'assault';
     this.logCombat(
       this.combat.beastMode === 'assault'
-        ? '🐾 야수 동료 태세: [포식 태세 (협공 피해량 1.6배)]'
-        : '🛡️ 야수 동료 태세: [호위 태세 (피해 대신 흡수 & 매 턴 방어도 +5)]'
+        ? '🐾 야수 동료 태세: [포식 태세 (협공 피해량 1.35배)]'
+        : '🛡️ 야수 동료 태세: [호위 태세 (피해 대신 흡수 & 매 턴 방어도 +4)]'
     );
     this.renderCombat();
   },
 
   // Helper: Warlock STS2 Doom Instant Execution Check
+  // Bosses & Elites have Doom Resistance: instant execution only triggers when HP <= Doom AND HP <= 25% of MaxHP!
   checkWarlockDoomExecutions() {
     if (!this.combat) return;
     this.combat.enemies.forEach(en => {
-      if (en.hp > 0 && (en.doom || 0) > 0 && en.hp <= en.doom) {
-        en.hp = 0;
-        this.logCombat(`💀 [파멸(Doom) 처형 발동!] ${en.name}의 체력이 파멸(${en.doom}) 이하가 되어 즉시 처형되었습니다!`);
-        if (this.run.charId === 'warlock') {
-          this.combat.energy += 1;
-          if (this.combat.summon.active) this.summonOrBuffCompanion(6, 2);
+      if (en.hp > 0 && (en.doom || 0) > 0) {
+        const canExecute = en.isBoss
+          ? en.hp <= en.doom && en.hp <= Math.ceil(en.maxHp * 0.25)
+          : en.isElite
+            ? en.hp <= en.doom && en.hp <= Math.ceil(en.maxHp * 0.4)
+            : en.hp <= en.doom;
+        if (canExecute) {
+          en.hp = 0;
+          this.logCombat(`💀 [파멸(Doom) 처형 발동!] ${en.name}이(가) 파멸(${en.doom})에 삼켜져 즉시 처형되었습니다!`);
+          if (this.run.charId === 'warlock') {
+            this.combat.energy += 1;
+            if (this.combat.summon.active) this.summonOrBuffCompanion(4, 1);
+          }
         }
       }
     });
@@ -1975,7 +1989,10 @@ const Game = {
     this.combat.firstAttackUsedThisTurn = false;
     this.combat.burstUsedThisTurn = false;
     this.combat.cardsPlayedThisTurn = 0;
-    this.combat.comboCount = 0; // Reset Fighter Turn Combo Chain
+    this.combat.comboCount = 0;
+    this.combat.comboApGrantedThisTurn = false;
+    this.combat.rogueFinisherApUsed = false;
+    this.combat.clericBrandTriggersThisTurn = 0;
     this.combat.player.parry = this.run.charId === 'fighter' ? 3 : 0;
 
     if (!isFirstTurn) {
@@ -2066,20 +2083,21 @@ const Game = {
         if (tpl.bonusPerResource) baseDamage += this.combat.secondaryResource * tpl.bonusPerResource;
         if (cardInst.mutation === 'vampiric_cell') baseDamage += 4;
 
-        // 1) Fighter Turn Combo Chain Bonus (+15% per combo card played this turn, plus +4 per combo on Finisher cards!)
+        // 1) Fighter Turn Combo Chain Bonus (+10% per combo up to 5 stacks, +2 per combo on Finisher cards!)
         if (this.run && this.run.charId === 'fighter' && (this.combat.comboCount || 0) > 0) {
-          if (tpl.comboScaling) baseDamage += this.combat.comboCount * 4;
-          baseDamage = Math.round(baseDamage * (1 + this.combat.comboCount * 0.15));
+          const cappedCombo = Math.min(5, this.combat.comboCount);
+          if (tpl.comboScaling) baseDamage += cappedCombo * 2;
+          baseDamage = Math.round(baseDamage * (1 + cappedCombo * 0.1));
         }
 
-        // 2) Barbarian Missing HP Bloodlust Multiplier (+12% per 10% missing HP!)
+        // 2) Barbarian Missing HP Bloodlust Multiplier (+6% per 10% missing HP!)
         if (this.run && this.run.charId === 'barbarian') {
           baseDamage = Math.round(baseDamage * this.getBarbarianBloodlustMult());
         }
 
-        // 3) Paladin Crusader Aura (+25% attack damage!)
+        // 3) Paladin Crusader Aura (+15% attack damage!)
         if (this.run && this.run.charId === 'paladin' && this.combat.paladinAura === 'crusader') {
-          baseDamage = Math.round(baseDamage * 1.25);
+          baseDamage = Math.round(baseDamage * 1.15);
         }
 
         if (this.combat.stance === 'wrath') baseDamage = Math.round(baseDamage * 2);
@@ -2088,9 +2106,9 @@ const Game = {
       if (baseBlock > 0) {
         baseBlock += this.combat.player.dexterity;
         if (tpl.blockPerDrone) baseBlock += this.combat.drones * tpl.blockPerDrone;
-        // Barbarian Bloodied Bonus Block (<60% HP)
-        if (this.run && this.run.charId === 'barbarian' && this.run.hp <= this.run.maxHp * 0.6) {
-          baseBlock += 4;
+        // Barbarian Bloodied Bonus Block (<50% HP)
+        if (this.run && this.run.charId === 'barbarian' && this.run.hp <= this.run.maxHp * 0.5) {
+          baseBlock += 2;
         }
         // Slay the Spire Frail (손상) Debuff: 25% less block gained from cards!
         if (this.combat.player.frail > 0) baseBlock = Math.floor(baseBlock * 0.75);
@@ -2194,19 +2212,19 @@ const Game = {
     // --- 8 CLASS-UNIQUE CARD MECHANICS ---
     const cid = this.run.charId;
 
-    // 1) FIGHTER: Combo Chain (+1 AP & +1 Draw every 3 combos!) & Parry
+    // 1) FIGHTER: Combo Chain (+1 AP once per turn upon hitting 3-combo!) & Parry
     if (cid === 'fighter') {
       this.combat.comboCount = (this.combat.comboCount || 0) + 1;
       if (tpl.parry) this.combat.player.parry = (this.combat.player.parry || 0) + tpl.parry;
-      if (this.combat.comboCount % 3 === 0) {
+      if (this.combat.comboCount >= 3 && !this.combat.comboApGrantedThisTurn) {
+        this.combat.comboApGrantedThisTurn = true;
         this.combat.energy += 1;
-        this.drawCards(1);
-        this.logCombat(`⚔️ [${this.combat.comboCount}연격 콤보 달성!] 행동력(AP) +1 및 카드 1장 자동 드로우!`);
+        this.logCombat(`⚔️ [3연격 콤보 달성!] 추가 행동력(AP) +1 획득!`);
       }
     }
 
-    // 2) BARBARIAN: Bloodied (<60% HP) bonus Strength on skills
-    if (cid === 'barbarian' && tpl.enrageBoost && this.run.hp <= this.run.maxHp * 0.6) {
+    // 2) BARBARIAN: Bloodied (<50% HP) bonus Strength on Rage skills
+    if (cid === 'barbarian' && tpl.enrageBoost && this.run.hp <= this.run.maxHp * 0.5) {
       this.combat.player.strength += tpl.enrageBoost;
     }
 
@@ -2242,16 +2260,16 @@ const Game = {
       }
     }
 
-    // 6) CLERIC: Devotion Mantra (At 10 -> Miracle Divinity + AoE Radiant judgement!)
+    // 6) CLERIC: Devotion Mantra (At 10 -> Miracle Wrath +1 AP & +6 AoE Radiant!)
     if (tpl.devotionGain) {
       this.combat.devotion = (this.combat.devotion || 0) + tpl.devotionGain;
       if (this.combat.devotion >= 10) {
         this.combat.devotion -= 10;
-        this.changeStance('divinity');
+        this.combat.energy += 1;
         this.combat.enemies.forEach(en => {
-          if (en.hp > 0) this.dealDamageToEnemy(en, 16, true);
+          if (en.hp > 0) this.dealDamageToEnemy(en, 8 + this.run.act * 2, true);
         });
-        this.logCombat('🌟 [신앙심 10 달성: 천상 기적 강림!] 모든 공격 피해 3배, AP+2 및 적 전체에 광휘 심판 16 피해!');
+        this.logCombat(`🌟 [신앙심 10 달성: 천상 기적!] 행동력(AP) +1 및 적 전체에 광휘 심판 ${8 + this.run.act * 2} 피해!`);
       }
     }
 
@@ -2262,7 +2280,7 @@ const Game = {
       });
     }
     if (tpl.auraBoost) {
-      this.combat.auraPower = (this.combat.auraPower || 5) + tpl.auraBoost;
+      this.combat.auraPower = (this.combat.auraPower || 3) + tpl.auraBoost;
     }
 
     // 8) WARLOCK: Doom All (STS2 Necrobinder curse)
@@ -2311,20 +2329,20 @@ const Game = {
             // Fighter Sunder Bonus (+1 physical damage per Sunder stack on enemy!)
             if (en.sunder > 0) dmg += en.sunder;
 
-            // Ranger Quarry Crit Burst (Consumes Quarry on hit for +1.5x Quarry bonus damage!)
+            // Ranger Quarry Crit Burst (Consumes Quarry on hit for +1.0x Quarry bonus damage!)
             if (en.quarry > 0 && cid === 'ranger') {
-              dmg += Math.round(en.quarry * 1.5);
+              dmg += en.quarry;
               en.quarry = Math.max(0, en.quarry - 2);
             }
 
             this.dealDamageToEnemy(en, dmg);
 
-            // Barbarian Bleed Burst on every hit + Bloodied Lifesteal!
+            // Barbarian Bleed Burst on hit (25% of Bleed, capped at 6) + Bloodied Lifesteal (<50% HP)!
             if (cid === 'barbarian' && en.hp > 0 && (en.bleed || 0) > 0) {
-              const bleedBurst = Math.max(2, Math.ceil(en.bleed * 0.5));
+              const bleedBurst = Math.min(6, Math.max(1, Math.floor(en.bleed * 0.25)));
               this.dealDamageToEnemy(en, bleedBurst, true);
-              if (this.run.hp <= this.run.maxHp * 0.6) {
-                this.run.hp = Math.min(this.run.maxHp, this.run.hp + 2);
+              if (this.run.hp <= this.run.maxHp * 0.5) {
+                this.run.hp = Math.min(this.run.maxHp, this.run.hp + 1);
               }
             }
 
@@ -2359,11 +2377,15 @@ const Game = {
         en.comboPoints = (en.comboPoints || 0) + tpl.comboPoint;
         if (en.comboPoints >= 5) {
           en.comboPoints -= 5;
-          const evisDmg = 18 + this.run.act * 4 + this.combat.player.strength;
+          const evisDmg = 12 + this.run.act * 2 + Math.floor(Math.max(0, this.combat.player.strength) * 0.5);
           this.dealDamageToEnemy(en, evisDmg, true);
-          if (en.poison > 0 && en.hp > 0) this.dealDamageToEnemy(en, en.poison, true);
-          this.combat.energy += 1;
-          this.logCombat(`💀 [5연계 마무리 일격(Eviscerate) 폭발!] ${en.name}에게 고정 피해 ${evisDmg} + 맹독 격발 + 행동력(AP) +1!`);
+          let apMsg = '';
+          if (!this.combat.rogueFinisherApUsed) {
+            this.combat.rogueFinisherApUsed = true;
+            this.combat.energy += 1;
+            apMsg = ' + AP+1';
+          }
+          this.logCombat(`💀 [5연계 마무리 일격(Eviscerate)!] ${en.name}에게 고정 피해 ${evisDmg}${apMsg}!`);
         }
       }
       if (tpl.quarry) {
@@ -2376,18 +2398,18 @@ const Game = {
         en.holyBrand = (en.holyBrand || 0) + tpl.holyBrand;
       }
       if (tpl.seal) {
-        const extraSeal = cid === 'paladin' && this.combat.paladinAura === 'crusader' ? 2 : 0;
+        const extraSeal = cid === 'paladin' && this.combat.paladinAura === 'crusader' ? 1 : 0;
         en.seal = (en.seal || 0) + tpl.seal + extraSeal;
       }
       if (tpl.detonateSeal && (en.seal || 0) > 0 && en.hp > 0) {
         const sealCnt = en.seal;
         en.seal = 0;
-        this.dealDamageToEnemy(en, sealCnt * 3, true);
-        this.combat.player.block += sealCnt * 2;
-        this.logCombat(`⚖️ [심판의 문장 ${sealCnt}개 폭발!] 추가 광휘 피해 +${sealCnt * 3} 및 내 방어도 +${sealCnt * 2}!`);
+        this.dealDamageToEnemy(en, sealCnt * 2, true);
+        this.combat.player.block += sealCnt;
+        this.logCombat(`⚖️ [심판의 문장 ${sealCnt}개 폭발!] 추가 광휘 피해 +${sealCnt * 2} 및 방어도 +${sealCnt}!`);
       }
       if (tpl.doom) {
-        en.doom = (en.doom || 0) + tpl.doom + (cardInst.upgraded ? 4 : 0);
+        en.doom = (en.doom || 0) + tpl.doom + (cardInst.upgraded ? 2 : 0);
       }
     });
 
@@ -2471,73 +2493,69 @@ const Game = {
 
     if (cid === 'fighter') {
       this.combat.energy += 1;
-      this.combat.comboCount = (this.combat.comboCount || 0) + 2;
-      this.combat.player.parry = (this.combat.player.parry || 0) + 6;
-      this.drawCards(2);
-      this.logCombat('⚔️ [행동 연쇄(Action Surge) 개방] 행동력 +1, 연격 콤보 +2, 반격 +6, 카드 2장 드로우!');
+      this.combat.comboCount = (this.combat.comboCount || 0) + 1;
+      this.combat.player.parry = (this.combat.player.parry || 0) + 3;
+      this.drawCards(1);
+      this.logCombat('⚔️ [행동 연쇄(Action Surge) 개방] 행동력 +1, 연격 콤보 +1, 반격 +3, 카드 1장 드로우!');
     } else if (cid === 'barbarian') {
-      this.combat.player.strength += 2;
+      this.combat.player.strength += 1;
       this.combat.enemies.forEach(en => {
         if (en.hp > 0) {
-          en.bleed = (en.bleed || 0) + 6;
-          this.dealDamageToEnemy(en, en.bleed, true);
+          en.bleed = (en.bleed || 0) + 4;
+          this.dealDamageToEnemy(en, Math.ceil(en.bleed * 0.5), true);
         }
       });
-      this.logCombat('💢 [혈투 광폭화 폭발] 힘 +2 및 모든 적에게 출혈 +6 부여 후 즉시 출혈 폭발!');
+      this.logCombat('💢 [혈투 광폭화 폭발] 힘 +1 및 모든 적에게 출혈 +4 부여 후 출혈 폭발!');
     } else if (cid === 'rogue') {
       for (let s = 0; s < 2; s++) {
         if (this.combat.hand.length < 10) this.combat.hand.push(this.createCardInstance('token_shiv', Date.now() + s));
       }
       this.combat.enemies.forEach(en => {
-        if (en.hp > 0) {
-          en.poison += 4;
-          en.comboPoints = (en.comboPoints || 0) + 2;
-        }
+        if (en.hp > 0) en.comboPoints = (en.comboPoints || 0) + 1;
       });
-      this.logCombat('🗡️ [암기 난사 개방] 손패에 0코스트 [투척 단검] 2장 생성 및 모든 적 연계 +2점, 맹독 +4!');
+      this.logCombat('🗡️ [암기 난사 개방] 손패에 0코스트 [투척 단검] 2장 생성 및 모든 적 연계 +1점!');
     } else if (cid === 'ranger') {
-      this.combat.traps = (this.combat.traps || 0) + 2;
+      this.combat.traps = (this.combat.traps || 0) + 1;
       this.toggleRangerBeastMode();
       this.combat.enemies.forEach(en => {
         if (en.hp > 0) {
-          en.quarry = (en.quarry || 0) + 4;
-          this.dealDamageToEnemy(en, 10 + this.combat.player.strength, true);
+          en.quarry = (en.quarry || 0) + 3;
+          this.dealDamageToEnemy(en, 7 + Math.floor(this.combat.player.strength * 0.5), true);
         }
       });
-      this.logCombat('🏹 [전술 함정망 & 야수 태세 전환] 함정 +2개 매설, 적 전체 표적 +4 및 관통 사격!');
+      this.logCombat('🏹 [전술 함정망 & 야수 태세 전환] 함정 +1개 매설, 적 전체 표적 +3 및 사격!');
     } else if (cid === 'wizard') {
       this.combat.energy += 1;
-      this.channelElementalOrb('fire');
       this.channelElementalOrb('lightning');
       if (this.combat.orbList && this.combat.orbList.length > 0) {
         this.evokeElementalOrb(this.combat.orbList[0]);
       }
-      this.logCombat('🔮 [3원소 대발현(Evoke)] 행동력 +1, 화염/번개 구체 영창 및 최전방 구체 즉시 2배 발현!');
+      this.logCombat('🔮 [원소 발현(Evoke)] 행동력 +1, 번개 구체 영창 및 최전방 구체 즉시 발현!');
     } else if (cid === 'cleric') {
-      this.combat.devotion = (this.combat.devotion || 0) + 4;
-      this.healPlayerWithClericMechanics(10);
-      this.logCombat('☀️ [신성력 전달: 초과치유 방벽] 체력 +10 치유(초과분 방어도 전환 & 낙인 적 광휘 반사) 및 신앙심 +4!');
+      this.combat.devotion = (this.combat.devotion || 0) + 3;
+      this.healPlayerWithClericMechanics(6);
+      this.logCombat('☀️ [신성력 전달: 초과치유 방벽] 체력 +6 치유(초과분 방어도 전환) 및 신앙심 +3!');
     } else if (cid === 'paladin') {
       this.cyclePaladinAura();
-      this.combat.player.block += 10;
+      this.combat.player.block += 6;
       if (this.combat.hand.length < 10) {
         this.combat.hand.push(this.createCardInstance('token_smite_wave', Date.now()));
       }
-      this.logCombat('✨ [성기사 오라 전환 & 성검 파동] 오라 전환, 방어도 +10 및 0코스트 [빛의 성검 파동] 생성!');
+      this.logCombat('✨ [성기사 오라 전환 & 성검 파동] 오라 전환, 방어도 +6 및 0코스트 [빛의 심판 파동] 생성!');
     } else if (cid === 'warlock') {
       if (this.combat.summon.active && this.combat.summon.hp > 6) {
         this.combat.summon.hp -= 6;
-        this.combat.summon.atk += 4;
+        this.combat.summon.atk += 2;
       } else {
-        this.summonOrBuffCompanion(12, 4);
+        this.summonOrBuffCompanion(8, 2);
       }
       this.combat.energy += 1;
-      this.drawCards(2);
+      this.drawCards(1);
       this.combat.enemies.forEach(en => {
-        if (en.hp > 0) en.doom = (en.doom || 0) + 12;
+        if (en.hp > 0) en.doom = (en.doom || 0) + 6;
       });
       this.checkWarlockDoomExecutions();
-      this.logCombat('🟣 [사역마 혈맹 제물 & 파멸 증폭] 행동력 +1, 카드 2장 드로우 및 적 전체에 파멸(Doom) +12 부여!');
+      this.logCombat('🟣 [사역마 혈맹 제물 & 파멸 증폭] 행동력 +1, 카드 1장 드로우 및 적 전체에 파멸(Doom) +6 부여!');
     }
 
     this.checkCombatEnd();
@@ -2549,18 +2567,18 @@ const Game = {
     const t = target && target.hp > 0 ? target : this.combat.enemies.find(e => e.hp > 0);
     if (!t) return;
     let atkDmg = this.combat.summon.atk;
-    // Ranger Beast Mode: Assault deals 1.6x damage, Guard generates +5 Block for Ranger!
+    // Ranger Beast Mode: Assault deals 1.35x damage, Guard generates +4 Block for Ranger!
     if (this.run.charId === 'ranger') {
       if (this.combat.beastMode === 'assault') {
-        atkDmg = Math.round(atkDmg * 1.6);
+        atkDmg = Math.round(atkDmg * 1.35);
       } else {
-        this.combat.player.block += 5;
+        this.combat.player.block += 4;
       }
     }
     this.dealDamageToEnemy(t, atkDmg, true);
-    // Warlock Summon also inflicts +4 Doom on every attack!
+    // Warlock Summon also inflicts +2 Doom on every attack!
     if (this.run.charId === 'warlock' && t.hp > 0) {
-      t.doom = (t.doom || 0) + 4;
+      t.doom = (t.doom || 0) + 2;
       this.checkWarlockDoomExecutions();
     }
     this.logCombat(`${this.combat.summon.name} 협동 공격! (${atkDmg} 피해)`);
@@ -2662,7 +2680,7 @@ const Game = {
     }
     // Paladin Devotion Aura: Automatic Block at end of turn!
     if (this.run.charId === 'paladin' && this.combat.paladinAura === 'devotion') {
-      this.combat.player.block += 6 + Math.floor((this.combat.auraPower || 5) * 0.5);
+      this.combat.player.block += 3 + Math.floor((this.combat.auraPower || 3) * 0.5);
     }
     if (this.run.relics.includes('orichalcum_relic') && this.combat.player.block === 0) {
       this.combat.player.block += 6;
@@ -2719,32 +2737,32 @@ const Game = {
         const hits = move.hits || 1;
         const isCleaveBreath = (en.isBoss || en.isElite) && move.intent === 'attack_debuff';
 
-        // Ranger Tactical Trap Trigger! (Springs BEFORE enemy attacks, dealing damage & cutting enemy attack by 30%!)
+        // Ranger Tactical Trap Trigger! (Springs BEFORE enemy attacks: 8 dmg & -25% enemy attack!)
         let trapTriggered = false;
         if (this.run.charId === 'ranger' && (this.combat.traps || 0) > 0) {
           this.combat.traps -= 1;
           trapTriggered = true;
-          const trapDmg = 10 + Math.max(0, this.combat.player.dexterity) * 2;
+          const trapDmg = 8 + Math.max(0, this.combat.player.dexterity);
           this.dealDamageToEnemy(en, trapDmg, true);
-          en.quarry = (en.quarry || 0) + 2;
-          this.logCombat(`🪤 [전술 함정 격발!] 공격하려던 ${en.name}에게 ${trapDmg} 피해 & 공격력 30% 감소!`);
+          en.quarry = (en.quarry || 0) + 1;
+          this.logCombat(`🪤 [전술 함정 격발!] 공격하려던 ${en.name}에게 ${trapDmg} 피해 & 공격력 25% 감소!`);
           if (en.hp <= 0) return;
         }
 
         for (let h = 0; h < hits; h++) {
           let dmg = move.dmg + en.strength;
-          // Wizard Frostbite reduces enemy attack damage; 8+ stacks Freezes (-50% damage)!
+          // Wizard Frostbite reduces enemy attack damage; 10+ stacks Freezes (-25% damage)!
           if ((en.frostbite || 0) > 0) {
-            dmg = Math.max(1, dmg - Math.ceil(en.frostbite * 0.5));
-            if (en.frostbite >= 8) dmg = Math.floor(dmg * 0.5);
+            dmg = Math.max(1, dmg - Math.floor(en.frostbite / 3));
+            if (en.frostbite >= 10) dmg = Math.floor(dmg * 0.75);
           }
-          if (trapTriggered) dmg = Math.floor(dmg * 0.7);
+          if (trapTriggered) dmg = Math.floor(dmg * 0.75);
           if (en.weak > 0) dmg = Math.floor(dmg * 0.75);
           if (this.combat.player.vuln > 0) dmg = Math.floor(dmg * 1.5);
           if (this.combat.stance === 'wrath') dmg = Math.floor(dmg * 2);
-          // Paladin Devotion Aura reduces incoming damage by 20%!
+          // Paladin Devotion Aura reduces incoming damage by 15%!
           if (this.run.charId === 'paladin' && this.combat.paladinAura === 'devotion') {
-            dmg = Math.floor(dmg * 0.8);
+            dmg = Math.floor(dmg * 0.85);
           }
 
           this.applyEnemyDamageToPlayerOrSummon(dmg, isCleaveBreath, en);
@@ -2752,8 +2770,8 @@ const Game = {
             en.hp = Math.min(en.maxHp, en.hp + Math.round(dmg * 0.5));
           }
         }
-        if ((en.frostbite || 0) >= 8) {
-          en.frostbite = Math.max(0, en.frostbite - 4); // Thaw after frozen turn
+        if ((en.frostbite || 0) >= 10) {
+          en.frostbite = Math.max(0, en.frostbite - 5);
         }
       }
 
@@ -2805,9 +2823,9 @@ const Game = {
       this.combat.player.block -= blocked;
       remaining -= blocked;
 
-      // Fighter Parry Counter-Attack! When blocking enemy attack, strike back immediately!
+      // Fighter Parry Counter-Attack! When blocking enemy attack, strike back with Parry value!
       if (blocked > 0 && (this.combat.player.parry || 0) > 0 && attackerEnemy && attackerEnemy.hp > 0) {
-        const counterDmg = this.combat.player.parry + Math.max(0, this.combat.player.strength);
+        const counterDmg = this.combat.player.parry;
         this.dealDamageToEnemy(attackerEnemy, counterDmg, true);
         attackerEnemy.sunder = (attackerEnemy.sunder || 0) + 1;
         this.logCombat(`🛡️ [패링 반격(Parry)!] ${attackerEnemy.name}에게 카운터 참격 ${counterDmg} 피해 & 파쇄 +1!`);
@@ -2816,7 +2834,7 @@ const Game = {
 
     // Paladin Retribution Aura: Reflects Radiant Thorns damage back to attacker on every hit!
     if (this.run.charId === 'paladin' && this.combat.paladinAura === 'retribution' && attackerEnemy && attackerEnemy.hp > 0) {
-      const reflectDmg = (this.combat.auraPower || 5) + Math.max(0, this.combat.player.strength);
+      const reflectDmg = this.combat.auraPower || 3;
       this.dealDamageToEnemy(attackerEnemy, reflectDmg, true);
       attackerEnemy.seal = (attackerEnemy.seal || 0) + 1;
     }
@@ -2863,7 +2881,7 @@ const Game = {
     const type = this.combat.encounterType;
 
     let healAmt = this.run.permStats.healAfterCombat || 0;
-    if (this.run.charId === 'fighter' || this.run.relics.includes('fighters_badge')) healAmt += 2;
+    if (this.run.charId === 'fighter' || this.run.relics.includes('fighters_badge')) healAmt += 3;
     if (this.run.charId === 'cleric' || this.run.relics.includes('holy_symbol_lathander')) healAmt += 2;
     if (this.run.relics.includes('clr_rank_b')) healAmt += 4;
     if (healAmt > 0) {
@@ -2873,7 +2891,7 @@ const Game = {
     const rawExp = this.combat.enemies.reduce((acc, e) => acc + (e.expReward || 50), 0);
     const expRes = this.gainRunExp(rawExp);
 
-    // Final Act 5 Stage 30 Boss (Tiamat) defeated!
+    // Final Act 5 Stage 15 Boss (Tiamat) defeated!
     if (type === 'boss' && this.run.act >= this.run.maxActs) {
       this.meta.gems += 800;
       this.meta.totalClimbs = (this.meta.totalClimbs || 0) + 1;
@@ -2892,14 +2910,13 @@ const Game = {
     const gemsEarned = type === 'boss' ? 150 : type === 'elite' || type === 'midboss' ? 65 : 25;
     this.meta.gems += gemsEarned;
 
-    // Boss & Midboss also grant a special high-tier Boss Card Draft in addition to Level-Up Card Drafts
-    let draftSource = 'levelup';
+    // Slay the Spire Standard (15-Stage Acts): Every combat grants a Card Reward choice (3 cards or skip for +25 GP)!
+    let draftSource = 'combat';
+    this.run.pendingCardDrafts = Math.max(1, this.run.pendingCardDrafts || 0);
     if (type === 'boss') {
-      this.run.pendingCardDrafts = (this.run.pendingCardDrafts || 0) + 1;
       draftSource = 'boss';
       this.run.pendingBossRelicDraft = true; // Slay the Spire 1 Boss Relic Chest (Pick 1 of 3 Boss Relics)!
-    } else if (type === 'midboss') {
-      this.run.pendingCardDrafts = (this.run.pendingCardDrafts || 0) + 1;
+    } else if (type === 'midboss' || type === 'elite') {
       draftSource = 'midboss';
     }
 
@@ -3003,14 +3020,15 @@ const Game = {
 
     // Class-Unique Player Buff & Mechanic Badges!
     if (cid === 'fighter') {
-      pBuffs.push(`🔥 연격 ${this.combat.comboCount || 0}콤보 (+${(this.combat.comboCount || 0) * 15}%)`);
+      const cappedCombo = Math.min(5, this.combat.comboCount || 0);
+      pBuffs.push(`🔥 연격 ${this.combat.comboCount || 0}콤보 (+${cappedCombo * 10}%)`);
       if (this.combat.player.parry > 0) pBuffs.push(`🛡️ 반격 ${this.combat.player.parry}`);
     } else if (cid === 'barbarian') {
       const multPct = Math.round((this.getBarbarianBloodlustMult() - 1) * 100);
       pBuffs.push(`💢 혈투 증폭 +${multPct}%`);
-      if (this.run.hp <= this.run.maxHp * 0.6) pBuffs.push(`🩸 혈전(흡혈+강화)`);
+      if (this.run.hp <= this.run.maxHp * 0.5) pBuffs.push(`🩸 혈전(흡혈+강화)`);
     } else if (cid === 'rogue') {
-      pBuffs.push(`🗡️ 5연계 시 자동 처형`);
+      pBuffs.push(`🗡️ 5연계 시 마무리 일격`);
     } else if (cid === 'ranger') {
       pBuffs.push(`🪤 매설 함정 ${this.combat.traps || 0}개`);
     } else if (cid === 'cleric') {
@@ -3018,13 +3036,13 @@ const Game = {
       pBuffs.push(`💛 초과치유=방어도`);
     } else if (cid === 'paladin') {
       const auraNames = {
-        retribution: `🔥 응보오라(반사+${this.combat.auraPower || 5})`,
-        devotion: `🛡️ 헌신오라(감소20%)`,
-        crusader: `⚔️ 성전오라(공격+25%)`
+        retribution: `🔥 응보오라(반사+${this.combat.auraPower || 3})`,
+        devotion: `🛡️ 헌신오라(감소15%)`,
+        crusader: `⚔️ 성전오라(공격+15%)`
       };
       pBuffs.push(auraNames[this.combat.paladinAura || 'retribution']);
     } else if (cid === 'warlock') {
-      pBuffs.push(`💀 파멸(체력이하시 즉사)`);
+      pBuffs.push(`💀 파멸 처형(보스25%이하)`);
     }
 
     document.getElementById('player-buffs-row').innerHTML = pBuffs
@@ -3044,7 +3062,7 @@ const Game = {
       const rangerModeBtn =
         cid === 'ranger'
           ? `<button class="hud-btn" style="margin-top:5px; width:100%; font-size:0.7rem; padding:3px 6px; border-color:#55efc4;" onclick="Game.toggleRangerBeastMode()">
-              ${this.combat.beastMode === 'assault' ? '🐾 현재: 포식 태세(공격 1.6배) [터치 전환]' : '🛡️ 현재: 호위 태세(탱킹+방어) [터치 전환]'}
+              ${this.combat.beastMode === 'assault' ? '🐾 현재: 포식 태세(공격 1.35배) [터치 전환]' : '🛡️ 현재: 호위 태세(탱킹+방어) [터치 전환]'}
             </button>`
           : '';
       compHtml += `
@@ -3119,19 +3137,29 @@ const Game = {
       if ((en.comboPoints || 0) > 0) enBuffs.push(`⚪ 연계 ${'●'.repeat(en.comboPoints)}${'○'.repeat(Math.max(0, 5 - en.comboPoints))}`);
       if ((en.quarry || 0) > 0) enBuffs.push(`🎯 표적 ${en.quarry}`);
       if ((en.frostbite || 0) > 0) {
-        enBuffs.push(en.frostbite >= 8 ? `🧊 빙결(${en.frostbite})` : `❄️ 동상 ${en.frostbite}`);
+        enBuffs.push(en.frostbite >= 10 ? `🧊 빙결(${en.frostbite})` : `❄️ 동상 ${en.frostbite}`);
       }
       if ((en.holyBrand || 0) > 0) enBuffs.push(`☀️ 성스러운낙인 ${en.holyBrand}`);
       if ((en.seal || 0) > 0) enBuffs.push(`⚖️ 심판문장 ${en.seal}`);
-      if ((en.doom || 0) > 0) enBuffs.push(`💀 파멸(Doom) ${en.doom}/${en.hp}`);
+      if ((en.doom || 0) > 0) {
+        const execHint = en.isBoss ? '(25%↓처형)' : en.isElite ? '(40%↓처형)' : '';
+        enBuffs.push(`💀 파멸 ${en.doom}/${en.hp}${execHint}`);
+      }
 
       // Compute Live Scaled Intent Text (STS2 style accurate damage prediction!)
       let liveIntentDesc = move.desc;
       if (move.dmg) {
         let calcDmg = move.dmg + en.strength;
+        if ((en.frostbite || 0) > 0) {
+          calcDmg = Math.max(1, calcDmg - Math.floor(en.frostbite / 3));
+          if (en.frostbite >= 10) calcDmg = Math.floor(calcDmg * 0.75);
+        }
         if (en.weak > 0) calcDmg = Math.floor(calcDmg * 0.75);
         if (this.combat.player.vuln > 0) calcDmg = Math.floor(calcDmg * 1.5);
         if (this.combat.stance === 'wrath') calcDmg = Math.floor(calcDmg * 2);
+        if (this.run.charId === 'paladin' && this.combat.paladinAura === 'devotion') {
+          calcDmg = Math.floor(calcDmg * 0.85);
+        }
         const hitsStr = move.hits ? ` x ${move.hits}` : '';
         const debuffPart = move.desc.includes('+') ? ' + ' + move.desc.split('+').slice(1).join('+').trim() : '';
         liveIntentDesc = `⚔️ 피해 ${calcDmg}${hitsStr}${debuffPart}`;
@@ -3322,7 +3350,9 @@ const Game = {
       if (sourceType === 'boss') {
         titleEl.textContent = `👑 계층 보스 토벌 성공! 고등급 전리품 카드 선택`;
       } else if (sourceType === 'midboss') {
-        titleEl.textContent = `🩸 중간보스 토벌 성공! 특별 전리품 카드 선택`;
+        titleEl.textContent = `🩸 강적 토벌 성공! 특별 전리품 카드 선택`;
+      } else if (sourceType === 'combat') {
+        titleEl.textContent = `⚔️ 전투 승리! 전리품 카드 보상 선택${remainingDrafts > 0 ? ` (남은 선택: ${remainingDrafts + 1}회)` : ''}`;
       } else {
         titleEl.textContent = `🆙 모험가 레벨업(Lv.${this.run.runLv}) 달성! 레벨업 카드 보상 선택${remainingDrafts > 0 ? ` (남은 선택: ${remainingDrafts + 1}회)` : ''}`;
       }
