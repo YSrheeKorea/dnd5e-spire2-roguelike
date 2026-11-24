@@ -228,7 +228,7 @@ window.GAME_DATA = {
       "secondaryResourceIcon": "⚔️",
       "secondaryResourceDesc": "【고유 시스템: 연격 콤보 & 파쇄/반격】 한 턴에 카드를 사용할 때마다 연격 콤보가 쌓여 공격 피해가 +(콤보×8%, 최대 5콤보) 증가하며, 4콤보 달성 시 턴당 1회 행동력(AP)+1을 얻습니다. 강타 계열은 [💥파쇄], 방패/응수 계열은 [🛡️반격]을 부여합니다.",
       "passiveName": "전장의 지배자 (연격 콤보 & 패링 반격)",
-      "passiveDesc": "매 턴 3콤보 달성 시 AP+1(턴당 1회) & 연격당 피해 +6%! 공격이 [💥파쇄]를 부여하고 방어가 [🛡️반격]을 쌓습니다.",
+      "passiveDesc": "매 턴 4콤보 달성 시 AP+1 & 1드로우(턴당 1회) · 연격당 피해 +8%! 공격이 [💥파쇄]를 부여하고 방어가 [🛡️반격]을 쌓습니다.",
       "awakeningCard": "ftr_sh_4",
       "avatarSvg": "<svg viewBox=\"0 0 120 120\" class=\"char-svg\">\n        <circle cx=\"60\" cy=\"60\" r=\"52\" fill=\"#4a2311\" stroke=\"#e67e22\" stroke-width=\"4\"/>\n        <path d=\"M32 95 L28 48 L45 25 L60 32 L75 25 L92 48 L88 95 Z\" fill=\"#636e72\" stroke=\"#dfe6e9\" stroke-width=\"3\"/>\n        <rect x=\"42\" y=\"52\" width=\"36\" height=\"8\" fill=\"#fdcb6e\"/>\n        <line x1=\"60\" y1=\"25\" x2=\"60\" y2=\"85\" stroke=\"#2d3436\" stroke-width=\"4\"/>\n      </svg>",
       "startRelic": "fighters_badge",
@@ -398,7 +398,7 @@ window.GAME_DATA = {
       "secondaryResourceIcon": "💢",
       "secondaryResourceDesc": "【고유 시스템: 혈투 광폭화 & 과다출혈】 잃은 체력 10%마다 공격 피해가 +6%씩 증폭되며, 체력 50% 이하 [🩸혈전] 상태에서는 공격 시 체력+1 흡혈! 도끼/혈기 공격이 [🩸출혈]을 쌓고 출혈 적 타격 시 추가 출혈 피해가 터집니다.",
       "passiveName": "피의 광전사 (잃은 체력 비례 공격력 증폭)",
-      "passiveDesc": "잃은 체력 10%당 공격력 +5%(혈전 50%↓ 흡혈·방어 강화)! 공격이 [🩸출혈]을 부여하고 출혈 적 타격 시 추가 폭발 피해를 줍니다.",
+      "passiveDesc": "잃은 체력 10%당 공격력 +4%(혈전 50%↓ 흡혈·방어 강화)! 공격이 [🩸출혈]을 부여하고 출혈 적 타격 시 추가 폭발 피해를 줍니다.",
       "awakeningCard": "bar_sh_4",
       "avatarSvg": "<svg viewBox=\"0 0 120 120\" class=\"char-svg\">\n        <circle cx=\"60\" cy=\"60\" r=\"52\" fill=\"#5c1212\" stroke=\"#ff4757\" stroke-width=\"4\"/>\n        <path d=\"M28 92 L32 42 L60 26 L88 42 L92 92 Z\" fill=\"#833471\" stroke=\"#ff7675\" stroke-width=\"3\"/>\n        <polygon points=\"38,52 54,58 38,62\" fill=\"#ff3838\"/>\n        <polygon points=\"82,52 66,58 82,62\" fill=\"#ff3838\"/>\n        <polygon points=\"42,78 47,66 52,78\" fill=\"#fff\"/>\n        <polygon points=\"68,78 73,66 78,78\" fill=\"#fff\"/>\n      </svg>",
       "startRelic": "totem_necklace",
@@ -1801,11 +1801,11 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 1,
-      "block": 5,
-      "upgradeBlock": 8,
-      "healOnHit": 2,
+      "block": 6,
+      "upgradeBlock": 9,
+      "healOnHit": 3,
       "resourceGain": 1,
-      "desc": "방어도 {block}을 얻고 내 체력을 2 회복합니다. 주사위 +1. (소멸)",
+      "desc": "방어도 {block}을 얻고 내 체력을 3 회복합니다. 주사위 +1. (소멸)",
       "classId": "fighter",
       "subclassId": "shared",
       "exhaust": true
@@ -3084,8 +3084,8 @@ window.GAME_DATA = {
       "type": "skill",
       "rarity": "uncommon",
       "cost": 0,
-      "block": 3,
-      "upgradeBlock": 5,
+      "block": 4,
+      "upgradeBlock": 7,
       "draw": 1,
       "resourceGain": 1,
       "desc": "0코스트! 방어도 {block}, 카드 1장 드로우, 급소 주사위 +1. (소멸) 🗡️[투척 단검] 1장 생성.",
@@ -7142,13 +7142,13 @@ window.GAME_DATA = {
       "id": "hunters_quiver",
       "name": "엘프 여왕의 마법 화살통",
       "icon": "🏹",
-      "desc": "전투 시작 시 민첩 +1 및 모든 적에게 표적 +1을 부여합니다."
+      "desc": "전투 시작 시 사냥꾼의 징표 +1 및 모든 적에게 표적 +1을 부여합니다."
     },
     "spellbook_of_mystra": {
       "id": "spellbook_of_mystra",
       "name": "미스트라의 비전 마도서",
       "icon": "📘",
-      "desc": "전투 시작 시 비전 주문력 +1 및 첫 턴 방어도 +3을 얻습니다."
+      "desc": "전투 시작 시 비전 주문력 +1을 얻습니다."
     },
     "holy_symbol_lathander": {
       "id": "holy_symbol_lathander",
