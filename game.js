@@ -1355,6 +1355,9 @@ const Game = {
         <div class="char-avatar-wrap">${ch.avatarSvg}</div>
         <h3>${ch.name.split(' ')[0]}</h3>
         <div class="char-archetype" style="font-size:0.65rem;">${ch.uniqueStatusName || `${ch.secondaryResourceIcon} 44종 카드 풀`}</div>
+        <div class="char-curve-tag" style="font-size:0.61rem; color:${ch.growthCurve && ch.growthCurve.includes('왕귀') ? '#a29bfe' : '#fdcb6e'}; font-weight:800; margin-top:2px;">
+          ${ch.growthCurve ? ch.growthCurve.split(' (')[0] : ''}
+        </div>
         <div class="char-roster-stats">
           <span>❤️ ${stats.totalMaxHp}</span>
           <span>⚔️ +${stats.bonusStr}</span>
@@ -1442,7 +1445,7 @@ const Game = {
           </button>
         </h2>
         <div class="subclass-picker-title">
-          🎴 <strong>${ch.name.split(' ')[0]}의 4대 하위 직업 카드 계통</strong> — 랭크 승급(C→B→A→S)으로 희귀/전설 카드와 클래스 고유 유물을 해금하세요!
+          🎴 <strong>${ch.name.split(' ')[0]}의 4대 하위 직업 카드 계통</strong> · <span style="color:#55efc4;">${ch.growthCurve || ''}</span>
         </div>
         <div class="subclass-grid">
           ${subCardsHtml}
@@ -2138,10 +2141,11 @@ const Game = {
       return { gained, leveledUp };
     },
 
-    // Roll card rarity with strict weighted probabilities based on player level / act / context
-    // Normal Level-Up: Common ~66%, Uncommon ~25%, Rare ~7.5%, Legendary ~1.5% (scales gently with level/act)
-    // Midboss Bonus: Common ~38%, Uncommon ~42%, Rare ~16%, Legendary ~4%
-    // Act Boss Bonus: Common 0%, Uncommon ~48%, Rare ~40%, Legendary ~12%
+    // 5-Act Build Progression Rarity Curve:
+    // - Act 1 (Foundation): Common 74% / Uncommon 24% / Rare 2% / Legendary 0% (Act 1 Boss gives first Rare!)
+    // - Act 2 (Mid-Build I): Common 44% / Uncommon 40% / Rare 14% / Legendary 2%
+    // - Act 3 (Mid-Build II): Common 28% / Uncommon 42% / Rare 24% / Legendary 6%
+    // - Act 4~5 (Final Capstone Build): Common 14% / Uncommon 34% / Rare 36% / Legendary 16%+
     rollWeightedCardChoices(count = 3, sourceType = 'levelup') {
       const ch = GAME_DATA.characters[this.run.charId];
       const basicIds = new Set([ch.sharedCards[0], ch.sharedCards[1]]);
@@ -2154,46 +2158,47 @@ const Game = {
         poolByRarity[r].push(cid);
       });
 
-      const lvFactor = Math.max(0, (this.run.runLv || 1) - 1);
-      const actFactor = Math.max(0, (this.run.act || 1) - 1);
-      const allowedRarities = new Set((this.run.permStats && this.run.permStats.unlockedRarities) || ['common', 'uncommon']);
+      const act = Math.max(1, Math.min(5, this.run.act || 1));
+      const rankLv = (this.run.permStats && this.run.permStats.rankLevel) || 0; // C=0, B=1, A=2, S=3
 
-      let weights;
+      const actBaseWeights = {
+        1: { common: 74, uncommon: 24, rare: 2,  legendary: 0  },
+        2: { common: 44, uncommon: 40, rare: 14, legendary: 2  },
+        3: { common: 28, uncommon: 42, rare: 24, legendary: 6  },
+        4: { common: 16, uncommon: 34, rare: 36, legendary: 14 },
+        5: { common: 10, uncommon: 28, rare: 40, legendary: 22 }
+      };
+      const base = actBaseWeights[act] || actBaseWeights[1];
+      let weights = { ...base };
+
       if (sourceType === 'boss') {
         weights = {
           common: 0,
-          uncommon: Math.max(25, 48 - actFactor * 4),
-          rare: 40 + actFactor * 2,
-          legendary: Math.min(22, 12 + actFactor * 2)
+          uncommon: act === 1 ? 55 : act === 2 ? 25 : 10,
+          rare: act === 1 ? 45 : act === 2 ? 60 : act === 3 ? 60 : 48,
+          legendary: act === 1 ? 0 : act === 2 ? 15 : act === 3 ? 30 : 42
         };
       } else if (sourceType === 'midboss') {
         weights = {
-          common: Math.max(20, 38 - actFactor * 3),
-          uncommon: 42,
-          rare: 16 + actFactor * 2,
-          legendary: Math.min(10, 4 + actFactor * 1.5)
+          common: Math.max(5, base.common - 24),
+          uncommon: base.uncommon + 10,
+          rare: base.rare + 12,
+          legendary: act >= 2 ? base.legendary + 4 : 0
         };
       } else if (sourceType === 'shop') {
         weights = {
-          common: Math.max(35, 55 - actFactor * 4),
-          uncommon: 30,
-          rare: 12 + actFactor * 2,
-          legendary: Math.min(8, 3 + actFactor * 1)
-        };
-      } else {
-        weights = {
-          common: Math.max(38, 66 - lvFactor * 1.4 - actFactor * 2),
-          uncommon: Math.min(38, 25 + lvFactor * 0.7),
-          rare: Math.min(20, 7.5 + lvFactor * 0.55 + actFactor * 1),
-          legendary: Math.min(7, 1.5 + lvFactor * 0.2 + actFactor * 0.5)
+          common: Math.max(12, base.common - 12),
+          uncommon: base.uncommon + 6,
+          rare: base.rare + 5,
+          legendary: act >= 2 ? base.legendary + 2 : 0
         };
       }
 
-      // Rank-based Card Pool Unlock Gate!
-      // C-Rank: Common & Uncommon only (Rare unlocks at B-Rank, Legendary unlocks at A-Rank)
-      // (Exception: Act Boss kill can still reward Rare cards even at C-Rank as a special boss reward)
-      if (!allowedRarities.has('rare') && sourceType !== 'boss') weights.rare = 0;
-      if (!allowedRarities.has('legendary')) weights.legendary = 0;
+      // Rank Promotion Bonus: boosts Rare/Legendary luck gently without breaking the Act 1 foundation curve!
+      if (rankLv > 0) {
+        weights.rare += rankLv * 3;
+        if (act >= 2) weights.legendary += rankLv * 2;
+      }
 
       const pickedIds = [];
       const totalWeight = weights.common + weights.uncommon + weights.rare + weights.legendary;
@@ -2208,11 +2213,7 @@ const Game = {
 
         let candidates = poolByRarity[chosenRarity].filter(id => !pickedIds.includes(id));
         if (candidates.length === 0) {
-          candidates = ch.cardPool.filter(id => {
-            if (basicIds.has(id) || pickedIds.includes(id)) return false;
-            const r = GAME_DATA.cards[id].rarity || 'common';
-            return allowedRarities.has(r) || (sourceType === 'boss' && r === 'rare');
-          });
+          candidates = ch.cardPool.filter(id => !basicIds.has(id) && !pickedIds.includes(id));
         }
         if (candidates.length > 0) {
           const cid = candidates[Math.floor(Math.random() * candidates.length)];
@@ -2455,9 +2456,11 @@ const Game = {
       }
     }
 
-    // Slay the Spire 2 Hardcore Difficulty Scaling (Calibrated via 1,000-run benchmark: ~10% Synergy Build / ~1-2% Random Act 1 Clear!)
-    const hpScale = 0.96 + (this.run.act - 1) * 0.22 + (this.run.stage - 1) * 0.030;
-    const dmgScale = 0.87 + (this.run.act - 1) * 0.18 + (this.run.stage - 1) * 0.025;
+    // Slay the Spire 2 5-Act Difficulty Scaling:
+    // - Act 1: ~10% Synergy Build / <1% Random (Early Group A ~12-15% vs Late Group B ~5-8%)
+    // - Act 2~5: Mid-Build & Endgame Capstone scaling where Late-Scaling Group B surges to 35~50%!
+    const hpScale = 1.05 + (this.run.act - 1) * 0.16 + (this.run.stage - 1) * 0.028;
+    const dmgScale = 0.94 + (this.run.act - 1) * 0.14 + (this.run.stage - 1) * 0.023;
     const enragePerTurn =
       encounterType === 'boss'
         ? Math.max(1, Math.floor(this.run.act * 0.9 + 0.5))
@@ -2640,8 +2643,9 @@ const Game = {
       this.combat.enemies.forEach(en => (en.quarry += 2));
     }
     if (cid === 'wizard') {
+      // Act 1 fragile apprentice (1 Frost Orb) -> Act 2+ Archmage Awakening (Frost + Lightning Orbs!)
       this.channelElementalOrb('frost');
-      this.channelElementalOrb('lightning');
+      if ((this.run.act || 1) >= 2) this.channelElementalOrb('lightning');
     }
     if (cid === 'cleric') {
       this.combat.devotion += 1;
@@ -2655,8 +2659,10 @@ const Game = {
       this.combat.enemies.forEach(en => (en.seal += 2));
     }
     if (cid === 'warlock') {
-      this.summonOrBuffCompanion(8 + pStats.summonBoost, 4 + pStats.summonBoost + rStats.mana);
-      this.combat.enemies.forEach(en => (en.doom += 4));
+      // Act 1 Pact Imp starts frail (5/3, Doom +2) -> scales steeply in Act 2~5 as Demon Engine awakens!
+      const actBonus = Math.max(0, (this.run.act || 1) - 1);
+      this.summonOrBuffCompanion(5 + actBonus * 5 + pStats.summonBoost, 3 + actBonus * 2 + pStats.summonBoost + rStats.mana);
+      this.combat.enemies.forEach(en => (en.doom += 2 + actBonus * 3));
     }
 
     // 3. Dynamic Subclass Archetype Bonuses (ALL 32 Subclasses Supported when 3+ cards drafted!)
@@ -2864,7 +2870,8 @@ const Game = {
     if (!this.combat) return;
     const alive = this.combat.enemies.filter(e => e.hp > 0);
     if (alive.length === 0) return;
-    const pwr = 6 + Math.floor(Math.max(0, this.combat.player.strength) * 0.5);
+    const actBonus = Math.max(0, (this.run.act || 1) - 1);
+    const pwr = 6 + actBonus * 3 + Math.floor(Math.max(0, this.combat.player.strength) * 0.5);
     if (orbType === 'fire') {
       SfxEngine.play('fire');
       alive.forEach(en => {
@@ -2875,12 +2882,12 @@ const Game = {
     } else if (orbType === 'frost') {
       SfxEngine.play('frost');
       VfxEngine.effectOnTarget('player', 0, 'block');
-      this.combat.player.block += 6 + Math.floor(Math.max(0, this.combat.player.dexterity) * 0.5);
+      this.combat.player.block += 6 + actBonus * 2 + Math.floor(Math.max(0, this.combat.player.dexterity) * 0.5);
       alive.forEach(en => {
-        en.frostbite = (en.frostbite || 0) + 2;
+        en.frostbite = (en.frostbite || 0) + 2 + Math.floor(actBonus * 0.5);
         VfxEngine.effectOnTarget('enemy', this.combat.enemies.indexOf(en), 'frost');
       });
-      this.logCombat(`❄️ [냉기 구체 발현(Evoke)!] 방어도 획득 및 적 전체에 동상 +2 부여!`);
+      this.logCombat(`❄️ [냉기 구체 발현(Evoke)!] 방어도 획득 및 적 전체에 동상 부여!`);
     } else {
       SfxEngine.play('lightning');
       const t = alive[Math.floor(Math.random() * alive.length)];
@@ -3085,11 +3092,12 @@ const Game = {
         if (tpl.bonusPerResource) baseDamage += this.combat.secondaryResource * tpl.bonusPerResource;
         if (cardInst.mutation === 'vampiric_cell') baseDamage += 4;
 
-        // 1) Fighter Turn Combo Chain Bonus (+8% per combo up to 5 stacks, +2 per combo on Finisher cards!)
+        // 1) Fighter Turn Combo Chain Bonus (Act-scaling late engine: +8% in Act 1 -> +10/12/14/16% in Acts 2~5!)
         if (this.run && this.run.charId === 'fighter' && (this.combat.comboCount || 0) > 0) {
           const cappedCombo = Math.min(5, this.combat.comboCount);
-          if (tpl.comboScaling) baseDamage += cappedCombo * 2;
-          baseDamage = Math.round(baseDamage * (1 + cappedCombo * 0.08));
+          const actBonusPct = 0.06 + (this.run.act || 1) * 0.02;
+          if (tpl.comboScaling) baseDamage += cappedCombo * (1 + (this.run.act || 1));
+          baseDamage = Math.round(baseDamage * (1 + cappedCombo * actBonusPct));
         }
 
         // 2) Barbarian Missing HP Bloodlust Multiplier (+6% per 10% missing HP!)
@@ -3413,8 +3421,9 @@ const Game = {
         en.comboPoints = (en.comboPoints || 0) + tpl.comboPoint;
         if (en.comboPoints >= 5) {
           en.comboPoints -= 5;
-          const evisDmg = 14 + this.run.act * 2 + Math.floor(Math.max(0, this.combat.player.strength) * 0.5);
-          const poisonBurst = en.poison > 0 ? Math.min(8, Math.ceil(en.poison * 0.5)) : 0;
+          const evisDmg = 6 + (this.run.act || 1) * 6 + Math.floor(Math.max(0, this.combat.player.strength) * 0.5);
+          const poisonCap = 6 + (this.run.act || 1) * 3;
+          const poisonBurst = en.poison > 0 ? Math.min(poisonCap, Math.ceil(en.poison * 0.6)) : 0;
           SfxEngine.play('crit');
           VfxEngine.effectOnTarget('enemy', eIdx, 'crit');
           VfxEngine.banner('💀 5연계 마무리 일격!', 'blood');
@@ -3631,9 +3640,13 @@ const Game = {
       }
     }
     this.dealDamageToEnemy(t, atkDmg, true);
-    // Warlock Summon also inflicts +2 Doom on every attack!
+    // Warlock Demon Evolution Scaling (Imp: +2 Doom | Fiend ATK 10+: +3 Doom & +2 Block | Demon Lord ATK 15+: +5 Doom & +4 Block!)
     if (this.run.charId === 'warlock' && t.hp > 0) {
-      t.doom = (t.doom || 0) + 2;
+      const sAtk = this.combat.summon.atk || 0;
+      const doomGain = sAtk >= 15 ? 5 : sAtk >= 10 ? 3 : 2;
+      const wardGain = sAtk >= 15 ? 4 : sAtk >= 10 ? 2 : 0;
+      t.doom = (t.doom || 0) + doomGain;
+      if (wardGain > 0) this.combat.player.block += wardGain;
       this.checkWarlockDoomExecutions();
     }
     this.logCombat(`${this.combat.summon.name} 협동 공격! (${atkDmg} 피해)`);
@@ -3644,12 +3657,14 @@ const Game = {
     const alive = this.combat.enemies.filter(e => e.hp > 0);
     if (alive.length === 0) return;
 
+    const wizActBoost = this.run.charId === 'wizard' ? Math.max(0, (this.run.act || 1) - 1) * 2 : 0;
     const dmgPerDrone =
       (this.run.charId === 'wizard' ? 3 : 4) +
+      wizActBoost +
       Math.floor(Math.max(0, this.combat.player.strength) * 0.5) +
       (this.run.permStats.summonBoost || 0) +
       (this.run.relics.includes('wiz_rank_s') ? 3 : 0);
-    const blockPerDrone = 2;
+    const blockPerDrone = 2 + (this.run.charId === 'wizard' ? Math.max(0, (this.run.act || 1) - 1) : 0);
 
     // Wizard 3-Elemental Orbs (Fire = AoE dmg, Frost = Block + Frostbite, Lightning = High Single Dmg)
     if (this.run.charId === 'wizard' && this.combat.orbList && this.combat.orbList.length > 0) {
@@ -4153,7 +4168,8 @@ const Game = {
     // Class-Unique Player Buff & Mechanic Badges!
     if (cid === 'fighter') {
       const cappedCombo = Math.min(5, this.combat.comboCount || 0);
-      pBuffs.push(`🔥 연격 ${this.combat.comboCount || 0}콤보 (+${cappedCombo * 8}%)`);
+      const actPct = 6 + (this.run.act || 1) * 2;
+      pBuffs.push(`🔥 연격 ${this.combat.comboCount || 0}콤보 (+${cappedCombo * actPct}%)`);
       if (this.combat.player.parry > 0) pBuffs.push(`🛡️ 반격 ${this.combat.player.parry}`);
     } else if (cid === 'barbarian') {
       const multPct = Math.round((this.getBarbarianBloodlustMult() - 1) * 100);
@@ -4217,11 +4233,14 @@ const Game = {
       `;
     }
     if (this.combat.drones > 0) {
+      const wizActBoost = cid === 'wizard' ? Math.max(0, (this.run.act || 1) - 1) * 2 : 0;
       const dmgPerDrone =
         (cid === 'wizard' ? 3 : 4) +
+        wizActBoost +
         Math.floor(Math.max(0, this.combat.player.strength) * 0.5) +
         (this.run.permStats.summonBoost || 0) +
         (this.run.relics.includes('wiz_rank_s') ? 3 : 0);
+      const frostBlk = 2 + (cid === 'wizard' ? Math.max(0, (this.run.act || 1) - 1) : 0);
       compHtml += `<div class="drone-orbs-container">`;
       if (cid === 'wizard' && this.combat.orbList && this.combat.orbList.length > 0) {
         this.combat.orbList.forEach((oType, i) => {
@@ -4229,7 +4248,7 @@ const Game = {
             oType === 'fire'
               ? `🔥 화염 구체 #${i + 1} (전체 ${dmgPerDrone})`
               : oType === 'frost'
-              ? `❄️ 냉기 구체 #${i + 1} (🛡️2 / 동상+1)`
+              ? `❄️ 냉기 구체 #${i + 1} (🛡️${frostBlk} / 동상+1)`
               : `⚡ 번개 구체 #${i + 1} (낙뢰 ${dmgPerDrone + 2})`;
           compHtml += `<div class="drone-orb-chip">${orbLabel}</div>`;
         });
