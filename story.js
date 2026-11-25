@@ -15,25 +15,24 @@
   //    Uses shared window.HIBIT_ART engine from sprites.js (hue-shifted shading,
   //    Bayer 4x4 dithering, selective colored outlines & crisp 2-frame PNGs!)
   // --------------------------------------------------------------------------
-  function renderHiBitNpc(drawFn, aura = '#f6c967', motion = 'px-motion-agile') {
+  function renderHiBitNpc(drawFn, aura = '#f6c967', motion = 'px-motion-agile', emotion = 'neutral') {
     const art = typeof window !== 'undefined' ? window.HIBIT_ART : null;
     if (!art) return '';
-    return art.renderAnimatedSprite(80, 80, (c, f) => drawFn(c, f, art), { aura, motion });
+    return art.renderAnimatedSprite(80, 80, (c, f) => drawFn(c, f, art, emotion), { aura, motion });
   }
 
   const NPC_DRAWERS = {
-    durnan: (c, f, art) => {
+    durnan: (c, f, art, emotion = 'neutral') => {
       art.drawHiBitHeroBase(c, f, {
+        emotion,
         skin: '#e6b896', armor: '#784212', pauldron: '#5d3410', belt: '#2f3640',
         trim: '#f6c967', boots: '#3d2616', eye: '#74b9ff', tunicSkirt: '#dfe6e9',
         drawHeadgear: (c, cx, b) => {
-          // Salt-and-pepper veteran hair + thick tavern-keeper beard
           c.hairCap(cx, 18 + b, 15.2, 8.2, '#576574');
           c.oval(cx, 37 + b, 11.5, 6.2, '#576574', { texture: 'fur' });
           c.oval(cx, 40 + b, 7.5, 4.2, '#8395a7', { texture: 'fur' });
         },
         drawGear: (c, cx, b, f) => {
-          // Veteran Greatsword strapped across back + Foaming Golden Ale Mug!
           c.sword(cx - 21, 10 + b, 46 + b, 2.8, '#b2bec3', '#f6c967', '#5d3410');
           c.plate(cx + 18, 43 + b - f * 2, 12, 15, '#d4a017', { metallic: true, round: 2 });
           c.oval(cx + 24, 42 + b - f * 2, 6.5, 3.2, '#ffffff');
@@ -41,33 +40,31 @@
         }
       });
     },
-    jaheira: (c, f, art) => {
+    jaheira: (c, f, art, emotion = 'neutral') => {
       art.drawHiBitHeroBase(c, f, {
+        emotion,
         skin: '#ecc2a0', armor: '#1e6b43', pauldron: '#14472c', cape: '#123e27',
         belt: '#5c3c24', trim: '#f6c967', boots: '#3d281a', eye: '#2ed573', tunicSkirt: '#185936',
         drawHeadgear: (c, cx, b) => {
-          // Silver-streaked braided Harper hair + Golden Harper Pin
           c.hairCap(cx, 18 + b, 15.6, 9.6, '#c8d6e5', { sideLocks: 17 });
           c.plate(cx - 3, 42 + b, 7, 7, '#f6c967', { metallic: true, round: 2 });
         },
         drawGear: (c, cx, b, f) => {
-          // Twin Harper Curved Scimitars
           c.curve(cx - 19, 53 + b, cx - 28, 40 + b - f * 2, cx - 31, 24 + b - f * 2, 2.8, 1.0, '#ecf0f1', { metallic: true });
           c.curve(cx + 19, 53 + b, cx + 28, 40 + b + f * 2, cx + 31, 24 + b + f * 2, 2.8, 1.0, '#ecf0f1', { metallic: true });
         }
       });
     },
-    guardian: (c, f, art) => {
+    guardian: (c, f, art, emotion = 'neutral') => {
       art.drawHiBitHeroBase(c, f, {
+        emotion,
         skin: '#dcd6f7', armor: '#4834d4', pauldron: '#341f97', cape: '#192a56',
         trim: '#00d2d3', boots: '#192a56', eye: '#00d2d3', metalArmor: true, tunicSkirt: '#341f97',
         drawHeadgear: (c, cx, b) => {
-          // Flowing Violet Astral Hair + Golden Circlet
           c.hairCap(cx, 18 + b, 16, 10, '#6c5ce7', { sideLocks: 18 });
           c.plate(cx - 12, 18 + b, 25, 2, '#f6c967', { metallic: true });
         },
         drawGear: (c, cx, b, f) => {
-          // Floating Luminous 20-Sided Astral Prism!
           const py = 33 + b - f * 4;
           c.glow(cx + 24, py, 13, '#ffffff', '#00d2d3', '#6c5ce7');
           c.oval(cx + 24, py, 8.2, 8.2, '#00d2d3', { metallic: true });
@@ -76,21 +73,22 @@
         }
       });
     },
-    withers: (c, f, art) => {
+    withers: (c, f, art, emotion = 'neutral') => {
       art.drawHiBitHeroBase(c, f, {
+        emotion,
         skin: '#d1ccc0', armor: '#3d312a', pauldron: '#b7791f', cape: '#1e1918',
         trim: '#f6c967', boots: '#1e1918', noEyes: true, tunicSkirt: '#2e241f',
-        drawHeadgear: (c, cx, b) => {
-          // Golden Ceremonial Hood + Serene Ancient Jergal Skull Face
+        drawHeadgear: (c, cx, b, f, emo) => {
           c.oval(cx, 22 + b, 17.6, 14, '#b7791f', { metallic: true });
           c.oval(cx, 27 + b, 12.6, 10.6, '#d1ccc0');
           c.oval(cx - 5.5, 26 + b, 3.6, 3.2, '#10101a', { shaded: false });
           c.oval(cx + 5.5, 26 + b, 3.6, 3.2, '#10101a', { shaded: false });
-          c.glowEye(cx - 5.5, 26 + b, '#7ed6df', 1.8);
-          c.glowEye(cx + 5.5, 26 + b, '#7ed6df', 1.8);
+          const ec = emo === 'angry' ? '#ff4757' : emo === 'happy' ? '#ffd32a' : emo === 'sad' ? '#74b9ff' : emo === 'surprised' ? '#ffffff' : emo === 'smug' ? '#e056fd' : '#7ed6df';
+          const er = emo === 'surprised' ? 2.6 : 1.8;
+          c.glowEye(cx - 5.5, 26 + b, ec, er);
+          c.glowEye(cx + 5.5, 26 + b, ec, er);
         },
         drawGear: (c, cx, b, f) => {
-          // Floating Golden Scroll of Fate
           const sy = 40 + b - f * 3;
           c.glow(cx + 24, sy + 6, 10, '#ffffff', '#f6e58d', '#7ed6df');
           c.plate(cx + 18, sy, 12, 16, '#f6e58d', { round: 2, trim: '#f6c967' });
@@ -99,18 +97,17 @@
         }
       });
     },
-    raphael: (c, f, art) => {
+    raphael: (c, f, art, emotion = 'neutral') => {
       art.drawHiBitHeroBase(c, f, {
+        emotion,
         skin: '#f2d4cc', armor: '#781023', pauldron: '#4a0915', cape: '#240811',
         trim: '#f6c967', boots: '#1c060c', eye: '#ff4757', tunicSkirt: '#5c0c1b',
         drawHeadgear: (c, cx, b) => {
-          // Slick Aristocratic Dark Hair + Swept Crimson Cambion Horns
           c.hairCap(cx, 17 + b, 15.2, 8.2, '#1e1e2c');
           c.curve(cx - 11, 14 + b, cx - 20, 9 + b, cx - 23, 3 + b, 3.4, 1.0, '#ff4757');
           c.curve(cx + 11, 14 + b, cx + 20, 9 + b, cx + 23, 3 + b, 3.4, 1.0, '#ff4757');
         },
         drawGear: (c, cx, b, f) => {
-          // Blazing Infernal Contract Scroll
           const cy = 40 + b - f * 3;
           c.plate(cx + 18, cy, 12, 15, '#ffeaa7', { round: 2, trim: '#c0392b' });
           c.glow(cx + 24, cy - 5, 10, '#ffffff', f ? '#ff9f43' : '#ff4757', '#c0392b');
@@ -118,18 +115,17 @@
         }
       });
     },
-    volo: (c, f, art) => {
+    volo: (c, f, art, emotion = 'neutral') => {
       art.drawHiBitHeroBase(c, f, {
+        emotion,
         skin: '#f7d2b4', armor: '#2980b9', pauldron: '#1b4f72', cape: '#154360',
         trim: '#f6c967', boots: '#5d4037', eye: '#3498db', tunicSkirt: '#1f618d',
         drawHeadgear: (c, cx, b, f) => {
-          // Jaunty Plumed Bard Beret + Curly Mustache
           c.oval(cx, 17 + b, 18, 7.2, '#2980b9');
           c.curve(cx + 8, 14 + b, cx + 20, 8 + b - f * 2, cx + 27, 2 + b - f * 2, 3.6, 1.0, '#ff6b81');
           c.oval(cx, 35 + b, 9.5, 2.8, '#6d4c41');
         },
         drawGear: (c, cx, b, f) => {
-          // Leather Monster Encyclopedia + White Feather Quill
           c.plate(cx + 18, 43 + b, 12, 15, '#8d5524', { round: 2, trim: '#f6c967' });
           c.curve(cx + 24, 42 + b - f * 2, cx + 28, 33 + b - f * 2, cx + 32, 23 + b - f * 2, 2.2, 0.7, '#ffffff');
         }
@@ -200,11 +196,25 @@
     }
   };
 
+  const _npcEmotionCache = {};
+  function getNpcEmotionSprite(npcId, emotion = 'neutral') {
+    const id = NPCS[npcId] ? npcId : 'durnan';
+    const valid = ['neutral', 'happy', 'angry', 'sad', 'surprised', 'smug'];
+    const emo = valid.includes(emotion) ? emotion : 'neutral';
+    const key = `${id}::${emo}`;
+    if (!_npcEmotionCache[key]) {
+      const npc = NPCS[id];
+      _npcEmotionCache[key] = renderHiBitNpc(NPC_DRAWERS[id], npc.accent, npc.motion, emo);
+    }
+    return _npcEmotionCache[key];
+  }
+
   function rebuildNpcSprites() {
+    Object.keys(_npcEmotionCache).forEach(k => delete _npcEmotionCache[k]);
     Object.keys(NPCS).forEach(id => {
       const npc = NPCS[id];
       if (NPC_DRAWERS[id]) {
-        npc.svg = renderHiBitNpc(NPC_DRAWERS[id], npc.accent, npc.motion);
+        npc.svg = getNpcEmotionSprite(id, 'neutral');
       }
     });
   }
@@ -349,38 +359,38 @@
         actNum: 1,
         lines: [
           {
-            speaker: 'npc', npcId: 'durnan',
+            speaker: 'npc', npcId: 'durnan', emotion: 'surprised', heroEmotion: 'sad',
             text: '"어이, 정신이 좀 드나? 발더스 게이트 쪽 하늘에서 일리시드 함선이 불타며 떨어진 뒤, 이 워터딥 주점 문 앞까지 간신히 기어 들어온 건 자네뿐이었어."'
           },
           {
-            speaker: 'npc', npcId: 'jaheira',
+            speaker: 'npc', npcId: 'jaheira', emotion: 'neutral', heroEmotion: 'surprised',
             text: '"내 이름은 자헤이라. 하퍼즈의 일원이지. 자네 눈 뒤편에 일리시드 올챙이가 박혀 있는데도 아직 괴물로 변하지 않은 건… 품 안의 그 20면체 유물 덕분이군."'
           },
           {
-            speaker: 'npc', npcId: 'guardian',
+            speaker: 'npc', npcId: 'guardian', emotion: 'angry', heroEmotion: 'surprised',
             text: '(품 속 아스트랄 프리즘이 푸르게 울리며 머릿속에 직접 목소리가 울린다.) "나는 프리즘의 수호자. 지금 네 정신을 지키고 있다. 절대자 교단이 이 주점 지하 — 언더마운틴의 5대 차원문을 탈취해 소드 코스트 침공을 준비 중이다."'
           },
           {
-            speaker: 'hero', npcId: 'jaheira',
+            speaker: 'hero', npcId: 'jaheira', emotion: 'angry', heroEmotion: 'angry',
             text: origin.quote
           },
           {
-            speaker: 'npc', npcId: 'jaheira',
+            speaker: 'npc', npcId: 'jaheira', emotion: 'smug', heroEmotion: 'neutral',
             text: `"좋아, ${chName}. 100년 전 발더스 게이트의 바알스폰 전쟁 때도 우린 어둠에 굴복하지 않았지. 주점 중앙의 우물 밧줄을 타고 1층 고블린 성채로 내려가라. 출발 전 궁금한 게 있나?"`,
             choices: [
               {
                 label: '❓ "왜 워터딥 지하가 언더다크·아베르누스까지 연결돼 있죠?"',
-                replySpeaker: 'npc', replyNpcId: 'durnan',
+                replySpeaker: 'npc', replyNpcId: 'durnan', replyEmotion: 'neutral', heroEmotion: 'surprised',
                 reply: '"광기의 마법사 할라스터가 언더마운틴 곳곳에 다른 차원으로 통하는 마법 관문을 박아뒀거든. 절대자 교단이 그 관문들을 하나로 묶어 5계층 침공로를 만든 거야. 1층 지배자부터 꺾어야 다음 문이 열려."'
               },
               {
                 label: '🔮 "아스트랄 프리즘과 제 머릿속 올챙이는 어떻게 되는 겁니까?"',
-                replySpeaker: 'npc', replyNpcId: 'guardian',
+                replySpeaker: 'npc', replyNpcId: 'guardian', replyEmotion: 'smug', heroEmotion: 'neutral',
                 reply: '"5계층 끝에서 절대자의 근원인 카서스의 왕관을 부수면 올챙이는 완전히 사라진다. 그전까지 내가 네 곁에서 축복을 내려주마. 자, 수호자의 축복을 선택하고 내려가자!"'
               },
               {
                 label: '⚔️ "설명은 충분합니다. 지금 즉시 우물 아래로 내려가겠습니다!"',
-                replySpeaker: 'npc', replyNpcId: 'jaheira',
+                replySpeaker: 'npc', replyNpcId: 'jaheira', replyEmotion: 'happy', heroEmotion: 'smug',
                 reply: '"듬직하군. 행운을 빌지 — 소드 코스트의 운명이 자네의 검과 주문에 달렸어!"'
               }
             ]
@@ -398,25 +408,25 @@
         actNum: 2,
         lines: [
           {
-            speaker: 'npc', npcId: 'jaheira',
+            speaker: 'npc', npcId: 'jaheira', emotion: 'happy', heroEmotion: 'smug',
             text: '"제1계층 고블린 성채를 뚫었군! 하지만 진짜 시련은 지금부터야. 차원문 너머 여기는 언더다크 — 롤스의 거미 신전과 듀에르가의 그림포지 용광로가 있는 어둠의 땅이다."'
           },
           {
-            speaker: 'npc', npcId: 'raphael',
+            speaker: 'npc', npcId: 'raphael', emotion: 'smug', heroEmotion: 'surprised',
             text: '(붉은 유황 연기와 함께 정장 차림의 남자가 박수를 치며 나타난다.) "오, 제법이군! 작은 생쥐가 1층 덫을 빠져나왔어. 하지만 언더다크의 그림자 저주와 드로우의 독은 만만치 않을 텐데… 내 도움이 필요하면 언제든 부르게."'
           },
           {
-            speaker: 'npc', npcId: 'guardian',
+            speaker: 'npc', npcId: 'guardian', emotion: 'angry', heroEmotion: 'neutral',
             text: '"저 악마 라파엘의 말에 현혹되지 마라. 언더다크 최심부를 돌파해야 달오름 탑 지하의 진짜 일리시드 군락으로 이어지는 길이 열린다!"',
             choices: [
               {
                 label: '😈 라파엘에게: "네가 왜 내 여정에 끼어드는 거지?"',
-                replySpeaker: 'npc', replyNpcId: 'raphael',
+                replySpeaker: 'npc', replyNpcId: 'raphael', replyEmotion: 'happy', heroEmotion: 'angry',
                 reply: '"하하, 절대자 교단이 손에 쥔 카서스의 왕관에 관심이 좀 있거든. 자네가 5층 아베르누스까지 살아서 온다면… 그때 다시 근사한 만찬을 대접하지!"'
               },
               {
                 label: '🛡️ "악마의 농간 따위 무시하고 언더다크를 돌파하겠습니다."',
-                replySpeaker: 'npc', replyNpcId: 'jaheira',
+                replySpeaker: 'npc', replyNpcId: 'jaheira', replyEmotion: 'smug', heroEmotion: 'smug',
                 reply: '"현명한 판단이야. 여기서부터 적들의 패턴이 훨씬 험악해지니 덱의 핵심 시너지를 본격적으로 완성해 나가라!"'
               }
             ]
@@ -434,25 +444,25 @@
         actNum: 3,
         lines: [
           {
-            speaker: 'npc', npcId: 'guardian',
+            speaker: 'npc', npcId: 'guardian', emotion: 'sad', heroEmotion: 'surprised',
             text: '"마침내 제3계층 — 달오름 탑 지하의 일리시드 생체 군락에 도달했다. 이제 숨김없이 진실을 말해주지. 절대자의 정체는 카서스의 왕관에 속박된 거대 엘더 브레인이다."'
           },
           {
-            speaker: 'hero', npcId: 'guardian',
+            speaker: 'hero', npcId: 'guardian', emotion: 'surprised', heroEmotion: 'surprised',
             text: '"그렇다면 누가 그 왕관으로 엘더 브레인을 조종하고 있는 거지? 그리고 기스양키 함대까지 이곳을 습격하는 이유는?"'
           },
           {
-            speaker: 'npc', npcId: 'guardian',
+            speaker: 'npc', npcId: 'guardian', emotion: 'angry', heroEmotion: 'angry',
             text: '"죽음의 3신(베인·바알·머큘)의 선택받은 자들이 네더스톤으로 뇌를 지배하고 있고, 기스양키 여왕 블라키스는 내 안의 프리즘을 빼앗으려 한다. 여기서 무너지면 소드 코스트 전체가 일리시드 제국이 된다!"',
             choices: [
               {
                 label: '🧠 "네더스톤의 지배를 끊고 엘더 브레인의 군락을 파괴하겠습니다."',
-                replySpeaker: 'npc', replyNpcId: 'guardian',
+                replySpeaker: 'npc', replyNpcId: 'guardian', replyEmotion: 'happy', heroEmotion: 'smug',
                 reply: '"고맙다. 네 덱과 유물이라면 이 군락의 지배자도 충분히 꺾을 수 있다. 4층 섀도우펠로 가는 차원문을 열어라!"'
               },
               {
                 label: '👁️ "수호자, 당신도 내게 숨기는 비밀이 있는 거 아닌가?"',
-                replySpeaker: 'npc', replyNpcId: 'guardian',
+                replySpeaker: 'npc', replyNpcId: 'guardian', replyEmotion: 'sad', heroEmotion: 'angry',
                 reply: '"…날 의심해도 좋다. 하지만 지금 우리 둘의 생존이 같은 운명에 묶여 있다는 것만은 진실이다. 일단 이 군락부터 살아나가자."'
               }
             ]
@@ -470,25 +480,25 @@
         actNum: 4,
         lines: [
           {
-            speaker: 'npc', npcId: 'withers',
+            speaker: 'npc', npcId: 'withers', emotion: 'neutral', heroEmotion: 'neutral',
             text: '"여기까지 올라온 필멸자는 오랜만이군. 제4계층 섀도우펠… 그리고 100년 전 발더스 게이트를 피로 물들였던 바알스폰 전쟁의 잔향이 아직도 숨 쉬는 곳이다."'
           },
           {
-            speaker: 'npc', npcId: 'jaheira',
+            speaker: 'npc', npcId: 'jaheira', emotion: 'sad', heroEmotion: 'sad',
             text: '"사레복과 이레니쿠스를 쓰러뜨렸던 옛 동료들이 떠오르는군… 죽음의 3신 교단이 머큘의 사령술과 아세라락의 공포의 무덤까지 연결해 불사의 군단을 일으켰어."'
           },
           {
-            speaker: 'npc', npcId: 'withers',
+            speaker: 'npc', npcId: 'withers', emotion: 'smug', heroEmotion: 'neutral',
             text: '"죽은 자들의 왕좌 너머에는 나인 헬 아베르누스로 통하는 마지막 관문이 있다. 운명의 저울은 이미 자네 편으로 기울기 시작했으니, 흔들리지 말고 나아가라."',
             choices: [
               {
                 label: '💀 위더스에게: "당신의 진짜 정체는 죽음의 옛 신 제르갈입니까?"',
-                replySpeaker: 'npc', replyNpcId: 'withers',
+                replySpeaker: 'npc', replyNpcId: 'withers', replyEmotion: 'smug', heroEmotion: 'surprised',
                 reply: '"…아니오. (그의 메마른 입가에 아득한 세월의 미소가 스친다.) 다만 세 멍청한 후계자들이 죽음의 질서를 어지럽히는 꼴을 보고 있을 수 없을 뿐."'
               },
               {
                 label: '⚔️ "바알스폰의 어둠과 공포의 무덤을 여기서 끝장내겠습니다!"',
-                replySpeaker: 'npc', replyNpcId: 'jaheira',
+                replySpeaker: 'npc', replyNpcId: 'jaheira', replyEmotion: 'angry', heroEmotion: 'angry',
                 reply: '"그래! 발더스 게이트의 명예를 걸고, 최종 빌드의 위력을 저 사령 군주들에게 보여줘라!"'
               }
             ]
@@ -505,30 +515,30 @@
       actNum: 5,
       lines: [
         {
-          speaker: 'npc', npcId: 'raphael',
+          speaker: 'npc', npcId: 'raphael', emotion: 'smug', heroEmotion: 'angry',
           text: '"환영하네, 영웅이여! 드디어 마지막 무대 — 나인 헬 제1계층 아베르누스까지 당도했군. 내 희망의 집과 타락 천사 자리엘, 그리고 오색룡 티아마트가 기다리는 지옥의 심연이지."'
         },
         {
-          speaker: 'npc', npcId: 'guardian',
+          speaker: 'npc', npcId: 'guardian', emotion: 'surprised', heroEmotion: 'neutral',
           text: '"이곳의 최종 지배자를 쓰러뜨리면 카서스의 왕관과 언더마운틴의 모든 차원문이 붕괴하고, 네 머릿속 올챙이도 영원히 사라진다!"'
         },
         {
-          speaker: 'hero', npcId: 'raphael',
+          speaker: 'hero', npcId: 'raphael', emotion: 'angry', heroEmotion: 'angry',
           text: '"노틸로이드에서 추락했던 날부터 이 순간만을 기다렸다. 악마든 고룡이든, 지금 이 자리에서 결판을 내겠다!"',
           choices: [
             {
               label: '🔥 "최후의 결전이다! 아베르누스 정상을 정복하겠다!"',
-              replySpeaker: 'npc', replyNpcId: 'raphael',
+              replySpeaker: 'npc', replyNpcId: 'raphael', replyEmotion: 'happy', heroEmotion: 'smug',
               reply: '"하하하! 좋다, 소드 코스트 역사상 가장 화려한 피날레를 보여주게나!"'
             },
             {
               label: '👑 "카서스의 왕관은 네 손에도, 절대자 손에도 넘기지 않는다!"',
-              replySpeaker: 'npc', replyNpcId: 'guardian',
+              replySpeaker: 'npc', replyNpcId: 'guardian', replyEmotion: 'happy', heroEmotion: 'angry',
               reply: '"바로 그 결의다! 왕관을 부수고 모든 차원문을 봉인해 워터딥과 발더스 게이트를 구원하자!"'
             },
             {
               label: '😈 라파엘에게: "네가 방해한다면 네 희망의 집부터 불태워주지."',
-              replySpeaker: 'npc', replyNpcId: 'raphael',
+              replySpeaker: 'npc', replyNpcId: 'raphael', replyEmotion: 'surprised', heroEmotion: 'smug',
               reply: '"오호, 뾰족한 발톱이 마음에 드는군! 어디 그 기세로 지옥의 최종 군주까지 베어보게!"'
             }
           ]
@@ -549,28 +559,28 @@
         bgKey: 'lobby',
         lines: [
           {
-            speaker: 'npc', npcId: 'durnan',
+            speaker: 'npc', npcId: 'durnan', emotion: bestAct >= 3 ? 'happy' : 'neutral', heroEmotion: 'neutral',
             text: bestAct >= 3
               ? '"오, 자네 제3계층 일리시드 군락까지 다녀왔다며? 주점 단골들 사이에서 벌써 전설이 됐어. 여기 시원한 워터딥 흑맥주 한 잔 받게!"'
               : '"어서 오게, 모험가. 이 주점 한가운데 뚫린 우물 밑이 바로 언더마운틴이야. 원래도 위험한 던전이었지만, 요즘 절대자 교단 놈들이 차원문을 멋대로 이어 붙여 5계층 지옥도가 되어버렸지."'
           },
           {
-            speaker: 'npc', npcId: 'durnan',
+            speaker: 'npc', npcId: 'durnan', emotion: 'smug', heroEmotion: 'neutral',
             text: '"출격하기 전에 뭐든 물어보게. 내 200년 모험 경험으로 아는 건 다 알려주지."',
             choices: [
               {
                 label: '🏰 "5개 계층이 어떻게 구성되어 있나요?"',
-                replySpeaker: 'npc', replyNpcId: 'durnan',
+                replySpeaker: 'npc', replyNpcId: 'durnan', replyEmotion: 'neutral', heroEmotion: 'surprised',
                 reply: '"1층 고블린 성채에서 기초 덱을 다지고, 2~3층 언더다크와 일리시드 군락에서 하위직업 핵심 시너지를 완성하게. 4~5층 섀도우펠과 아베르누스엔 전설 카드를 쥔 최종 빌드로 맞서야 살아남아!"'
               },
               {
                 label: '🏆 "잠긴 클래스와 전설 카드는 어떻게 해금하죠?"',
-                replySpeaker: 'npc', replyNpcId: 'durnan',
+                replySpeaker: 'npc', replyNpcId: 'durnan', replyEmotion: 'smug', heroEmotion: 'happy',
                 reply: '"처음엔 파이터·로그·위저드 3명뿐이지만, [🏆 업적] 조건을 달성할 때마다 바바리안·레인저·클레릭·팔라딘·워락과 심화 하위직업 16종, 전설 카드 풀이 차례대로 열린다네!"'
               },
               {
                 label: '🍺 "고맙습니다, 더난. 곧 출격하겠습니다!"',
-                replySpeaker: 'npc', replyNpcId: 'durnan',
+                replySpeaker: 'npc', replyNpcId: 'durnan', replyEmotion: 'happy', heroEmotion: 'happy',
                 reply: '"살아서 돌아오면 외상은 탕감해주지. 조심해서 내려가게!"'
               }
             ]
@@ -584,28 +594,28 @@
         bgKey: 'lobby',
         lines: [
           {
-            speaker: 'npc', npcId: 'jaheira',
+            speaker: 'npc', npcId: 'jaheira', emotion: bestAct >= 4 ? 'happy' : 'angry', heroEmotion: 'neutral',
             text: bestAct >= 4
               ? '"섀도우펠까지 뚫고 돌아온 건가… 정말 대단해. 100년 전 발더스 게이트를 구했던 내 옛 동료의 모습이 자네에게서 보이는군."'
               : '"하퍼즈 정찰 보고서를 정리하고 있었어. 발더스 게이트와 워터딥을 동시에 위협하는 절대자 교단 뒤에는 100년 전 바알스폰 전쟁의 원흉 — 죽음의 3신이 도사리고 있다."'
           },
           {
-            speaker: 'npc', npcId: 'jaheira',
+            speaker: 'npc', npcId: 'jaheira', emotion: 'neutral', heroEmotion: 'neutral',
             text: '"전선으로 내려가기 전, 하퍼즈의 기록을 확인하겠나?"',
             choices: [
               {
                 label: '🩸 "발더스 게이트 1·2의 바알스폰 전쟁에 대해 알려주세요."',
-                replySpeaker: 'npc', replyNpcId: 'jaheira',
+                replySpeaker: 'npc', replyNpcId: 'jaheira', replyEmotion: 'sad', heroEmotion: 'sad',
                 reply: '"살인의 신 바알의 피를 이은 자들이 서로를 죽이며 신격을 다투던 끔찍한 전쟁이었지. 사레복과 마법사 이레니쿠스를 막아냈지만, 그 잔재가 지금 4층 섀도우펠에서 다시 꿈틀대고 있어."'
               },
               {
                 label: '🗺️ "1층과 2층 돌파를 위한 전략 조언이 있나요?"',
-                replySpeaker: 'npc', replyNpcId: 'jaheira',
+                replySpeaker: 'npc', replyNpcId: 'jaheira', replyEmotion: 'smug', heroEmotion: 'neutral',
                 reply: '"바바리안·팔라딘·레인저·클레릭은 초반 1층이 든든하고, 파이터·로그·위저드·워락은 1층이 까다로운 대신 2~3층에서 빌드가 갖춰지면 압도적인 왕귀 화력을 뿜어내지!"'
               },
               {
                 label: '🌿 "명심하겠습니다, 사령관님."',
-                replySpeaker: 'npc', replyNpcId: 'jaheira',
+                replySpeaker: 'npc', replyNpcId: 'jaheira', replyEmotion: 'happy', heroEmotion: 'smug',
                 reply: '"언제든 주점으로 돌아오면 정보를 공유해주지. 자연의 균형이 자네와 함께하길."'
               }
             ]
@@ -619,21 +629,21 @@
         bgKey: 'elder_brain_prime',
         lines: [
           {
-            speaker: 'npc', npcId: 'guardian',
+            speaker: 'npc', npcId: 'guardian', emotion: 'sad', heroEmotion: 'surprised',
             text: '"아스트랄 프리즘에 손을 대었구나. 지금 이 순간에도 엘더 브레인의 사념파가 네 머릿속 올챙이를 깨우려 하지만, 내가 막아내고 있다."'
           },
           {
-            speaker: 'npc', npcId: 'guardian',
+            speaker: 'npc', npcId: 'guardian', emotion: 'neutral', heroEmotion: 'neutral',
             text: '"물어보고 싶은 것이 있다면 말해라. 시간은 많지 않다."',
             choices: [
               {
                 label: '🧠 "올챙이의 힘을 받아들이면 어떻게 되나요?"',
-                replySpeaker: 'npc', replyNpcId: 'guardian',
+                replySpeaker: 'npc', replyNpcId: 'guardian', replyEmotion: 'smug', heroEmotion: 'surprised',
                 reply: '"던전 이벤트에서 올챙이 표본이나 프리즘의 힘을 흡수하면 강력한 고등급 카드와 보상을 얻을 수 있지. 다만 육체에 부담이 따르니 체력 관리를 잊지 마라."'
               },
               {
                 label: '👑 "카서스의 왕관이란 대체 무엇입니까?"',
-                replySpeaker: 'npc', replyNpcId: 'guardian',
+                replySpeaker: 'npc', replyNpcId: 'guardian', replyEmotion: 'angry', heroEmotion: 'angry',
                 reply: '"고대 네더리스의 대마법사 카서스가 신의 권능을 찬탈하려 만들었던 금단의 왕관이다. 5층 아베르누스 끝에서 그 왕관을 파괴해야만 모든 저주가 풀린다."'
               }
             ]
@@ -647,21 +657,21 @@
         bgKey: 'archlich_acererak',
         lines: [
           {
-            speaker: 'npc', npcId: 'withers',
+            speaker: 'npc', npcId: 'withers', emotion: 'neutral', heroEmotion: 'neutral',
             text: '"주점 구석의 어둠이 꽤 아늑하군. 필멸자여, 그대가 첨탑에서 쓰러지더라도 등반 마석과 경험, 업적의 기록은 운명의 장부에 영원히 남느니라."'
           },
           {
-            speaker: 'npc', npcId: 'withers',
+            speaker: 'npc', npcId: 'withers', emotion: 'sad', heroEmotion: 'neutral',
             text: '"무엇을 묻고자 나를 찾았는가?"',
             choices: [
               {
                 label: '💎 "등반 마석은 어디에 쓰는 것이 가장 좋은가요?"',
-                replySpeaker: 'npc', replyNpcId: 'withers',
+                replySpeaker: 'npc', replyNpcId: 'withers', replyEmotion: 'happy', heroEmotion: 'happy',
                 reply: '"로비의 [⚜️ 마법 무구] 강화, [📜 특성(Feat)] 연구, 그리고 클래스 레벨업과 C→B→A→S 티어 승급에 쓰면 영구적으로 강해지지. 특히 B급·S급 승급 시 직업 전용 유물이 해금되느니라."'
               },
               {
                 label: '💀 "당신은 정말 죽음의 옛 신 제르갈인가요?"',
-                replySpeaker: 'npc', replyNpcId: 'withers',
+                replySpeaker: 'npc', replyNpcId: 'withers', replyEmotion: 'smug', heroEmotion: 'surprised',
                 reply: '"아니오. …그저 필멸자의 마지막을 기록할 뿐이다. 자, 다시 첨탑으로 향하거라."'
               }
             ]
@@ -675,21 +685,21 @@
         bgKey: 'asmodeus_lord_of_ninth',
         lines: [
           {
-            speaker: 'npc', npcId: 'raphael',
+            speaker: 'npc', npcId: 'raphael', emotion: 'smug', heroEmotion: 'angry',
             text: '"아, 워터딥 주점의 시큼한 맥주 냄새라니… 그래도 자네처럼 흥미진진한 영혼을 구경하는 재미는 쏠쏠하군. 5층 아베르누스에 있는 내 \'희망의 집\'에 언젠가 꼭 초대하고 싶네."'
           },
           {
-            speaker: 'npc', npcId: 'raphael',
+            speaker: 'npc', npcId: 'raphael', emotion: 'happy', heroEmotion: 'neutral',
             text: '"어때, 지옥의 계약에 대해 미리 조금 들어보겠나?"',
             choices: [
               {
                 label: '😈 "당신이 노리는 게 결국 카서스의 왕관 아닌가요?"',
-                replySpeaker: 'npc', replyNpcId: 'raphael',
+                replySpeaker: 'npc', replyNpcId: 'raphael', replyEmotion: 'surprised', heroEmotion: 'smug',
                 reply: '"눈치가 아주 빠르군! 하지만 걱정 말게. 자네가 5층 아베르누스까지 살아서 올라오기 전까진, 난 그저 친절한 관객이자… 가끔 달콤한 거래를 제안하는 신사일 뿐이니까."'
               },
               {
                 label: '🔥 "악마와는 거래하지 않는다. 5층에서 보자."',
-                replySpeaker: 'npc', replyNpcId: 'raphael',
+                replySpeaker: 'npc', replyNpcId: 'raphael', replyEmotion: 'angry', heroEmotion: 'angry',
                 reply: '"훌륭한 패기야! 자리엘과 티아마트 앞에서 그 기세가 얼마나 버틸지 기대하겠네!"'
               }
             ]
@@ -703,21 +713,21 @@
         bgKey: 'beholder_xanathar',
         lines: [
           {
-            speaker: 'npc', npcId: 'volo',
+            speaker: 'npc', npcId: 'volo', emotion: 'happy', heroEmotion: 'surprised',
             text: '"오오, 바로 자네군! 내가 집필 중인 신간 《볼로의 언더마운틴 & 절대자 교단 완전 해부》의 완벽한 주인공이야! …참, 혹시 머릿속 올챙이 수술에 관심 있나? 아주 뾰족한 얼음송곳이 있는데!"'
           },
           {
-            speaker: 'npc', npcId: 'volo',
+            speaker: 'npc', npcId: 'volo', emotion: 'smug', heroEmotion: 'sad',
             text: '"수술이 싫다면 내가 조사한 보스 생태 정보라도 들어보게!"',
             choices: [
               {
                 label: '👁️ "1층 보스 자나사르의 약점이 있나요?"',
-                replySpeaker: 'npc', replyNpcId: 'volo',
+                replySpeaker: 'npc', replyNpcId: 'volo', replyEmotion: 'surprised', heroEmotion: 'neutral',
                 reply: '"비홀더 자나사르는 자기 금붕어 \'실가\'를 끔찍이 아끼지! 전투할 땐 매 턴 공격력이 오르는 격노 패턴이 무서우니, 방어와 폭딜 타이밍을 잘 재야 살아남는다네!"'
               },
               {
                 label: '📖 "볼로, 제 모험을 멋지게 기록해 주세요!"',
-                replySpeaker: 'npc', replyNpcId: 'volo',
+                replySpeaker: 'npc', replyNpcId: 'volo', replyEmotion: 'happy', heroEmotion: 'happy',
                 reply: '"물론이지! [📖 연대기] 탭을 열면 자네가 돌파한 1~5막의 대서사가 내가 쓴 명문장으로 차곡차곡 기록되고 있다네!"'
               }
             ]
@@ -959,6 +969,7 @@
   window.STORY_ENGINE = {
     NPCS,
     rebuildNpcSprites,
+    getNpcEmotionSprite,
     CLASS_ORIGINS,
     ACT_CHAPTERS,
     VICTORY_EPILOGUE,

@@ -326,30 +326,125 @@
       }
     }
 
-    // Expressive 6x7 Hi-Bit Anime/Fantasy Eye (upper lash, sclera, 3-tone iris, dual catchlights!)
+    // Expressive 6x7 Hi-Bit Anime/Fantasy Eye (supports ALL 6 emotions!)
     hiBitEye(x, y, irisHex, opts = {}) {
       const ix = Math.round(x), iy = Math.round(y);
+      const emo = opts.emotion || 'neutral';
+      const side = opts.side || 'left'; // 'left' | 'right'
       const lash = opts.lash || '#181425';
       const ramp = makeRamp(irisHex);
+
+      if (emo === 'happy') {
+        // Warm happy curved crescent eyes (^ ^) with golden lower gleam!
+        this.rect(ix + 1, iy + 2, 3, 1, lash);
+        this.px(ix, iy + 3, lash);
+        this.px(ix + 4, iy + 3, lash);
+        this.rect(ix + 1, iy + 3, 3, 1, ramp.hi);
+        this.px(ix + 2, iy + 1, '#fff6cc', 180);
+        return;
+      }
+
+      // Eyebrow ridge shaped by emotion
+      if (emo === 'angry') {
+        if (side === 'left') {
+          this.rect(ix, iy - 2, 2, 1, lash);
+          this.rect(ix + 2, iy - 1, 3, 1, lash);
+        } else {
+          this.rect(ix + 3, iy - 2, 2, 1, lash);
+          this.rect(ix, iy - 1, 3, 1, lash);
+        }
+      } else if (emo === 'sad') {
+        if (side === 'left') {
+          this.rect(ix, iy - 1, 3, 1, lash);
+          this.rect(ix + 3, iy - 2, 2, 1, lash);
+        } else {
+          this.rect(ix + 2, iy - 1, 3, 1, lash);
+          this.rect(ix, iy - 2, 2, 1, lash);
+        }
+      } else if (emo === 'surprised') {
+        this.rect(ix, iy - 3, 5, 1, lash);
+      } else if (emo === 'smug') {
+        this.rect(ix, iy - 1, 5, 1, lash);
+      }
+
+      const eyeH = emo === 'surprised' ? 6 : emo === 'smug' || emo === 'angry' ? 4 : 5;
+      const topOff = emo === 'smug' || emo === 'angry' ? 1 : 0;
+
       // Curved upper lash
-      this.rect(ix, iy, 5, 1, lash);
-      this.px(ix - 1, iy + 1, lash);
-      this.px(ix + 5, iy + 1, lash);
+      this.rect(ix, iy + topOff, 5, 1, lash);
+      this.px(ix - 1, iy + topOff + 1, lash);
+      this.px(ix + 5, iy + topOff + 1, lash);
       // Sclera background
-      this.rect(ix, iy + 1, 5, 5, '#f4f6fc');
-      this.rect(ix, iy + 1, 5, 1, '#d3dae8'); // upper sclera shadow
-      // 3-tone Iris (3x4)
-      const ox = opts.lookRight ? ix + 1 : ix + 1;
-      this.rect(ox, iy + 1, 3, 1, ramp.deep);
-      this.rect(ox, iy + 2, 3, 2, ramp.base);
-      this.rect(ox, iy + 4, 3, 1, ramp.hi);
-      // Pupil
-      this.rect(ox + 1, iy + 2, 1, 2, '#11101b');
+      this.rect(ix, iy + topOff + 1, 5, eyeH, '#f4f6fc');
+      this.rect(ix, iy + topOff + 1, 5, 1, '#d3dae8');
+      // 3-tone Iris
+      const ox = ix + 1;
+      const irisH = Math.max(3, eyeH - 1);
+      this.rect(ox, iy + topOff + 1, 3, 1, emo === 'angry' ? '#ff4757' : ramp.deep);
+      this.rect(ox, iy + topOff + 2, 3, Math.max(1, irisH - 2), ramp.base);
+      this.rect(ox, iy + topOff + irisH, 3, 1, ramp.hi);
+      // Pupil (smaller when surprised, sharper when angry/smug)
+      this.rect(ox + 1, iy + topOff + 2, 1, emo === 'surprised' ? 1 : 2, '#11101b');
       // Dual specular catchlights
-      this.px(ox, iy + 2, '#ffffff');
-      this.px(ox + 2, iy + 4, ramp.spec);
+      this.px(ox, iy + topOff + 2, '#ffffff');
+      this.px(ox + 2, iy + topOff + irisH, emo === 'surprised' ? '#ffffff' : ramp.spec);
+      // Tear glint for sad emotion!
+      if (emo === 'sad') {
+        this.rect(ix, iy + eyeH, 2, 1, '#74b9ff');
+        this.px(ix, iy + eyeH + 1, '#dff9fb');
+      }
       // Subtle lower lash hint
-      this.rect(ix + 1, iy + 6, 3, 1, hueShade(lash, 0.22), 140);
+      this.rect(ix + 1, iy + topOff + eyeH + 1, 3, 1, hueShade(lash, 0.22), 140);
+    }
+
+    // Emotion Pixel-Art Emblem & Aura Overlay (distinct per emotion, works even on hooded/skull faces!)
+    emotionOverlay(cx, bob, f, emotion = 'neutral') {
+      if (emotion === 'neutral') return;
+      if (emotion === 'happy') {
+        // Twin floating golden 4-point sparkles ✨
+        const sy = 12 + bob - f * 2;
+        this.glow(cx + 19, sy, 5.5, '#ffffff', '#ffd32a', '#ff9f43');
+        this.rect(cx + 18, sy, 3, 1, '#ffffff');
+        this.rect(cx + 19, sy - 1, 1, 3, '#ffffff');
+        this.glow(cx - 19, sy + 5, 4.2, '#ffffff', '#ffeaa7');
+        this.rect(cx - 20, sy + 5, 3, 1, '#fff6cc');
+        this.rect(cx - 19, sy + 4, 1, 3, '#fff6cc');
+      } else if (emotion === 'angry') {
+        // Crimson anime anger vein mark 💢 + rising rage sparks!
+        const ax = cx + 17, ay = 13 + bob - f;
+        this.glow(ax, ay, 6.5, '#ffdd59', '#ff4757', '#b33939');
+        this.rect(ax - 2, ay - 2, 2, 1, '#ff4757'); this.rect(ax - 1, ay - 3, 1, 2, '#ff4757');
+        this.rect(ax + 1, ay - 2, 2, 1, '#ff4757'); this.rect(ax + 1, ay - 3, 1, 2, '#ff4757');
+        this.rect(ax - 2, ay + 1, 2, 1, '#ff4757'); this.rect(ax - 1, ay + 1, 1, 2, '#ff4757');
+        this.rect(ax + 1, ay + 1, 2, 1, '#ff4757'); this.rect(ax + 1, ay + 1, 1, 2, '#ff4757');
+        this.px(cx - 18, 17 + bob - f * 2, '#ff6b6b');
+        this.px(cx - 20, 13 + bob - f * 3, '#ffd32a');
+      } else if (emotion === 'sad') {
+        // Shimmering blue anime sweat/teardrop + cool blue melancholy mist 💧
+        const tx = cx + 16, ty = 15 + bob + f * 2;
+        this.glow(tx, ty + 2, 5.5, '#dff9fb', '#74b9ff', '#2e86de');
+        this.oval(tx, ty + 3, 2.3, 2.8, '#74b9ff');
+        this.px(tx, ty, '#74b9ff');
+        this.px(tx - 1, ty + 2, '#ffffff');
+        this.oval(cx - 17, 20 + bob + f * 2, 1.4, 2.2, '#74b9ff', { alpha: 180 });
+      } else if (emotion === 'surprised') {
+        // Bright golden-cyan shock exclamation & radial surprise bolts ❗⚡
+        const sx = cx + 18, sy = 10 + bob - f * 2;
+        this.glow(sx, sy + 3, 6.5, '#ffffff', '#ffd32a', '#00d2d3');
+        this.rect(sx - 1, sy - 1, 3, 6, '#ffd32a');
+        this.rect(sx, sy, 1, 4, '#ffffff');
+        this.rect(sx - 1, sy + 7, 3, 2, '#ffd32a');
+        this.capsule(cx - 17, 13 + bob, cx - 22, 9 + bob - f, 1.1, 0.5, '#00d2d3');
+        this.capsule(cx - 18, 18 + bob, cx - 23, 17 + bob, 1.1, 0.5, '#ffd32a');
+      } else if (emotion === 'smug') {
+        // Confident diagonal heroic/devilish star gleam 😏✨
+        const gx = cx - 18, gy = 13 + bob - f;
+        this.glow(gx, gy, 6.5, '#ffffff', '#e056fd', '#f6c967');
+        this.rect(gx - 3, gy, 7, 1, '#fff6cc');
+        this.rect(gx, gy - 3, 1, 7, '#fff6cc');
+        this.px(gx, gy, '#ffffff');
+        this.px(cx + 18, 17 + bob + f, '#f6c967');
+      }
     }
 
     // Fierce Glowing Monster Eye
@@ -539,34 +634,104 @@
     // Neck Shadow + Expressive Hi-Bit Head (28x24)
     c.plate(cx - 4, 37 + bob, 9, 5, hueShade(skin, -0.22));
     c.oval(cx, 27 + bob, 14.2, 12.6, skin);
-    // Subtle anime nose & chin soft highlight + rosy blush
+    const emo = cfg.emotion || 'neutral';
+    // Subtle anime nose & chin soft highlight + emotion-reactive rosy blush
     c.px(cx, 31 + bob, hueShade(skin, -0.18));
-    c.oval(cx - 9, 32 + bob, 2.3, 1.3, '#f09499', { shaded: false, alpha: 135 });
-    c.oval(cx + 9, 32 + bob, 2.3, 1.3, '#f09499', { shaded: false, alpha: 135 });
-    // Determined mouth
-    c.rect(cx - 2, 34 + bob, 5, 1, hueShade(skin, -0.35));
+    const blushAlpha = emo === 'happy' ? 205 : emo === 'sad' ? 85 : emo === 'angry' ? 175 : 135;
+    const blushCol = emo === 'angry' ? '#ff6b6b' : emo === 'sad' ? '#a29bfe' : '#f09499';
+    c.oval(cx - 9, 32 + bob, 2.4, 1.4, blushCol, { shaded: false, alpha: blushAlpha });
+    c.oval(cx + 9, 32 + bob, 2.4, 1.4, blushCol, { shaded: false, alpha: blushAlpha });
 
-    // Detailed 6x7 Hi-Bit Fantasy Eyes
-    if (!cfg.noEyes) {
-      c.hiBitEye(cx - 10, 24 + bob, cfg.eye || '#2e86de');
-      c.hiBitEye(cx + 5, 24 + bob, cfg.eye || '#2e86de');
+    // Emotion-reactive mouth (6 distinct expressions!)
+    const mouthDark = hueShade(skin, -0.45);
+    if (emo === 'happy') {
+      c.rect(cx - 3, 34 + bob, 7, 1, mouthDark);
+      c.rect(cx - 2, 35 + bob, 5, 2, '#e66767');
+      c.rect(cx - 2, 35 + bob, 5, 1, '#ffffff');
+      c.px(cx - 4, 33 + bob, mouthDark);
+      c.px(cx + 4, 33 + bob, mouthDark);
+    } else if (emo === 'angry') {
+      c.rect(cx - 3, 34 + bob, 7, 2, '#2d0b14');
+      c.rect(cx - 2, 34 + bob, 5, 1, '#ffffff');
+      c.px(cx - 4, 35 + bob, mouthDark);
+      c.px(cx + 4, 35 + bob, mouthDark);
+    } else if (emo === 'sad') {
+      c.rect(cx - 2, 34 + bob, 5, 1, mouthDark);
+      c.px(cx - 3, 35 + bob, mouthDark);
+      c.px(cx + 3, 35 + bob, mouthDark);
+    } else if (emo === 'surprised') {
+      c.oval(cx, 35 + bob, 2.3, 2.2, '#4a1424', { shaded: false });
+      c.oval(cx, 35.6 + bob, 1.4, 1.1, '#e66767', { shaded: false });
+    } else if (emo === 'smug') {
+      c.rect(cx - 3, 35 + bob, 4, 1, mouthDark);
+      c.rect(cx + 1, 34 + bob, 3, 1, mouthDark);
+      c.px(cx + 4, 33 + bob, mouthDark);
+    } else {
+      c.rect(cx - 2, 34 + bob, 5, 1, mouthDark);
     }
 
-    if (cfg.drawHeadgear) cfg.drawHeadgear(c, cx, bob, f);
-    if (cfg.drawGear) cfg.drawGear(c, cx, bob, f);
+    // Detailed 6x7 Hi-Bit Fantasy Eyes (with 6-emotion variants!)
+    if (!cfg.noEyes) {
+      c.hiBitEye(cx - 10, 24 + bob, cfg.eye || '#2e86de', { emotion: emo, side: 'left' });
+      c.hiBitEye(cx + 5, 24 + bob, cfg.eye || '#2e86de', { emotion: emo, side: 'right' });
+    }
+
+    if (cfg.drawHeadgear) cfg.drawHeadgear(c, cx, bob, f, emo);
+    if (cfg.drawGear) cfg.drawGear(c, cx, bob, f, emo);
+    c.emotionOverlay(cx, bob, f, emo);
+  }
+
+  const EMOTIONS = ['neutral', 'happy', 'angry', 'sad', 'surprised', 'smug'];
+  const EMOTION_META = {
+    neutral:   { id: 'neutral',   label: '평온',   icon: '🙂', color: '#dfe6e9' },
+    happy:     { id: 'happy',     label: '기쁨',   icon: '😊', color: '#ffd32a' },
+    angry:     { id: 'angry',     label: '분노',   icon: '😤', color: '#ff4757' },
+    sad:       { id: 'sad',       label: '슬픔',   icon: '😢', color: '#74b9ff' },
+    surprised: { id: 'surprised', label: '놀람',   icon: '😲', color: '#00d2d3' },
+    smug:      { id: 'smug',      label: '자신감', icon: '😏', color: '#e056fd' }
+  };
+
+  // Motion Pools: EVERY situation has >= 2 distinct animated motions (30 total across 14 situations!)
+  const MOTION_POOLS = {
+    // 6 Emotion Dialogue / Reaction Motions (2 distinct per emotion = 12)
+    emo_neutral:   ['mot-neutral-breathe', 'mot-neutral-nod'],
+    emo_happy:     ['mot-happy-hop',       'mot-happy-sway'],
+    emo_angry:     ['mot-angry-stomp',     'mot-angry-tremble'],
+    emo_sad:       ['mot-sad-droop',       'mot-sad-sigh'],
+    emo_surprised: ['mot-surprised-jump',  'mot-surprised-recoil'],
+    emo_smug:      ['mot-smug-tilt',       'mot-smug-flourish'],
+    // 8 Combat & Gameplay Situation Motions (2~3 distinct per situation = 18)
+    player_attack: ['mot-atk-slash',       'mot-atk-leap',        'mot-atk-thrust'],
+    player_skill:  ['mot-skill-guard',     'mot-skill-chant'],
+    player_power:  ['mot-power-ascend',    'mot-power-burst'],
+    player_hit:    ['mot-hit-knockback',   'mot-hit-stagger'],
+    enemy_attack:  ['mot-enemy-lunge',     'mot-enemy-slam',      'mot-enemy-pounce'],
+    enemy_hit:     ['mot-ehit-shake',      'mot-ehit-recoil'],
+    enemy_buff:    ['mot-ebuff-roar',      'mot-ebuff-levitate'],
+    victory:       ['mot-win-cheer',       'mot-win-salute']
+  };
+
+  const ALL_MOTION_CLASSES = Object.values(MOTION_POOLS).flat();
+  const _motionCycle = {};
+
+  function pickMotion(situation, forceIdx = -1) {
+    const pool = MOTION_POOLS[situation] || MOTION_POOLS.emo_neutral;
+    if (forceIdx >= 0) return pool[forceIdx % pool.length];
+    const next = (_motionCycle[situation] || 0) % pool.length;
+    _motionCycle[situation] = next + 1;
+    return pool[next];
   }
 
   const HERO_SPRITES = {
-    fighter: () =>
+    fighter: (emotion = 'neutral') =>
       renderAnimatedSprite(80, 80, (c, f) => {
         drawHiBitHeroBase(c, f, {
+          emotion,
           armor: '#aeb9c4', pauldron: '#95a5b5', cape: '#c0392b', trim: '#f6c967',
           chestAccent: '#e74c3c', boots: '#576574', eye: '#3498db', metalArmor: true, metalBoots: true,
           drawHeadgear: (c, cx, b, f) => {
-            // Sweeping Crimson Knight Plume
             c.curve(cx, 12 + b, cx - 8 - f * 2, 4 + b, cx - 16 - f * 2, 10 + b, 5.2, 2.0, '#e74c3c');
             c.curve(cx + 2, 11 + b, cx - 4 - f, 6 + b, cx - 10 - f, 9 + b, 3.2, 1.2, '#ff7675');
-            // Layered Steel Knight Helmet with Gold Trim & Noseguard
             c.oval(cx, 18 + b, 15.5, 8.8, '#cfd8dc', { metallic: true });
             c.plate(cx - 15, 19 + b, 5, 14, '#95a5b5', { metallic: true, round: 1 });
             c.plate(cx + 11, 19 + b, 5, 14, '#95a5b5', { metallic: true, round: 1 });
@@ -574,37 +739,33 @@
             c.plate(cx - 1, 14 + b, 3, 11, '#7f8fa6', { metallic: true });
           },
           drawGear: (c, cx, b, f) => {
-            // Left: Royal Kite Shield with Gold Heraldry
             c.plate(cx - 28, 41 + b, 15, 22, '#2e86de', { metallic: true, round: 3 });
             c.plate(cx - 26, 43 + b, 11, 18, '#54a0ff', { metallic: true, round: 2 });
             c.plate(cx - 22, 45 + b, 3, 14, '#f6c967', { metallic: true });
             c.plate(cx - 25, 49 + b, 9, 3, '#f6c967', { metallic: true });
-            // Right: Gleaming Knightly Greatsword
             const sy = 12 + b - f * 3;
             c.sword(cx + 23, sy, sy + 34, 3, '#dfe6e9', '#f6c967', '#6d4c41', '#74b9ff');
           }
         });
       }, { motion: 'px-motion-heavy', aura: '#74b9ff' }),
 
-    barbarian: () =>
+    barbarian: (emotion = 'neutral') =>
       renderAnimatedSprite(80, 80, (c, f) => {
         drawHiBitHeroBase(c, f, {
+          emotion,
           skin: '#dfa074', armor: '#d48f63', pauldron: '#6d4c41', belt: '#5d4037',
           trim: '#f6c967', pants: '#4e342e', boots: '#3e2723', eye: '#ff4757', tunicSkirt: '#5d4037',
           drawHeadgear: (c, cx, b) => {
-            // Wild Dark Spiky Mane + Fur Mantle + Horned Iron Crown
             c.hairCap(cx, 18 + b, 16, 10, '#3a221c', { sideLocks: 13 });
             c.plate(cx - 15, 18 + b, 31, 4, '#636e72', { metallic: true, round: 1 });
             c.curve(cx - 14, 19 + b, cx - 22, 14 + b, cx - 23, 6 + b, 3.6, 1.0, '#f5f6fa');
             c.curve(cx + 14, 19 + b, cx + 22, 14 + b, cx + 23, 6 + b, 3.6, 1.0, '#f5f6fa');
-            // Crimson War-Paint Stripes
             c.rect(cx - 8, 44 + b, 17, 2, '#ff4757');
             c.rect(cx - 6, 48 + b, 13, 2, '#eb3b5a');
             c.rect(cx - 11, 31 + b, 4, 2, '#ff4757');
             c.rect(cx + 8, 31 + b, 4, 2, '#ff4757');
           },
           drawGear: (c, cx, b, f) => {
-            // Massive Double-Bit Rage Greataxe
             const ay = 10 + b - f * 3;
             c.capsule(cx + 22, ay + 6, cx + 22, ay + 52, 2.2, 2.2, '#784212');
             c.oval(cx + 15, ay + 15, 7.5, 11, '#b2bec3', { metallic: true });
@@ -618,24 +779,22 @@
         });
       }, { motion: 'px-motion-heavy', aura: '#ff4757' }),
 
-    rogue: () =>
+    rogue: (emotion = 'neutral') =>
       renderAnimatedSprite(80, 80, (c, f) => {
         drawHiBitHeroBase(c, f, {
+          emotion,
           armor: '#2c3147', pauldron: '#1e2233', cape: '#1b1e2e', belt: '#4a3525',
           trim: '#2ed573', boots: '#1a1c29', eye: '#2ed573', noEyes: true,
-          drawHeadgear: (c, cx, b, f) => {
-            // Layered Shadow Assassin Cowl + Glowing Emerald Eyes + Lower Face Mask
+          drawHeadgear: (c, cx, b, f, emo) => {
             c.oval(cx, 23 + b, 17, 14.5, '#25293d');
             c.oval(cx, 27 + b, 12.2, 9.6, '#141722', { shaded: false });
             c.oval(cx, 27 + b, 11, 5.2, '#f3d1b0');
-            c.hiBitEye(cx - 10, 24 + b, '#2ed573');
-            c.hiBitEye(cx + 5, 24 + b, '#2ed573');
+            c.hiBitEye(cx - 10, 24 + b, '#2ed573', { emotion: emo, side: 'left' });
+            c.hiBitEye(cx + 5, 24 + b, '#2ed573', { emotion: emo, side: 'right' });
             c.plate(cx - 11, 31 + b, 23, 8, '#1e2233', { round: 2, trim: '#2ed573' });
-            // Flowing Emerald Assassin Scarf
             c.curve(cx - 10, 39 + b, cx - 22 - f * 2, 42 + b, cx - 30 - f * 3, 49 + b, 3.6, 1.5, '#2ed573');
           },
           drawGear: (c, cx, b, f) => {
-            // Twin Poison-Tipped Curved Daggers
             c.curve(cx - 18, 54 + b, cx - 26, 46 + b - f * 2, cx - 30, 36 + b - f * 2, 2.6, 0.9, '#dfe6e9', { metallic: true });
             c.glow(cx - 30, 36 + b - f * 2, 5, '#ffffff', '#2ed573', '#1e8449');
             c.curve(cx + 18, 52 + b, cx + 26, 44 + b + f * 2, cx + 31, 34 + b + f * 2, 2.6, 0.9, '#dfe6e9', { metallic: true });
@@ -644,13 +803,13 @@
         });
       }, { motion: 'px-motion-agile', aura: '#2ed573' }),
 
-    ranger: () =>
+    ranger: (emotion = 'neutral') =>
       renderAnimatedSprite(80, 80, (c, f) => {
         drawHiBitHeroBase(c, f, {
+          emotion,
           armor: '#249454', pauldron: '#196f3d', cape: '#145a32', belt: '#784212',
           trim: '#f6c967', pants: '#34495e', boots: '#5d4037', eye: '#55efc4', tunicSkirt: '#1e8449',
           drawHeadgear: (c, cx, b) => {
-            // Pointed Elven Ears + Silver Drizzt Hair + Forest Hood
             c.capsule(cx - 13, 27 + b, cx - 19, 24 + b, 2.2, 0.8, '#f6d2b6');
             c.capsule(cx + 13, 27 + b, cx + 19, 24 + b, 2.2, 0.8, '#f6d2b6');
             c.hairCap(cx, 20 + b, 15.2, 9.8, '#e8eef5', { sideLocks: 15 });
@@ -658,7 +817,6 @@
             c.plate(cx - 12, 16 + b, 25, 2, '#f6c967', { metallic: true });
           },
           drawGear: (c, cx, b, f) => {
-            // Ornate Elven Recurve Longbow + Luminous Emerald Arrow
             const bx = cx + 22;
             c.curve(bx - 3, 20 + b, bx + 11, 44 + b, bx - 3, 68 + b, 2.8, 2.8, '#9b5926');
             c.capsule(bx - 3, 22 + b, bx - 4 - f * 2, 44 + b, 0.7, 0.7, '#ecf0f1', { shaded: false });
@@ -669,16 +827,15 @@
         });
       }, { motion: 'px-motion-agile', aura: '#55efc4' }),
 
-    wizard: () =>
+    wizard: (emotion = 'neutral') =>
       renderAnimatedSprite(80, 80, (c, f) => {
         drawHiBitHeroBase(c, f, {
+          emotion,
           armor: '#2874c5', pauldron: '#1b4f72', cape: '#192a56', belt: '#f6c967',
           trim: '#00d2d3', chestAccent: '#f6c967', boots: '#1b4f72', eye: '#00d2d3', tunicSkirt: '#1e5ba0',
           drawHeadgear: (c, cx, b, f) => {
-            // Flowing White Sage Beard & Mustache
             c.oval(cx, 37 + b, 9.5, 6.2, '#f0f4f8', { texture: 'fur' });
             c.oval(cx, 41 + b, 5.5, 4.5, '#dfe6e9', { texture: 'fur' });
-            // Iconic Starry Pointed Archmage Hat!
             c.oval(cx, 19 + b, 22, 4.8, '#2874c5');
             c.curve(cx - 13, 18 + b, cx - 2, 7 + b, cx + 6 + f * 2, 3 + b, 9.5, 1.8, '#2874c5');
             c.plate(cx - 13, 16 + b, 27, 3, '#f6c967', { metallic: true });
@@ -686,35 +843,31 @@
             c.px(cx + 3, 12 + b, '#f6c967');
           },
           drawGear: (c, cx, b, f) => {
-            // Tall Carved Arcane Staff + Orbiting Pulsing Astral Crystal
             const sx = cx + 24;
             c.capsule(sx, 24 + b, sx, 72, 2.2, 2.0, '#784212');
             c.glow(sx, 19 + b - f * 2, 10, '#ffffff', f ? '#a29bfe' : '#00d2d3', '#2e86de');
             c.oval(sx, 19 + b - f * 2, 5.2, 6.2, f ? '#a29bfe' : '#00d2d3', { metallic: true });
             c.oval(sx - 1, 17 + b - f * 2, 1.8, 2.0, '#ffffff', { shaded: false });
-            // Orbiting star mote
             c.glow(sx + (f ? 8 : -8), 15 + b, 3.5, '#ffffff', '#ffeaa7');
           }
         });
       }, { motion: 'px-motion-float', aura: '#00d2d3' }),
 
-    cleric: () =>
+    cleric: (emotion = 'neutral') =>
       renderAnimatedSprite(80, 80, (c, f) => {
         drawHiBitHeroBase(c, f, {
+          emotion,
           armor: '#eef2f7', pauldron: '#f6c967', cape: '#5ea8f0', belt: '#f6c967',
           trim: '#ffd32a', chestAccent: '#f6c967', boots: '#d4a017', eye: '#f39c12',
           metalArmor: true, tunicSkirt: '#dfe6ee',
           drawHeadgear: (c, cx, b, f) => {
-            // Radiant Floating Golden Halo
             c.glow(cx, 7 + b - f * 2, 11, '#ffffff', '#ffd32a', '#f6c967');
             c.oval(cx, 7 + b - f * 2, 10.5, 2.4, '#ffd32a', { metallic: true });
             c.oval(cx, 7 + b - f * 2, 7.2, 1.1, '#1a2038', { shaded: false, alpha: 0 });
-            // Golden Flowing Hair + Silver Circlet
             c.hairCap(cx, 19 + b, 15.6, 10.2, '#f2c14e', { sideLocks: 18 });
             c.plate(cx - 11, 18 + b, 23, 2, '#ffffff', { metallic: true });
           },
           drawGear: (c, cx, b, f) => {
-            // Blazing Sun Morningstar Mace
             const mx = cx + 23;
             c.capsule(mx, 28 + b, mx, 66, 2.1, 1.9, '#b7791f', { metallic: true });
             c.glow(mx, 22 + b - f * 2, 11, '#ffffff', '#ffd32a', '#ff9f43');
@@ -727,29 +880,26 @@
         });
       }, { motion: 'px-motion-float', aura: '#ffeaa7' }),
 
-    paladin: () =>
+    paladin: (emotion = 'neutral') =>
       renderAnimatedSprite(80, 80, (c, f) => {
         drawHiBitHeroBase(c, f, {
+          emotion,
           armor: '#f2c14e', pauldron: '#ffeaa7', cape: '#d6304c', belt: '#b7791f',
           trim: '#ffffff', chestAccent: '#ffffff', boots: '#e1b12c', eye: '#3498db',
           metalArmor: true, metalBoots: true,
           drawHeadgear: (c, cx, b, f) => {
-            // Golden Winged Crusader Greathelm!
             c.oval(cx, 18 + b, 15.6, 9.2, '#f6c967', { metallic: true });
             c.plate(cx - 15, 19 + b, 5, 14, '#e1b12c', { metallic: true, round: 1 });
             c.plate(cx + 11, 19 + b, 5, 14, '#e1b12c', { metallic: true, round: 1 });
-            // Feathered White Angel Wings on Helmet
             c.curve(cx - 15, 20 + b, cx - 25, 14 + b - f * 2, cx - 29, 6 + b - f * 2, 4.2, 1.4, '#ffffff');
             c.curve(cx - 15, 23 + b, cx - 23, 19 + b - f * 2, cx - 26, 13 + b - f * 2, 3.0, 1.0, '#dfe6e9');
             c.curve(cx + 15, 20 + b, cx + 25, 14 + b - f * 2, cx + 29, 6 + b - f * 2, 4.2, 1.4, '#ffffff');
             c.curve(cx + 15, 23 + b, cx + 23, 19 + b - f * 2, cx + 26, 13 + b - f * 2, 3.0, 1.0, '#dfe6e9');
           },
           drawGear: (c, cx, b, f) => {
-            // Left: Holy Tower Shield
             c.plate(cx - 28, 39 + b, 15, 26, '#f5f6fa', { metallic: true, round: 3 });
             c.plate(cx - 22, 42 + b, 3, 20, '#f6c967', { metallic: true });
             c.plate(cx - 26, 48 + b, 11, 3, '#f6c967', { metallic: true });
-            // Right: Blazing Sunblade Greatsword
             const sy = 9 + b - f * 3;
             c.glow(cx + 23, sy + 16, 12, '#ffffff', '#ffeaa7', '#f6c967');
             c.sword(cx + 23, sy, sy + 37, 3.4, '#ffeaa7', '#f6c967', '#c0392b', '#ffffff');
@@ -757,24 +907,24 @@
         });
       }, { motion: 'px-motion-heavy', aura: '#f6c967' }),
 
-    warlock: () =>
+    warlock: (emotion = 'neutral') =>
       renderAnimatedSprite(80, 80, (c, f) => {
         drawHiBitHeroBase(c, f, {
+          emotion,
           armor: '#5b2c6f', pauldron: '#3c1e5a', cape: '#211033', belt: '#1a0c29',
           trim: '#e056fd', chestAccent: '#e056fd', boots: '#1a0c29', eye: '#e056fd',
           noEyes: true, tunicSkirt: '#3c1e5a',
-          drawHeadgear: (c, cx, b) => {
-            // Horned Occult Hood + Shadowed Face + Blazing Eldritch Eyes
+          drawHeadgear: (c, cx, b, f, emo) => {
             c.oval(cx, 23 + b, 17.5, 15.2, '#4a235a');
             c.oval(cx, 27 + b, 12.2, 10.2, '#12081c', { shaded: false });
-            c.glowEye(cx - 7, 26 + b, '#e056fd', 2.8);
-            c.glowEye(cx + 7, 26 + b, '#e056fd', 2.8);
-            // Swept Crimson-Magenta Demon Horns
+            const ec = emo === 'angry' ? '#ff4757' : emo === 'happy' ? '#ffd32a' : emo === 'sad' ? '#74b9ff' : emo === 'surprised' ? '#00d2d3' : '#e056fd';
+            const er = emo === 'surprised' ? 3.5 : emo === 'happy' ? 2.1 : 2.8;
+            c.glowEye(cx - 7, 26 + b, ec, er);
+            c.glowEye(cx + 7, 26 + b, ec, er);
             c.curve(cx - 11, 13 + b, cx - 20, 9 + b, cx - 22, 3 + b, 3.6, 1.0, '#e056fd');
             c.curve(cx + 11, 13 + b, cx + 20, 9 + b, cx + 22, 3 + b, 3.6, 1.0, '#e056fd');
           },
           drawGear: (c, cx, b, f) => {
-            // Levitating Eldritch Grimoire + Crackling Void Flame
             const gx = cx + 23, gy = 38 + b - f * 3;
             c.plate(gx - 6, gy + 5, 13, 15, '#2c193d', { round: 2, trim: '#f6c967' });
             c.plate(gx - 4, gy + 7, 9, 11, '#f4efe6', { round: 1 });
@@ -784,6 +934,18 @@
         });
       }, { motion: 'px-motion-float', aura: '#e056fd' })
   };
+
+  // Lazy Cache for all 8 Heroes x 6 Emotions = 48 unique 80x80 Hi-Bit Emotion Assets!
+  const _heroEmotionCache = {};
+  function getHeroEmotionSprite(charId, emotion = 'neutral') {
+    const cid = HERO_SPRITES[charId] ? charId : 'fighter';
+    const emo = EMOTION_META[emotion] ? emotion : 'neutral';
+    const key = `${cid}::${emo}`;
+    if (!_heroEmotionCache[key]) {
+      _heroEmotionCache[key] = HERO_SPRITES[cid](emo);
+    }
+    return _heroEmotionCache[key];
+  }
 
   // ==========================================================================
   // 2. HI-BIT 80x80 & 96x96 MONSTER DRAWERS (ALL 82 MONSTERS 100% UNIQUE!)
@@ -1386,7 +1548,7 @@
     if (gameData.characters) {
       Object.keys(gameData.characters).forEach(cid => {
         if (HERO_SPRITES[cid]) {
-          gameData.characters[cid].avatarSvg = HERO_SPRITES[cid]();
+          gameData.characters[cid].avatarSvg = getHeroEmotionSprite(cid, 'neutral');
         }
       });
     }
@@ -1403,7 +1565,18 @@
   }
 
   window.HIBIT_ART = { HiBitCanvas, renderAnimatedSprite, drawHiBitHeroBase, hueShade, makeRamp, BAYER4 };
-  window.PIXEL_SPRITES = { HERO_SPRITES, MONSTER_SPECS, generateMonsterSprite, applyPixelSprites };
+  window.PIXEL_SPRITES = {
+    EMOTIONS,
+    EMOTION_META,
+    MOTION_POOLS,
+    ALL_MOTION_CLASSES,
+    pickMotion,
+    HERO_SPRITES,
+    getHeroEmotionSprite,
+    MONSTER_SPECS,
+    generateMonsterSprite,
+    applyPixelSprites
+  };
   if (window.GAME_DATA) {
     applyPixelSprites(window.GAME_DATA);
   }

@@ -1437,6 +1437,15 @@ const Game = {
     const hero = GAME_DATA.characters[charId] || GAME_DATA.characters.fighter;
     const npc = se.NPCS[curLine.npcId] || se.NPCS.durnan;
     const isHeroSpeaking = curLine.speaker === 'hero';
+    const ps = typeof window !== 'undefined' ? window.PIXEL_SPRITES : null;
+    const activeEmo = curLine.emotion || 'neutral';
+    const heroEmo = isHeroSpeaking ? activeEmo : (curLine.heroEmotion || 'neutral');
+    const npcEmo = !isHeroSpeaking ? activeEmo : (curLine.npcEmotion || 'neutral');
+    const emoMeta = (ps && ps.EMOTION_META && ps.EMOTION_META[activeEmo]) || { icon: '🙂', label: '평온', color: '#dfe6e9' };
+    const motionCls = ps && ps.pickMotion ? ps.pickMotion(`emo_${activeEmo}`) : 'mot-neutral-breathe';
+
+    const heroSpriteHtml = ps && ps.getHeroEmotionSprite ? ps.getHeroEmotionSprite(charId, heroEmo) : hero.avatarSvg;
+    const npcSpriteHtml = se.getNpcEmotionSprite ? se.getNpcEmotionSprite(npc.id, npcEmo) : npc.svg;
 
     const chapEl = document.getElementById('story-stage-chapter');
     const titleEl = document.getElementById('story-stage-title');
@@ -1446,16 +1455,16 @@ const Game = {
     const heroSlot = document.getElementById('story-hero-slot');
     const npcSlot = document.getElementById('story-npc-slot');
     if (heroSlot) {
-      heroSlot.className = `story-actor-slot actor-left ${isHeroSpeaking ? 'speaking' : 'listening'}`;
+      heroSlot.className = `story-actor-slot actor-left ${isHeroSpeaking ? 'speaking ' + motionCls : 'listening'}`;
       heroSlot.innerHTML = `
-        <div class="story-actor-sprite">${hero.avatarSvg}</div>
+        <div class="story-actor-sprite">${heroSpriteHtml}</div>
         <div class="story-actor-tag">${hero.name.split(' ')[0]}</div>
       `;
     }
     if (npcSlot) {
-      npcSlot.className = `story-actor-slot actor-right ${!isHeroSpeaking ? 'speaking' : 'listening'}`;
+      npcSlot.className = `story-actor-slot actor-right ${!isHeroSpeaking ? 'speaking ' + motionCls : 'listening'}`;
       npcSlot.innerHTML = `
-        <div class="story-actor-sprite">${npc.svg}</div>
+        <div class="story-actor-sprite">${npcSpriteHtml}</div>
         <div class="story-actor-tag" style="border-color:${npc.accent}; color:${npc.accent};">${npc.icon} ${npc.name.split(' ')[0]}</div>
       `;
     }
@@ -1468,7 +1477,7 @@ const Game = {
     const nextBtn = document.getElementById('story-next-btn');
 
     if (speakerEl) {
-      speakerEl.textContent = isHeroSpeaking ? `⚔️ ${hero.name}` : `${npc.icon} ${npc.name}`;
+      speakerEl.innerHTML = `${isHeroSpeaking ? `⚔️ ${hero.name}` : `${npc.icon} ${npc.name}`} <span class="story-emotion-pill" style="border-color:${emoMeta.color}; color:${emoMeta.color};">${emoMeta.icon} ${emoMeta.label}</span>`;
       speakerEl.style.color = isHeroSpeaking ? '#74b9ff' : npc.accent;
     }
     if (factionEl) {
@@ -1510,6 +1519,8 @@ const Game = {
     st.pendingReply = {
       speaker: opt.replySpeaker || 'npc',
       npcId: opt.replyNpcId || curLine.npcId,
+      emotion: opt.replyEmotion || 'happy',
+      heroEmotion: opt.heroEmotion || 'neutral',
       text: opt.reply
     };
     this.renderStoryScreen();
@@ -2320,10 +2331,57 @@ const Game = {
     `;
   },
 
+  previewLobbyEmotion(charId, emotion = 'neutral') {
+    const ps = typeof window !== 'undefined' ? window.PIXEL_SPRITES : null;
+    if (!ps) return;
+    if (this._lobbyEmoChar !== charId) {
+      this._lobbyEmoChar = charId;
+      this._lobbyEmo = 'neutral';
+      this._lobbyEmoVariant = 0;
+    }
+    const pool = (ps.MOTION_POOLS && ps.MOTION_POOLS[`emo_${emotion}`]) || ['mot-neutral-breathe'];
+    if (this._lobbyEmo === emotion) {
+      this._lobbyEmoVariant = ((this._lobbyEmoVariant || 0) + 1) % pool.length;
+    } else {
+      this._lobbyEmo = emotion;
+      this._lobbyEmoVariant = 0;
+    }
+    const motionCls = pool[this._lobbyEmoVariant];
+    const box = document.getElementById('hub-emo-preview-box');
+    const labelEl = document.getElementById('hub-emo-motion-tag');
+    const meta = (ps.EMOTION_META && ps.EMOTION_META[emotion]) || { icon: '🙂', label: '평온', color: '#dfe6e9' };
+    if (box) {
+      box.className = 'hub-emo-preview';
+      box.innerHTML = ps.getHeroEmotionSprite(charId, emotion);
+      void box.offsetWidth;
+      box.classList.add(motionCls);
+    }
+    if (labelEl) {
+      labelEl.innerHTML = `<span style="color:${meta.color};">${meta.icon} ${meta.label}</span> · 모션 ${this._lobbyEmoVariant + 1}/${pool.length}`;
+    }
+    document.querySelectorAll('.hub-emo-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.emo === emotion);
+    });
+  },
+
   renderSelectedCharPanel() {
     const panel = document.getElementById('hub-selected-panel');
     const ch = GAME_DATA.characters[this.meta.selectedCharId];
     const stats = this.getHunterTotalBonuses(ch.id);
+    const ps = typeof window !== 'undefined' ? window.PIXEL_SPRITES : null;
+    if (this._lobbyEmoChar !== ch.id) {
+      this._lobbyEmoChar = ch.id;
+      this._lobbyEmo = 'neutral';
+      this._lobbyEmoVariant = 0;
+    }
+    const activeEmo = this._lobbyEmo || 'neutral';
+    const previewSprite = ps && ps.getHeroEmotionSprite ? ps.getHeroEmotionSprite(ch.id, activeEmo) : ch.avatarSvg;
+    const emoBtnsHtml = (ps && ps.EMOTIONS ? ps.EMOTIONS : ['neutral', 'happy', 'angry', 'sad', 'surprised', 'smug'])
+      .map(eId => {
+        const m = (ps && ps.EMOTION_META && ps.EMOTION_META[eId]) || { icon: '🙂', label: eId, color: '#dfe6e9' };
+        return `<button class="hub-emo-btn ${activeEmo === eId ? 'active' : ''}" data-emo="${eId}" onclick="Game.previewLobbyEmotion('${ch.id}', '${eId}')" title="다시 누르면 같은 감정의 2번째 모션 재생!">${m.icon} ${m.label}</button>`;
+      })
+      .join('');
 
     const lvCost = stats.hunterLv * 50;
     const nextRankMap = { C: 'B', B: 'A', A: 'S', S: null };
@@ -2400,6 +2458,16 @@ const Game = {
             📖 전체 44종 카드 도감 (해금: ${stats.unlockedRarities.join('/')})
           </button>
         </h2>
+        <div class="hub-emotion-studio">
+          <div id="hub-emo-preview-box" class="hub-emo-preview">${previewSprite}</div>
+          <div class="hub-emo-controls">
+            <div class="hub-emo-head">
+              <span>🎭 <strong>6종 감정 에셋 & 모션 스튜디오</strong></span>
+              <span id="hub-emo-motion-tag" style="color:#ffeaa7; font-weight:700;">같은 감정 재클릭 시 모션 1↔2 전환!</span>
+            </div>
+            <div class="hub-emo-btns">${emoBtnsHtml}</div>
+          </div>
+        </div>
         <div class="subclass-picker-title">
           🎴 <strong>${ch.name.split(' ')[0]}의 4대 하위 직업 카드 계통</strong> · <span style="color:#55efc4;">${ch.growthCurve || ''}</span>
         </div>
@@ -4288,6 +4356,17 @@ const Game = {
       }
     }
 
+    // Non-Attack Skill / Power Multi-Motion & Emotion Reaction!
+    if (tpl.type !== 'attack') {
+      if (!this._hitVisuals) this._hitVisuals = { enemyHits: {}, enemyLunges: {}, enemyBuffs: {}, playerLungeTs: 0, playerHurtTs: 0, playerBlockTs: 0 };
+      const _psSp = typeof window !== 'undefined' ? window.PIXEL_SPRITES : null;
+      const sit = tpl.type === 'power' ? 'player_power' : 'player_skill';
+      this._hitVisuals.playerBlockTs = Date.now();
+      this._hitVisuals.playerMotionCls = _psSp && _psSp.pickMotion ? _psSp.pickMotion(sit) : 'mot-skill-guard';
+      this._hitVisuals.playerEmo = tpl.type === 'power' ? 'smug' : stats.heal > 0 ? 'happy' : 'smug';
+      this._hitVisuals.playerEmoTs = Date.now();
+    }
+
     // 2) BARBARIAN: Bloodied (<50% HP) bonus Strength on Rage skills
     if (cid === 'barbarian' && tpl.enrageBoost && this.run.hp <= this.run.maxHp * 0.5) {
       this.combat.player.strength += tpl.enrageBoost;
@@ -4389,9 +4468,13 @@ const Game = {
         this.applyDebuffToEnemy(target, 'poison', 3);
       }
 
-      // Player Lunge Visual when playing an attack card!
-      if (!this._hitVisuals) this._hitVisuals = { enemyHits: {}, playerLungeTs: 0, playerHurtTs: 0, playerBlockTs: 0 };
+      // Player Attack Multi-Motion (3 distinct attack animations + combat emotion!)
+      if (!this._hitVisuals) this._hitVisuals = { enemyHits: {}, enemyLunges: {}, enemyBuffs: {}, playerLungeTs: 0, playerHurtTs: 0, playerBlockTs: 0 };
+      const _psAtk = typeof window !== 'undefined' ? window.PIXEL_SPRITES : null;
       this._hitVisuals.playerLungeTs = Date.now();
+      this._hitVisuals.playerMotionCls = _psAtk && _psAtk.pickMotion ? _psAtk.pickMotion('player_attack') : 'mot-atk-slash';
+      this._hitVisuals.playerEmo = tpl.rarity === 'legendary' ? 'smug' : 'angry';
+      this._hitVisuals.playerEmoTs = Date.now();
       const cardVfxTheme =
         tpl.orbType === 'fire' || /화염|파이어|작열|불길|메테오/.test(tpl.name)
           ? 'fire'
@@ -4779,8 +4862,13 @@ const Game = {
     if (totalShown > 0 && this.combat && this.combat.enemies) {
       const eIdx = this.combat.enemies.indexOf(enemy);
       const isCrit = dmg >= 14;
-      if (!this._hitVisuals) this._hitVisuals = { enemyHits: {}, playerLungeTs: 0, playerHurtTs: 0, playerBlockTs: 0 };
-      this._hitVisuals.enemyHits[eIdx] = { crit: isCrit, ts: Date.now() };
+      if (!this._hitVisuals) this._hitVisuals = { enemyHits: {}, enemyLunges: {}, enemyBuffs: {}, playerLungeTs: 0, playerHurtTs: 0, playerBlockTs: 0 };
+      const _psEh = typeof window !== 'undefined' ? window.PIXEL_SPRITES : null;
+      this._hitVisuals.enemyHits[eIdx] = {
+        crit: isCrit,
+        ts: Date.now(),
+        motionCls: _psEh && _psEh.pickMotion ? _psEh.pickMotion('enemy_hit') : 'mot-ehit-shake'
+      };
 
       const fireImpact = () => {
         if (justKilled) {
@@ -4935,6 +5023,18 @@ const Game = {
 
       if (move.block) en.block += move.block;
       if (move.str) en.strength += move.str;
+      if (move.intent !== 'attack' && move.intent !== 'attack_debuff' && move.intent !== 'multi_attack' && (move.block || move.str || move.weak || move.vuln || move.addStatus)) {
+        if (!this._hitVisuals) this._hitVisuals = { enemyHits: {}, enemyLunges: {}, enemyBuffs: {}, playerLungeTs: 0, playerHurtTs: 0, playerBlockTs: 0 };
+        if (!this._hitVisuals.enemyBuffs) this._hitVisuals.enemyBuffs = {};
+        const _psEb = typeof window !== 'undefined' ? window.PIXEL_SPRITES : null;
+        const bIdx = this.combat.enemies.indexOf(en);
+        if (bIdx >= 0) {
+          this._hitVisuals.enemyBuffs[bIdx] = {
+            ts: Date.now(),
+            motionCls: _psEb && _psEb.pickMotion ? _psEb.pickMotion('enemy_buff') : 'mot-ebuff-roar'
+          };
+        }
+      }
       if (move.weak) this.combat.player.weak += move.weak;
       if (move.vuln) this.combat.player.vuln += move.vuln;
       if (move.frail) this.combat.player.frail = (this.combat.player.frail || 0) + move.frail;
@@ -5013,18 +5113,25 @@ const Game = {
         this.logCombat(`💥 [${this.combat.summon.name}] 소환수가 대신 치명타를 막아내고 소멸했습니다!`);
       }
     }
-    if (!this._hitVisuals) this._hitVisuals = { enemyHits: {}, playerLungeTs: 0, playerHurtTs: 0, playerBlockTs: 0 };
+    if (!this._hitVisuals) this._hitVisuals = { enemyHits: {}, enemyLunges: {}, enemyBuffs: {}, playerLungeTs: 0, playerHurtTs: 0, playerBlockTs: 0 };
+    const _psDmg = typeof window !== 'undefined' ? window.PIXEL_SPRITES : null;
     if (dmg > 0 && attackerEnemy && this.combat && this.combat.enemies) {
       const aIdx = this.combat.enemies.indexOf(attackerEnemy);
       if (aIdx >= 0) {
         if (!this._hitVisuals.enemyLunges) this._hitVisuals.enemyLunges = {};
-        this._hitVisuals.enemyLunges[aIdx] = Date.now();
+        this._hitVisuals.enemyLunges[aIdx] = {
+          ts: Date.now(),
+          motionCls: _psDmg && _psDmg.pickMotion ? _psDmg.pickMotion('enemy_attack') : 'mot-enemy-lunge'
+        };
       }
     }
     if (remaining > 0) {
       this.run.hp = Math.max(0, this.run.hp - remaining);
       if (this.combat) this.combat.tookHpDamageThisCombat = true;
       this._hitVisuals.playerHurtTs = Date.now();
+      this._hitVisuals.playerMotionCls = _psDmg && _psDmg.pickMotion ? _psDmg.pickMotion('player_hit') : 'mot-hit-knockback';
+      this._hitVisuals.playerEmo = this.run.hp <= this.run.maxHp * 0.35 ? 'sad' : 'surprised';
+      this._hitVisuals.playerEmoTs = Date.now();
       SfxEngine.play('playerHit');
       VfxEngine.effectOnTarget('player', 0, 'blood');
       VfxEngine.damageVignette();
@@ -5036,6 +5143,9 @@ const Game = {
       }
     } else if (dmg > 0) {
       this._hitVisuals.playerBlockTs = Date.now();
+      this._hitVisuals.playerMotionCls = _psDmg && _psDmg.pickMotion ? _psDmg.pickMotion('player_skill') : 'mot-skill-guard';
+      this._hitVisuals.playerEmo = 'smug';
+      this._hitVisuals.playerEmoTs = Date.now();
       SfxEngine.play('block');
       VfxEngine.effectOnTarget('player', 0, 'block');
       this.spawnFloatingVfx('player', `🛡️완벽방어!`, 'vfx-block');
@@ -5052,6 +5162,12 @@ const Game = {
     const anyAlive = this.combat.enemies.some(e => e.hp > 0);
     if (!anyAlive) {
       this.combat.ended = true;
+      const _psWin = typeof window !== 'undefined' ? window.PIXEL_SPRITES : null;
+      if (!this._hitVisuals) this._hitVisuals = { enemyHits: {}, enemyLunges: {}, enemyBuffs: {}, playerLungeTs: 0, playerHurtTs: 0, playerBlockTs: 0 };
+      this._hitVisuals.playerBlockTs = Date.now();
+      this._hitVisuals.playerMotionCls = _psWin && _psWin.pickMotion ? _psWin.pickMotion('victory') : 'mot-win-cheer';
+      this._hitVisuals.playerEmo = 'happy';
+      this._hitVisuals.playerEmoTs = Date.now();
       this.handleCombatVictory();
       return true;
     }
@@ -5192,26 +5308,46 @@ const Game = {
       stanceEl.textContent = `${this.run.subclassObj.icon} ${this.run.subclassObj.name.split(' ')[0]}`;
     }
 
-    // Cache player avatar SVG so we don't re-parse SVG DOM on every card play!
-    if (this._lastPlayerAvatarChar !== this.run.charId) {
-      this._lastPlayerAvatarChar = this.run.charId;
-      document.getElementById('player-avatar-box').innerHTML = ch.avatarSvg;
+    // Dynamic 6-Emotion Combat Hero Avatar + Multi-Motion Rendering!
+    const _psCbt = typeof window !== 'undefined' ? window.PIXEL_SPRITES : null;
+    const nowTs = Date.now();
+    const activePlayerEmo =
+      this._hitVisuals && nowTs - (this._hitVisuals.playerEmoTs || 0) < 950 && this._hitVisuals.playerEmo
+        ? this._hitVisuals.playerEmo
+        : this.run.hp <= this.run.maxHp * 0.35
+          ? 'sad'
+          : this.combat.stance === 'wrath'
+            ? 'angry'
+            : this.combat.player.block >= 15
+              ? 'smug'
+              : 'neutral';
+    const avatarKey = `${this.run.charId}::${activePlayerEmo}`;
+    if (this._lastPlayerAvatarChar !== avatarKey) {
+      this._lastPlayerAvatarChar = avatarKey;
+      const box = document.getElementById('player-avatar-box');
+      if (box) {
+        box.innerHTML = _psCbt && _psCbt.getHeroEmotionSprite
+          ? _psCbt.getHeroEmotionSprite(this.run.charId, activePlayerEmo)
+          : ch.avatarSvg;
+      }
     }
 
-    // Apply physical Player Lunge / Hurt Recoil / Block Pulse animations!
+    // Apply Varied Multi-Motion Combat Animations (2~3 distinct motions per situation!)
     const pCardEl = document.getElementById('player-unit-card');
     if (pCardEl && this._hitVisuals) {
-      const nowTs = Date.now();
       pCardEl.classList.remove('player-lunge', 'player-hurt-recoil', 'player-block-pulse');
-      if (nowTs - (this._hitVisuals.playerHurtTs || 0) < 320) {
+      if (_psCbt && _psCbt.ALL_MOTION_CLASSES) {
+        _psCbt.ALL_MOTION_CLASSES.forEach(c => pCardEl.classList.remove(c));
+      }
+      if (nowTs - (this._hitVisuals.playerHurtTs || 0) < 380) {
         void pCardEl.offsetWidth;
-        pCardEl.classList.add('player-hurt-recoil');
-      } else if (nowTs - (this._hitVisuals.playerLungeTs || 0) < 260) {
+        pCardEl.classList.add('player-hurt-recoil', this._hitVisuals.playerMotionCls || 'mot-hit-knockback');
+      } else if (nowTs - (this._hitVisuals.playerLungeTs || 0) < 360) {
         void pCardEl.offsetWidth;
-        pCardEl.classList.add('player-lunge');
-      } else if (nowTs - (this._hitVisuals.playerBlockTs || 0) < 280) {
+        pCardEl.classList.add('player-lunge', this._hitVisuals.playerMotionCls || 'mot-atk-slash');
+      } else if (nowTs - (this._hitVisuals.playerBlockTs || 0) < 380) {
         void pCardEl.offsetWidth;
-        pCardEl.classList.add('player-block-pulse');
+        pCardEl.classList.add('player-block-pulse', this._hitVisuals.playerMotionCls || 'mot-skill-guard');
       }
     }
     document.getElementById('combat-player-name').innerHTML = `<span class="rank-badge rank-${this.run.rank}">${this.run.rank}급</span> ${ch.name.split(' ')[0]}`;
@@ -5398,14 +5534,16 @@ const Game = {
       const enCard = document.createElement('div');
       const recentHit = this._hitVisuals && this._hitVisuals.enemyHits && this._hitVisuals.enemyHits[idx];
       const recentLunge = this._hitVisuals && this._hitVisuals.enemyLunges && this._hitVisuals.enemyLunges[idx];
+      const recentBuff = this._hitVisuals && this._hitVisuals.enemyBuffs && this._hitVisuals.enemyBuffs[idx];
+      const lungeTs = typeof recentLunge === 'number' ? recentLunge : (recentLunge && recentLunge.ts) || 0;
       const hitCls =
-        recentHit && Date.now() - recentHit.ts < 300
-          ? recentHit.crit
-            ? 'enemy-crit-recoil'
-            : 'enemy-hit-recoil'
-          : recentLunge && Date.now() - recentLunge < 320
-            ? 'enemy-lunge'
-            : '';
+        recentHit && Date.now() - recentHit.ts < 340
+          ? `${recentHit.crit ? 'enemy-crit-recoil' : 'enemy-hit-recoil'} ${recentHit.motionCls || 'mot-ehit-shake'}`
+          : lungeTs && Date.now() - lungeTs < 380
+            ? `enemy-lunge ${(recentLunge && recentLunge.motionCls) || 'mot-enemy-lunge'}`
+            : recentBuff && Date.now() - recentBuff.ts < 460
+              ? recentBuff.motionCls || 'mot-ebuff-roar'
+              : '';
       enCard.className = `unit-card enemy-unit ${isTargeted ? 'targeted' : ''} ${hitCls}`;
       if (enCard.setAttribute) enCard.setAttribute('data-en-idx', String(idx));
       enCard.onclick = () => {

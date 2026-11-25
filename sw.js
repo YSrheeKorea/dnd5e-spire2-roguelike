@@ -2,23 +2,23 @@
 // D&D 5E SPIRE II — OFFLINE-READY PWA SERVICE WORKER (sw.js)
 // Strategy: Network-First with Offline Cache Fallback (always fresh online, playable offline!)
 // ============================================================================
-const CACHE_NAME = 'dnd5e-spire2-pwa-v13';
+const CACHE_NAME = 'dnd5e-spire2-pwa-v14';
 const PRECACHE_ASSETS = [
   './',
   './index.html',
   './mobile.html',
   './manifest.webmanifest',
   './manifest-mobile.webmanifest',
-  './style.css?v=13',
-  './mobile.css?v=13',
-  './data.js?v=13',
-  './sprites.js?v=13',
-  './story.js?v=13',
-  './backgrounds.js?v=13',
-  './card_art.js?v=13',
-  './achievements.js?v=13',
-  './game.js?v=13',
-  './pwa.js?v=13',
+  './style.css?v=14',
+  './mobile.css?v=14',
+  './data.js?v=14',
+  './sprites.js?v=14',
+  './story.js?v=14',
+  './backgrounds.js?v=14',
+  './card_art.js?v=14',
+  './achievements.js?v=14',
+  './game.js?v=14',
+  './pwa.js?v=14',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/apple-touch-icon.png'
