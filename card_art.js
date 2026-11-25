@@ -1,13 +1,16 @@
 // ============================================================================
-// D&D 5E SPIRE II — FINE PIXEL-ART SKILL & CARD ILLUSTRATION ENGINE (card_art.js)
-// - 48x24 Crisp 2:1 Widescreen Pixel-Art Illustrations for ALL 359 Cards/Skills
+// D&D 5E SPIRE II v2.0 — HI-BIT NATURAL PIXEL-ART SKILL ENGINE (card_art.js)
+// - 120x60 Crisp 2:1 Hi-Bit Pixel-Art Illustrations (7,200 px = 6.25x finer than v1!)
 // - 32 Handcrafted D&D Weapon / Spell / Companion / Aura / Status Pixel Motifs
-// - 3-Tone Cel Shading + 1px Ink Outlines + Subclass Palettes + Rarity Filigree
-// - Lazy Cached PNG Data URLs (<0.2ms per card, 100% unique 359/359!)
+// - 5-Tone Hue-Shifted Shading + Bayer 4x4 Dithering + Selective Colored Outlines
+// - Lazy Cached PNG Data URLs (100% unique 359/359!)
 // ============================================================================
 (function () {
-  const W = 48;
-  const H = 24;
+  const LW = 48;
+  const LH = 24;
+  const SCALE = 2.5; // 48x24 logical -> 120x60 native Hi-Bit (6.25x pixel area!)
+  const W = Math.round(LW * SCALE); // 120
+  const H = Math.round(LH * SCALE); // 60
 
   const BAYER4 = [
     [0, 8, 2, 10],
@@ -26,127 +29,206 @@
   }
 
   function hexToRgb(hex) {
-    const h = hex.replace('#', '');
-    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+    const h = (hex || '#101420').replace('#', '');
+    return [parseInt(h.slice(0, 2), 16) || 0, parseInt(h.slice(2, 4), 16) || 0, parseInt(h.slice(4, 6), 16) || 0];
   }
   function rgbToHex(r, g, b) {
     const cl = v => Math.max(0, Math.min(255, Math.round(v)));
     return '#' + [cl(r), cl(g), cl(b)].map(v => v.toString(16).padStart(2, '0')).join('');
   }
+  // Painterly hue-shifted shading (warm golden highlights, cool indigo shadows!)
   function shade(hex, factor) {
     const [r, g, b] = hexToRgb(hex);
-    if (factor > 0) return rgbToHex(r + (255 - r) * factor, g + (255 - g) * factor, b + (255 - b) * factor);
+    if (factor > 0) {
+      return rgbToHex(
+        r + (255 - r) * factor * 1.04,
+        g + (248 - g) * factor * 0.96,
+        b + (226 - b) * factor * 0.8
+      );
+    }
     const f = 1 + factor;
-    return rgbToHex(r * f, g * f, b * f);
+    const cool = -factor;
+    return rgbToHex(
+      r * f * (1 - cool * 0.14),
+      g * f * (1 - cool * 0.16),
+      b * f + 22 * cool * (1 - b / 340)
+    );
   }
   function shiftHueRgb(hex, shift) {
     if (!shift) return hex;
     const [r, g, b] = hexToRgb(hex);
     return rgbToHex(r + shift[0], g + shift[1], b + shift[2]);
   }
+  function mixHex(c1, c2, t) {
+    const a = hexToRgb(c1), b = hexToRgb(c2);
+    return rgbToHex(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t);
+  }
 
-  // Dual-Layer Pixel Canvas (Background layer + Foreground motif layer with auto 1px outline!)
+  // Dual-Layer 120x60 Hi-Bit Pixel Canvas (Maps 48x24 logical coords smoothly onto 120x60!)
   class SkillCanvas {
     constructor(w = W, h = H) {
       this.w = w;
       this.h = h;
+      this.lw = LW;
+      this.lh = LH;
       this.bg = new Array(w * h).fill('#0d101c');
       this.fg = new Array(w * h).fill(null);
     }
-    bgPx(x, y, c) {
+    rawBgPx(x, y, c) {
       const ix = Math.round(x), iy = Math.round(y);
-      if (ix < 0 || ix >= this.w || iy < 0 || iy >= this.h) return;
+      if (ix < 0 || ix >= this.w || iy < 0 || iy >= this.h || !c) return;
       this.bg[iy * this.w + ix] = c;
     }
-    px(x, y, c) {
+    rawPx(x, y, c) {
       const ix = Math.round(x), iy = Math.round(y);
-      if (ix < 0 || ix >= this.w || iy < 0 || iy >= this.h) return;
+      if (ix < 0 || ix >= this.w || iy < 0 || iy >= this.h || !c) return;
       this.fg[iy * this.w + ix] = c;
     }
+    bgPx(x, y, c) {
+      const sx = Math.round(x * SCALE), sy = Math.round(y * SCALE);
+      const sz = Math.max(1, Math.round(SCALE * 0.72));
+      for (let dy = 0; dy < sz; dy++) for (let dx = 0; dx < sz; dx++) this.rawBgPx(sx + dx, sy + dy, c);
+    }
+    px(x, y, c) {
+      const sx = Math.round(x * SCALE), sy = Math.round(y * SCALE);
+      this.rawPx(sx, sy, c);
+      this.rawPx(sx + 1, sy, c);
+      this.rawPx(sx, sy + 1, shade(c, -0.14));
+      this.rawPx(sx + 1, sy + 1, shade(c, -0.22));
+    }
     rect(x, y, w, h, c) {
-      for (let dy = 0; dy < Math.round(h); dy++) {
-        for (let dx = 0; dx < Math.round(w); dx++) this.px(x + dx, y + dy, c);
+      const x0 = Math.round(x * SCALE), y0 = Math.round(y * SCALE);
+      const x1 = Math.max(x0 + 1, Math.round((x + w) * SCALE));
+      const y1 = Math.max(y0 + 1, Math.round((y + h) * SCALE));
+      const hi = shade(c, 0.14), lo = shade(c, -0.18);
+      for (let yy = y0; yy < y1; yy++) {
+        for (let xx = x0; xx < x1; xx++) {
+          let col = c;
+          if (yy === y0 && y1 - y0 >= 3) col = hi;
+          else if (yy === y1 - 1 && y1 - y0 >= 3) col = lo;
+          this.rawPx(xx, yy, col);
+        }
       }
     }
     shadedRect(x, y, w, h, base) {
-      const hi = shade(base, 0.3), lo = shade(base, -0.35);
-      const rw = Math.round(w), rh = Math.round(h);
+      const x0 = Math.round(x * SCALE), y0 = Math.round(y * SCALE);
+      const rw = Math.max(2, Math.round(w * SCALE)), rh = Math.max(2, Math.round(h * SCALE));
+      const spec = shade(base, 0.48), hi = shade(base, 0.24), lo = shade(base, -0.26), deep = shade(base, -0.48);
       for (let dy = 0; dy < rh; dy++) {
         for (let dx = 0; dx < rw; dx++) {
+          const nx = (dx / Math.max(1, rw - 1)) * 2 - 1;
+          const ny = (dy / Math.max(1, rh - 1)) * 2 - 1;
+          const thr = (BAYER4[(y0 + dy) & 3][(x0 + dx) & 3] - 7.5) / 32;
+          const v = -nx * 0.45 - ny * 0.55 + thr;
           let c = base;
-          if (dy === 0 || dx === 0) c = hi;
-          else if (dy === rh - 1 || dx === rw - 1) c = lo;
-          this.px(x + dx, y + dy, c);
+          if (dy === 0 || (dx === 0 && dy < rh - 1)) c = spec;
+          else if (dy === rh - 1 || dx === rw - 1) c = deep;
+          else if (v > 0.32) c = hi;
+          else if (v < -0.28) c = lo;
+          this.rawPx(x0 + dx, y0 + dy, c);
         }
       }
     }
     oval(cx, cy, rx, ry, base, shaded = true) {
-      const hi = shaded ? shade(base, 0.32) : base;
-      const lo = shaded ? shade(base, -0.35) : base;
-      for (let y = Math.floor(cy - ry); y <= Math.ceil(cy + ry); y++) {
-        for (let x = Math.floor(cx - rx); x <= Math.ceil(cx + rx); x++) {
-          const nx = (x - cx) / rx, ny = (y - cy) / ry;
-          if (nx * nx + ny * ny <= 1) {
-            let c = base;
-            if (shaded) {
-              if (nx + ny < -0.55) c = hi;
-              else if (nx + ny > 0.55) c = lo;
-            }
-            this.px(x, y, c);
+      const scx = cx * SCALE, scy = cy * SCALE;
+      const srx = Math.max(1.2, rx * SCALE), sry = Math.max(1.2, ry * SCALE);
+      const spec = shaded ? shade(base, 0.52) : base;
+      const hi = shaded ? shade(base, 0.25) : base;
+      const lo = shaded ? shade(base, -0.28) : base;
+      const deep = shaded ? shade(base, -0.5) : base;
+      for (let y = Math.floor(scy - sry - 1); y <= Math.ceil(scy + sry + 1); y++) {
+        for (let x = Math.floor(scx - srx - 1); x <= Math.ceil(scx + srx + 1); x++) {
+          const nx = (x - scx) / srx, ny = (y - scy) / sry;
+          const r2 = nx * nx + ny * ny;
+          if (r2 > 1) continue;
+          let c = base;
+          if (shaded) {
+            const nz = Math.sqrt(Math.max(0, 1 - r2));
+            let light = -nx * 0.52 - ny * 0.62 + nz * 0.55;
+            if (r2 > 0.7 && nx + ny > 0.45) light += 0.16;
+            const thr = (BAYER4[y & 3][x & 3] - 7.5) / 26;
+            const v = light + thr;
+            if (v > 0.96) c = spec;
+            else if (v > 0.58) c = hi;
+            else if (v < 0.04) c = deep;
+            else if (v < 0.28) c = lo;
           }
+          this.rawPx(x, y, c);
         }
       }
     }
     line(x0, y0, x1, y1, c, thick = 1) {
-      let ix0 = Math.round(x0), iy0 = Math.round(y0), ix1 = Math.round(x1), iy1 = Math.round(y1);
-      const dx = Math.abs(ix1 - ix0), dy = Math.abs(iy1 - iy0);
-      const sx = ix0 < ix1 ? 1 : -1, sy = iy0 < iy1 ? 1 : -1;
-      let err = dx - dy;
-      while (true) {
-        this.px(ix0, iy0, c);
-        if (thick > 1) { this.px(ix0 + 1, iy0, c); this.px(ix0, iy0 + 1, c); }
-        if (thick > 2) { this.px(ix0 - 1, iy0, c); this.px(ix0, iy0 - 1, c); }
-        if (ix0 === ix1 && iy0 === iy1) break;
-        const e2 = 2 * err;
-        if (e2 > -dy) { err -= dy; ix0 += sx; }
-        if (e2 < dx) { err += dx; iy0 += sy; }
+      const sx0 = x0 * SCALE, sy0 = y0 * SCALE, sx1 = x1 * SCALE, sy1 = y1 * SCALE;
+      const r = Math.max(0.95, thick * SCALE * 0.44);
+      const steps = Math.max(6, Math.ceil(Math.hypot(sx1 - sx0, sy1 - sy0) * 1.4));
+      const hi = shade(c, 0.36), lo = shade(c, -0.28);
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const cx = sx0 + (sx1 - sx0) * t;
+        const cy = sy0 + (sy1 - sy0) * t;
+        const rr = r * (0.95 + 0.1 * Math.sin(t * Math.PI));
+        if (rr <= 1.05) {
+          this.rawPx(cx, cy, t < 0.35 ? hi : c);
+        } else {
+          const ix0 = Math.floor(cx - rr), ix1 = Math.ceil(cx + rr);
+          const iy0 = Math.floor(cy - rr), iy1 = Math.ceil(cy + rr);
+          for (let yy = iy0; yy <= iy1; yy++) {
+            for (let xx = ix0; xx <= ix1; xx++) {
+              const dx = (xx - cx) / rr, dy = (yy - cy) / rr;
+              if (dx * dx + dy * dy <= 1) {
+                this.rawPx(xx, yy, dx + dy < -0.45 ? hi : dx + dy > 0.48 ? lo : c);
+              }
+            }
+          }
+        }
       }
     }
     bgGrad(cTop, cBot) {
+      const cMid = mixHex(cTop, cBot, 0.5);
+      const stops = [shade(cTop, -0.15), cTop, cMid, cBot];
+      const span = this.h - 1;
       for (let y = 0; y < this.h; y++) {
-        const frac = y / (this.h - 1);
+        const t = (y / span) * (stops.length - 1);
+        const idx = Math.min(stops.length - 2, Math.floor(t));
+        const frac = t - idx;
+        const a = stops[idx], b = stops[idx + 1];
         for (let x = 0; x < this.w; x++) {
           const thr = (BAYER4[y & 3][x & 3] + 0.5) / 16;
-          this.bg[y * this.w + x] = frac > thr ? cBot : cTop;
+          this.bg[y * this.w + x] = frac > thr ? b : a;
         }
       }
     }
     bgGlow(cx, cy, r, cCore, cOuter) {
-      for (let y = Math.max(0, Math.floor(cy - r)); y <= Math.min(this.h - 1, Math.ceil(cy + r)); y++) {
-        for (let x = Math.max(0, Math.floor(cx - r)); x <= Math.min(this.w - 1, Math.ceil(cx + r)); x++) {
-          const d = Math.hypot(x - cx, y - cy) / r;
+      const scx = cx * SCALE, scy = cy * SCALE, sr = r * SCALE;
+      const cMid = mixHex(cCore, cOuter, 0.45);
+      for (let y = Math.max(0, Math.floor(scy - sr)); y <= Math.min(this.h - 1, Math.ceil(scy + sr)); y++) {
+        for (let x = Math.max(0, Math.floor(scx - sr)); x <= Math.min(this.w - 1, Math.ceil(scx + sr)); x++) {
+          const d = Math.hypot(x - scx, y - scy) / sr;
           if (d >= 1) continue;
           const thr = (BAYER4[y & 3][x & 3] + 0.5) / 16;
-          if (d < 0.45 && (0.45 - d) / 0.45 > thr * 0.6) this.bg[y * this.w + x] = cCore;
-          else if ((1 - d) > thr) this.bg[y * this.w + x] = cOuter;
+          if (d < 0.3 && (0.3 - d) / 0.3 > thr * 0.55) this.bg[y * this.w + x] = cCore;
+          else if (d < 0.62 && (0.62 - d) / 0.32 > thr * 0.72) this.bg[y * this.w + x] = cMid;
+          else if ((1 - d) / 0.42 > thr) this.bg[y * this.w + x] = cOuter;
         }
       }
     }
-    // Crisp 1px dark outline around foreground motif
-    outlineFg(col = '#0d0d16') {
+    // Native 120x60 1px Selective Colored Outline (Sel-Out!) for crisp natural edges!
+    outlineFg(fallback = '#0b0c14') {
       const marks = [];
       for (let y = 0; y < this.h; y++) {
         for (let x = 0; x < this.w; x++) {
           if (this.fg[y * this.w + x] !== null) continue;
-          const hit =
+          const neighbor =
+            (y > 0 && this.fg[(y - 1) * this.w + x]) ||
             (x > 0 && this.fg[y * this.w + x - 1]) ||
             (x < this.w - 1 && this.fg[y * this.w + x + 1]) ||
-            (y > 0 && this.fg[(y - 1) * this.w + x]) ||
             (y < this.h - 1 && this.fg[(y + 1) * this.w + x]);
-          if (hit) marks.push(y * this.w + x);
+          if (neighbor) {
+            marks.push(y * this.w + x, shade(neighbor, -0.68) || fallback);
+          }
         }
       }
-      for (const idx of marks) this.fg[idx] = col;
+      for (let i = 0; i < marks.length; i += 2) this.fg[marks[i]] = marks[i + 1];
     }
     compose() {
       const out = new Array(this.w * this.h);
@@ -716,65 +798,77 @@
       e: basePal.e
     };
 
-    // 1. Unique Card Backdrop Style (4 crisp pixel-art background compositions)
+    // 1. Unique Card Backdrop Style (4 crisp 120x60 Hi-Bit atmospheric compositions)
     g.bgGrad(pal.bg1, pal.bg2);
     const bgStyle = h % 4;
     if (bgStyle === 0) {
-      g.bgGlow(24, 12, 18, shade(pal.p, -0.35), shade(pal.bg2, 0.15));
+      g.bgGlow(24, 12, 19, shade(pal.p, -0.32), shade(pal.bg2, 0.18));
     } else if (bgStyle === 1) {
-      // Diagonal energy streaks
-      for (let i = -2; i < 6; i++) {
-        const bx = i * 9 + (h % 5);
-        for (let y = 0; y < H; y++) g.bgPx(bx + y * 0.6, y, shade(pal.bg2, 0.18));
+      // Diagonal volumetric energy streaks at native 120x60
+      for (let i = -3; i < 8; i++) {
+        const bx = i * 18 + (h % 9);
+        for (let y = 0; y < H; y++) {
+          g.rawBgPx(bx + y * 0.65, y, shade(pal.bg2, 0.22));
+          if (y % 2 === 0) g.rawBgPx(bx + y * 0.65 + 1, y, shade(pal.bg2, 0.12));
+        }
       }
-      g.bgGlow(24, 12, 13, shade(pal.a, -0.45), pal.bg2);
+      g.bgGlow(24, 12, 14, shade(pal.a, -0.42), pal.bg2);
     } else if (bgStyle === 2) {
-      // Starfield + horizon glow
-      for (let i = 0; i < 14; i++) {
-        const sx = (h + i * 19) % W;
-        const sy = ((h >> 4) + i * 11) % H;
-        g.bgPx(sx, sy, i % 3 === 0 ? pal.e : shade(pal.p, 0.2));
+      // Fine 1px Hi-Bit Starfield + horizon glow
+      for (let i = 0; i < 28; i++) {
+        const sx = (h + i * 37) % W;
+        const sy = ((h >> 4) + i * 23) % H;
+        g.rawBgPx(sx, sy, i % 3 === 0 ? pal.e : shade(pal.p, 0.28));
       }
-      g.bgGlow(24, 16, 15, shade(pal.p, -0.4), pal.bg2);
+      g.bgGlow(24, 16, 16, shade(pal.p, -0.38), pal.bg2);
     } else {
-      // Pixel arcane lattice
-      for (let y = 3; y < H; y += 6) {
-        for (let x = 3; x < W; x += 8) g.bgPx(x, y, shade(pal.bg2, 0.25));
+      // Crisp 1px arcane constellation lattice
+      for (let y = 6; y < H; y += 12) {
+        for (let x = 8; x < W; x += 16) {
+          g.rawBgPx(x, y, shade(pal.bg2, 0.3));
+          g.rawBgPx(x + 1, y, shade(pal.bg2, 0.18));
+        }
       }
-      g.bgGlow(24, 12, 15, shade(pal.a, -0.4), pal.bg2);
+      g.bgGlow(24, 12, 16, shade(pal.a, -0.38), pal.bg2);
     }
 
-    // 2. Draw Primary Semantic Skill Motif
+    // 2. Draw Primary Semantic Skill Motif (rasterized natively at 120x60!)
     const motifKey = pickMotif(card);
     const drawer = MOTIFS[motifKey] || MOTIFS.sword_slash;
     drawer(g, pal, h);
 
-    // 3. Unique Per-Card Action Sparkles (ensures 359/359 zero-duplicate fingerprints!)
-    const sp1x = 3 + (h % 9);
-    const sp1y = 3 + ((h >> 5) % 16);
-    const sp2x = W - 4 - ((h >> 9) % 9);
-    const sp2y = 3 + ((h >> 13) % 16);
-    g.px(sp1x, sp1y, pal.e);
-    g.px(sp2x, sp2y, '#ffffff');
-    if ((h >> 17) & 1) g.px(sp1x + 1, sp1y, '#ffffff');
-    if ((h >> 18) & 1) g.px(sp2x - 1, sp2y, pal.a);
+    // 3. Fine 1px Atmospheric Action Sparks & Glints (ensures 359/359 unique fingerprints!)
+    const sp1x = 6 + (h % 20);
+    const sp1y = 6 + ((h >> 5) % 44);
+    const sp2x = W - 7 - ((h >> 9) % 20);
+    const sp2y = 6 + ((h >> 13) % 44);
+    g.rawPx(sp1x, sp1y, '#ffffff');
+    g.rawPx(sp1x - 1, sp1y, pal.e); g.rawPx(sp1x + 1, sp1y, pal.e);
+    g.rawPx(sp1x, sp1y - 1, pal.e); g.rawPx(sp1x, sp1y + 1, pal.e);
+    g.rawPx(sp2x, sp2y, '#ffffff');
+    g.rawPx(sp2x - 1, sp2y, pal.a); g.rawPx(sp2x + 1, sp2y, pal.a);
+    if ((h >> 17) & 1) g.rawPx(sp1x + 2, sp1y, pal.e);
+    if ((h >> 18) & 1) g.rawPx(sp2x, sp2y - 1, pal.a);
 
-    // 4. Crisp 1px Dark Outline on Foreground Skill Motif
+    // 4. Crisp 1px Native Selective Colored Outline on Foreground Skill Motif
     g.outlineFg('#0b0c14');
 
-    // 5. Rarity Corner Pixel Filigree (Uncommon / Rare / Legendary visual prestige!)
+    // 5. Fine 120x60 Ornate Rarity Corner Filigree (Uncommon / Rare / Legendary!)
     const rar = card.rarity || 'common';
     if (rar === 'uncommon' || rar === 'rare' || rar === 'legendary') {
       const fc = rar === 'legendary' ? '#f6c967' : rar === 'rare' ? '#c56cf0' : '#18dcff';
-      const fhi = rar === 'legendary' ? '#ffffff' : fc;
-      // Top-left & bottom-right pixel brackets
-      g.px(1, 1, fhi); g.px(2, 1, fc); g.px(1, 2, fc);
-      g.px(W - 2, 1, fhi); g.px(W - 3, 1, fc); g.px(W - 2, 2, fc);
-      g.px(1, H - 2, fhi); g.px(2, H - 2, fc); g.px(1, H - 3, fc);
-      g.px(W - 2, H - 2, fhi); g.px(W - 3, H - 2, fc); g.px(W - 2, H - 3, fc);
+      const fhi = rar === 'legendary' ? '#ffffff' : shade(fc, 0.38);
+      const len = rar === 'legendary' ? 9 : rar === 'rare' ? 7 : 5;
+      for (let i = 0; i < len; i++) {
+        const c = i === 0 ? fhi : fc;
+        g.rawPx(2 + i, 2, c); g.rawPx(2, 2 + i, c);
+        g.rawPx(W - 3 - i, 2, c); g.rawPx(W - 3, 2 + i, c);
+        g.rawPx(2 + i, H - 3, c); g.rawPx(2, H - 3 - i, c);
+        g.rawPx(W - 3 - i, H - 3, c); g.rawPx(W - 3, H - 3 - i, c);
+      }
       if (rar === 'legendary') {
-        g.px(3, 1, '#f6c967'); g.px(W - 4, 1, '#f6c967');
-        g.px(3, H - 2, '#f6c967'); g.px(W - 4, H - 2, '#f6c967');
+        g.rawPx(4, 4, fhi); g.rawPx(W - 5, 4, fhi);
+        g.rawPx(4, H - 5, fhi); g.rawPx(W - 5, H - 5, fhi);
       }
     }
 

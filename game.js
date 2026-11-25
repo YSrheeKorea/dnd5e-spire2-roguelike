@@ -1207,6 +1207,7 @@ const Game = {
       bestStage: 1,
       totalClimbs: 0,
       achSchemaV2: true,
+      talkedNpcs: {},
       unlocked,
       unlockedSubclasses: sys ? sys.getDefaultUnlockedSubclasses(GAME_DATA) : {},
       unlockedLegendaries: {},
@@ -1416,6 +1417,7 @@ const Game = {
       const url = window.PIXEL_BACKGROUNDS.getSceneDataUrl(bossId, scene.actNum || 0);
       const bgImg = document.getElementById('story-stage-bg');
       if (bgImg && url) bgImg.src = url;
+      window.PIXEL_BACKGROUNDS.applyTheme(bossId, scene.actNum || 0);
     }
     this.renderStoryScreen();
   },
@@ -1833,6 +1835,9 @@ const Game = {
           </button>
           <a class="hud-btn" style="text-decoration:none; text-align:center; border-color:#a29bfe; color:#dfe6e9;" href="${isMobilePage ? 'index.html?force=pc' : 'mobile.html'}">
             ${isMobilePage ? '💻 PC 와이드 버전으로 열기' : '📱 모바일 터치 버전으로 열기'}
+          </a>
+          <a class="hud-btn" style="text-decoration:none; text-align:center; border-color:#ff9f43; color:#ffeaa7;" href="${isMobilePage ? 'v1/mobile.html' : 'v1/index.html'}">
+            🕹️ v1 클래식 도트 버전 (32×32) 열기
           </a>
         </div>
       </div>
@@ -2795,19 +2800,38 @@ const Game = {
     this.run.actMap = this.generate30StageActMap(1);
     this.saveRun();
 
-    this.switchScreen('screen-map');
-    this.renderMap();
-    this.openNeowBlessingScreen();
-    this.showStoryCutin(1, () => this.openNeowBlessingScreen());
+    if (this.isStoryCutinEnabled() && typeof window !== 'undefined' && window.STORY_ENGINE) {
+      this.showStoryCutin(1, () => this.openNeowBlessingScreen());
+    } else {
+      this.openNeowBlessingScreen();
+    }
   },
 
   // Slay the Spire 1 + BG3 Astral Prism Guardian Blessing at Act 1 Floor 1
   openNeowBlessingScreen() {
     if (!this.run || !GAME_DATA.neowBlessings) return;
     this.switchScreen('screen-event');
-    document.getElementById('event-title').textContent = '🔮 아스트랄 프리즘 수호자(니오우)의 축복 — 추락한 해변';
+    const npcBox = document.getElementById('event-npc-portrait');
+    const se = typeof window !== 'undefined' ? window.STORY_ENGINE : null;
+    if (npcBox) {
+      if (se && se.NPCS && se.NPCS.guardian) {
+        const npc = se.NPCS.guardian;
+        npcBox.classList.remove('hidden');
+        npcBox.innerHTML = `
+          <div class="event-npc-sprite">${npc.svg}</div>
+          <div class="event-npc-meta">
+            <strong style="color:${npc.accent};">${npc.icon} ${npc.name}</strong>
+            <span>${npc.title}</span>
+          </div>
+        `;
+      } else {
+        npcBox.classList.add('hidden');
+        npcBox.innerHTML = '';
+      }
+    }
+    document.getElementById('event-title').textContent = '🔮 아스트랄 프리즘 수호자의 축복 — 하품하는 포털 우물 입구';
     document.getElementById('event-desc').textContent =
-      '"노틸로이드 추락에서 살아남았구나, 모험가여… 머릿속 일리시드 올챙이가 깨어나기 전에 절대자 교단의 5계층을 돌파해야 한다. 출격 전 내가 내리는 4가지 축복 중 하나를 선택하여라."';
+      '"더난과 자헤이라의 안내를 받았구나, 모험가여… 머릿속 일리시드 올챙이가 깨어나기 전에 탈취된 언더마운틴 5대 차원문을 돌파해야 한다. 우물로 내려가기 전, 내가 내리는 4가지 축복 중 하나를 선택하여라."';
 
     const choicesBox = document.getElementById('event-choices');
     choicesBox.innerHTML = '';

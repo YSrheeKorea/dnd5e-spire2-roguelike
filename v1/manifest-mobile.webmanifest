@@ -1,0 +1,40 @@
+{
+  "name": "D&D 5E SPIRE II: Tales of Undermountain",
+  "short_name": "D&D SPIRE II",
+  "description": "D&D 5판 기반 8클래스 32하위직업 · 5계층 로그라이크 덱빌더 (모바일 터치 에디션)",
+  "start_url": "./mobile.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#090b10",
+  "theme_color": "#0b0d14",
+  "orientation": "portrait",
+  "lang": "ko",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

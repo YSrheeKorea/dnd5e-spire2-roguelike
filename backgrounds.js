@@ -1,15 +1,18 @@
 // ============================================================================
-// D&D 5E SPIRE II — FINE PIXEL-ART BACKGROUND ENGINE (backgrounds.js)
-// - 160x90 Crisp 16:9 Fine-Dot Pixel-Art Environments (Zero blur, Bayer dithering!)
+// D&D 5E SPIRE II v2.0 — HI-BIT NATURAL PIXEL-ART BACKGROUND ENGINE (backgrounds.js)
+// - 384x216 Crisp 16:9 Hi-Bit Pixel-Art Environments (82,944 px = 5.76x finer than v1!)
 // - 1 Bespoke Lobby Scene (Waterdeep Yawning Portal Tavern & Undermountain Well)
 // - 20 Bespoke Boss-Themed Spire Scenes (5 Acts x 4 Act Bosses = 100% Unique!)
-// - Cached PNG Data URLs (generated once on demand, 0% idle CPU/GPU cost!)
+// - Hue-Shifted Masonry/Foliage/Atmosphere + Fine Bayer Dithering + Volumetric Light Shafts
 // ============================================================================
 (function () {
-  const W = 160;
-  const H = 90;
+  const LW = 160;
+  const LH = 90;
+  const SCALE = 2.4; // 160x90 logical -> 384x216 native Hi-Bit (5.76x pixel area!)
+  const W = Math.round(LW * SCALE); // 384
+  const H = Math.round(LH * SCALE); // 216
 
-  // Ordered 4x4 Bayer matrix for authentic retro pixel-art dithering gradients
+  // Ordered 4x4 Bayer matrix for authentic Hi-Bit pixel-art dithering gradients
   const BAYER4 = [
     [0, 8, 2, 10],
     [12, 4, 14, 6],
@@ -24,8 +27,8 @@
   }
 
   function hexToRgb(hex) {
-    const h = hex.replace('#', '');
-    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+    const h = (hex || '#080a12').replace('#', '');
+    return [parseInt(h.slice(0, 2), 16) || 0, parseInt(h.slice(2, 4), 16) || 0, parseInt(h.slice(4, 6), 16) || 0];
   }
   function rgbToHex(r, g, b) {
     const cl = v => Math.max(0, Math.min(255, Math.round(v)));
@@ -35,31 +38,59 @@
     const a = hexToRgb(c1), b = hexToRgb(c2);
     return rgbToHex(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t);
   }
+  function hueShade(hex, amt) {
+    const [r, g, b] = hexToRgb(hex);
+    if (amt >= 0) {
+      return rgbToHex(r + (255 - r) * amt * 1.04, g + (246 - g) * amt * 0.95, b + (220 - b) * amt * 0.78);
+    }
+    const f = 1 + amt, cool = -amt;
+    return rgbToHex(r * f * (1 - cool * 0.14), g * f * (1 - cool * 0.15), b * f + 20 * cool * (1 - b / 340));
+  }
 
-  // Integer-Grid 160x90 Pixel Background Rasterizer
+  // Native 384x216 Hi-Bit Pixel Background Rasterizer (accepts 160x90 scene coords seamlessly!)
   class PixelBgCanvas {
     constructor(w = W, h = H) {
       this.w = w;
       this.h = h;
+      this.lw = LW;
+      this.lh = LH;
       this.buf = new Array(w * h).fill('#080a12');
     }
-    px(x, y, c) {
+    rawPx(x, y, c) {
       const ix = Math.round(x), iy = Math.round(y);
-      if (ix < 0 || ix >= this.w || iy < 0 || iy >= this.h) return;
+      if (ix < 0 || ix >= this.w || iy < 0 || iy >= this.h || !c) return;
       this.buf[iy * this.w + ix] = c;
     }
+    px(x, y, c) {
+      const sx = Math.round(x * SCALE), sy = Math.round(y * SCALE);
+      this.rawPx(sx, sy, c);
+      this.rawPx(sx + 1, sy, c);
+      this.rawPx(sx, sy + 1, hueShade(c, -0.1));
+      this.rawPx(sx + 1, sy + 1, hueShade(c, -0.15));
+    }
     rect(x, y, w, h, c) {
-      const x0 = Math.max(0, Math.round(x)), y0 = Math.max(0, Math.round(y));
-      const x1 = Math.min(this.w, Math.round(x + w)), y1 = Math.min(this.h, Math.round(y + h));
+      const x0 = Math.max(0, Math.round(x * SCALE)), y0 = Math.max(0, Math.round(y * SCALE));
+      const x1 = Math.min(this.w, Math.max(x0 + 1, Math.round((x + w) * SCALE)));
+      const y1 = Math.min(this.h, Math.max(y0 + 1, Math.round((y + h) * SCALE)));
+      const hi = hueShade(c, 0.1), lo = hueShade(c, -0.12);
+      const textured = (x1 - x0 >= 8 && y1 - y0 >= 8);
       for (let yy = y0; yy < y1; yy++) {
         const off = yy * this.w;
-        for (let xx = x0; xx < x1; xx++) this.buf[off + xx] = c;
+        for (let xx = x0; xx < x1; xx++) {
+          let col = c;
+          if (textured) {
+            const n = hash2d(xx >> 1, yy >> 1, 53);
+            if (n > 0.91) col = hi;
+            else if (n < 0.08) col = lo;
+          }
+          this.buf[off + xx] = col;
+        }
       }
     }
-    // Authentic Bayer-dithered vertical gradient (multi-stop pixel sky/cavern!)
+    // Smooth 384x216 Bayer-dithered multi-stop atmospheric sky/cavern gradient!
     ditherGradY(y0, y1, palette) {
-      const top = Math.max(0, Math.round(y0));
-      const bot = Math.min(this.h, Math.round(y1));
+      const top = Math.max(0, Math.round(y0 * SCALE));
+      const bot = Math.min(this.h, Math.round(y1 * SCALE));
       const span = Math.max(1, bot - top);
       const stops = palette.length - 1;
       for (let y = top; y < bot; y++) {
@@ -67,178 +98,297 @@
         const idx = Math.min(stops - 1, Math.floor(t));
         const frac = t - idx;
         const cA = palette[idx], cB = palette[idx + 1];
+        const cM = mixHex(cA, cB, 0.5);
         const off = y * this.w;
         for (let x = 0; x < this.w; x++) {
           const thr = (BAYER4[y & 3][x & 3] + 0.5) / 16;
-          this.buf[off + x] = frac > thr ? cB : cA;
-        }
-      }
-    }
-    // Dithered radial pixel glow (for torches, moons, magic cores, lava!)
-    glow(cx, cy, r, coreCol, midCol, outerCol) {
-      const x0 = Math.max(0, Math.floor(cx - r)), x1 = Math.min(this.w - 1, Math.ceil(cx + r));
-      const y0 = Math.max(0, Math.floor(cy - r)), y1 = Math.min(this.h - 1, Math.ceil(cy + r));
-      for (let y = y0; y <= y1; y++) {
-        for (let x = x0; x <= x1; x++) {
-          const d = Math.hypot(x - cx, y - cy) / r;
-          if (d >= 1) continue;
-          const thr = (BAYER4[y & 3][x & 3] + 0.5) / 16;
-          if (d < 0.32) {
-            this.px(x, y, coreCol);
-          } else if (d < 0.62) {
-            if ((0.62 - d) / 0.3 > thr * 0.85) this.px(x, y, midCol);
-          } else if (outerCol) {
-            if ((1 - d) / 0.38 > thr) this.px(x, y, outerCol);
+          if (frac < 0.5) {
+            this.buf[off + x] = (frac * 2) > thr ? cM : cA;
+          } else {
+            this.buf[off + x] = ((frac - 0.5) * 2) > thr ? cB : cM;
           }
         }
       }
     }
-    oval(cx, cy, rx, ry, c) {
-      const x0 = Math.max(0, Math.floor(cx - rx)), x1 = Math.min(this.w - 1, Math.ceil(cx + rx));
-      const y0 = Math.max(0, Math.floor(cy - ry)), y1 = Math.min(this.h - 1, Math.ceil(cy + ry));
+    // Multi-band volumetric radial pixel glow at native 384x216!
+    glow(cx, cy, r, coreCol, midCol, outerCol) {
+      const scx = cx * SCALE, scy = cy * SCALE, sr = r * SCALE;
+      const coreMid = mixHex(coreCol, midCol, 0.45);
+      const x0 = Math.max(0, Math.floor(scx - sr)), x1 = Math.min(this.w - 1, Math.ceil(scx + sr));
+      const y0 = Math.max(0, Math.floor(scy - sr)), y1 = Math.min(this.h - 1, Math.ceil(scy + sr));
       for (let y = y0; y <= y1; y++) {
         for (let x = x0; x <= x1; x++) {
-          const nx = (x - cx) / rx, ny = (y - cy) / ry;
-          if (nx * nx + ny * ny <= 1) this.px(x, y, c);
+          const d = Math.hypot(x - scx, y - scy) / sr;
+          if (d >= 1) continue;
+          const thr = (BAYER4[y & 3][x & 3] + 0.5) / 16;
+          if (d < 0.22) {
+            this.rawPx(x, y, coreCol);
+          } else if (d < 0.44) {
+            if ((0.44 - d) / 0.22 > thr * 0.72) this.rawPx(x, y, coreMid);
+          } else if (d < 0.72) {
+            if ((0.72 - d) / 0.28 > thr * 0.8) this.rawPx(x, y, midCol);
+          } else if (outerCol) {
+            if ((1 - d) / 0.28 > thr) this.rawPx(x, y, outerCol);
+          }
+        }
+      }
+    }
+    // Smooth 3D-shaded 384x216 organic ellipse!
+    oval(cx, cy, rx, ry, c) {
+      const scx = cx * SCALE, scy = cy * SCALE;
+      const srx = Math.max(1.2, rx * SCALE), sry = Math.max(1.2, ry * SCALE);
+      const hi = hueShade(c, 0.22), lo = hueShade(c, -0.22);
+      const x0 = Math.max(0, Math.floor(scx - srx)), x1 = Math.min(this.w - 1, Math.ceil(scx + srx));
+      const y0 = Math.max(0, Math.floor(scy - sry)), y1 = Math.min(this.h - 1, Math.ceil(scy + sry));
+      for (let y = y0; y <= y1; y++) {
+        for (let x = x0; x <= x1; x++) {
+          const nx = (x - scx) / srx, ny = (y - scy) / sry;
+          const r2 = nx * nx + ny * ny;
+          if (r2 > 1) continue;
+          const thr = (BAYER4[y & 3][x & 3] - 7.5) / 30;
+          const v = -nx * 0.4 - ny * 0.55 + thr;
+          this.rawPx(x, y, v > 0.36 ? hi : v < -0.34 ? lo : c);
         }
       }
     }
     line(x0, y0, x1, y1, c, thick = 1) {
-      let ix0 = Math.round(x0), iy0 = Math.round(y0), ix1 = Math.round(x1), iy1 = Math.round(y1);
-      const dx = Math.abs(ix1 - ix0), dy = Math.abs(iy1 - iy0);
-      const sx = ix0 < ix1 ? 1 : -1, sy = iy0 < iy1 ? 1 : -1;
-      let err = dx - dy;
-      while (true) {
-        this.px(ix0, iy0, c);
-        if (thick > 1) { this.px(ix0 + 1, iy0, c); this.px(ix0, iy0 + 1, c); }
-        if (ix0 === ix1 && iy0 === iy1) break;
-        const e2 = 2 * err;
-        if (e2 > -dy) { err -= dy; ix0 += sx; }
-        if (e2 < dx) { err += dx; iy0 += sy; }
+      const sx0 = x0 * SCALE, sy0 = y0 * SCALE, sx1 = x1 * SCALE, sy1 = y1 * SCALE;
+      const r = Math.max(0.75, thick * SCALE * 0.36);
+      const hi = hueShade(c, 0.24), lo = hueShade(c, -0.2);
+      const steps = Math.max(4, Math.ceil(Math.hypot(sx1 - sx0, sy1 - sy0) * 1.3));
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const cx = sx0 + (sx1 - sx0) * t, cy = sy0 + (sy1 - sy0) * t;
+        if (r <= 0.9) {
+          this.rawPx(cx, cy, c);
+        } else {
+          for (let dy = -Math.ceil(r); dy <= Math.ceil(r); dy++) {
+            for (let dx = -Math.ceil(r); dx <= Math.ceil(r); dx++) {
+              if (dx * dx + dy * dy <= r * r) {
+                this.rawPx(cx + dx, cy + dy, dx + dy < -r * 0.4 ? hi : dx + dy > r * 0.5 ? lo : c);
+              }
+            }
+          }
+        }
       }
     }
-    // Stone brick wall texture with mortar seams & highlight top edge
+    // Fine 384x216 weathered stone brick masonry with varied stone blocks, bevels & cracks!
     brickWall(x, y, w, h, base, mortar, hi, seed = 1) {
-      this.rect(x, y, w, h, base);
-      const bh = 6, bw = 12;
-      for (let yy = y; yy < y + h; yy += bh) {
-        this.rect(x, yy, w, 1, mortar);
-        const shift = ((yy / bh) & 1) ? 6 : 0;
-        for (let xx = x + shift; xx < x + w; xx += bw) {
-          this.rect(xx, yy, 1, Math.min(bh, y + h - yy), mortar);
-          if (hash2d(xx, yy, seed) > 0.55) {
-            this.rect(xx + 1, yy + 1, Math.min(bw - 2, x + w - xx - 1), 1, hi);
+      const sx = Math.max(0, Math.round(x * SCALE)), sy = Math.max(0, Math.round(y * SCALE));
+      const ex = Math.min(this.w, Math.round((x + w) * SCALE)), ey = Math.min(this.h, Math.round((y + h) * SCALE));
+      const bh = 9, bw = 20;
+      const lo = hueShade(base, -0.18), alt = hueShade(base, 0.08);
+      for (let yy = sy; yy < ey; yy++) {
+        const row = Math.floor((yy - sy) / bh);
+        const ry = (yy - sy) % bh;
+        const shift = (row & 1) ? Math.floor(bw / 2) : 0;
+        const off = yy * this.w;
+        for (let xx = sx; xx < ex; xx++) {
+          const bx = (xx - sx + shift) % bw;
+          const colIdx = Math.floor((xx - sx + shift) / bw);
+          if (ry === 0 || bx === 0) {
+            this.buf[off + xx] = mortar;
+            continue;
           }
+          const hBrick = hash2d(colIdx, row, seed);
+          let c = hBrick > 0.68 ? alt : hBrick < 0.25 ? lo : base;
+          if (ry === 1 && bx > 1 && bx < bw - 1 && hBrick > 0.35) c = hi;
+          else if (ry === bh - 1) c = lo;
+          else if (hash2d(xx, yy, seed + 19) > 0.94) c = lo;
+          this.buf[off + xx] = c;
         }
       }
     }
-    // Perspective tiled dungeon floor
+    // Deep perspective 384x216 dungeon flagstones with specular sheen & scattered dust!
     floorTiles(yStart, c1, c2, mortar, accent = null, seed = 7) {
-      this.ditherGradY(yStart, this.h, [c1, c2]);
-      for (let y = yStart; y < this.h; y++) {
-        const depth = (y - yStart) / Math.max(1, this.h - yStart);
-        if ((y - yStart) === 0 || (y - yStart) === 5 || (y - yStart) === 12 || (y - yStart) === 21) {
-          this.rect(0, y, this.w, 1, mortar);
-        }
-        const spacing = Math.round(14 + depth * 18);
+      this.ditherGradY(yStart, LH, [c1, c2]);
+      const sy = Math.max(0, Math.round(yStart * SCALE));
+      const hi = hueShade(c1, 0.16);
+      const rowLines = [0, 7, 16, 28, 44, 64, 88];
+      for (let y = sy; y < this.h; y++) {
+        const dy = y - sy;
+        const depth = dy / Math.max(1, this.h - sy);
+        const isRow = rowLines.includes(dy);
+        const isHiRow = rowLines.includes(dy - 1);
+        const spacing = Math.max(14, Math.round(24 + depth * 46));
+        const off = y * this.w;
         for (let x = 0; x < this.w; x++) {
+          if (isRow) {
+            this.buf[off + x] = mortar;
+            continue;
+          }
           const rel = Math.abs(x - this.w / 2);
-          if (Math.round(rel) % spacing === 0 && (y - yStart) > 0) {
-            this.px(x, y, mortar);
-          } else if (accent && hash2d(x, y, seed) > 0.965) {
-            this.px(x, y, accent);
+          if (Math.round(rel) % spacing === 0 && dy > 0) {
+            this.buf[off + x] = mortar;
+          } else if (isHiRow && hash2d(x >> 1, y, seed) > 0.45) {
+            this.buf[off + x] = hi;
+          } else if (accent && hash2d(x, y, seed) > 0.985) {
+            this.buf[off + x] = accent;
           }
         }
       }
     }
-    // Gothic stone pillar with base & capital
+    // Fluted 384x216 Gothic stone pillar with 5-tone cylindrical shading & ornate capital
     pillar(x, yTop, yBot, w, dark, mid, hi) {
-      this.rect(x, yTop, w, yBot - yTop, mid);
-      this.rect(x, yTop, 2, yBot - yTop, hi);
-      this.rect(x + w - 2, yTop, 2, yBot - yTop, dark);
-      // Capital & Base
-      this.rect(x - 2, yTop, w + 4, 3, hi);
-      this.rect(x - 1, yTop + 3, w + 2, 2, dark);
-      this.rect(x - 2, yBot - 3, w + 4, 3, dark);
-      this.rect(x - 1, yBot - 4, w + 2, 1, hi);
+      const sx = Math.round(x * SCALE), sy = Math.round(yTop * SCALE), ey = Math.round(yBot * SCALE);
+      const sw = Math.max(6, Math.round(w * SCALE));
+      const spec = hueShade(hi, 0.28), deep = hueShade(dark, -0.25);
+      for (let yy = sy; yy < ey; yy++) {
+        for (let dx = 0; dx < sw; dx++) {
+          const u = dx / Math.max(1, sw - 1);
+          const flute = Math.sin(u * Math.PI * 3) * 0.16;
+          const v = (1 - u * 2) * 0.5 + flute;
+          let c = mid;
+          if (dx === 0 || v > 0.42) c = hi;
+          else if (dx === 1 && yy % 3 !== 0) c = spec;
+          else if (dx === sw - 1 || v < -0.42) c = deep;
+          else if (v < -0.12) c = dark;
+          if (hash2d(sx + dx, yy, 41) > 0.96) c = dark;
+          this.rawPx(sx + dx, yy, c);
+        }
+      }
+      // Ornate Capital & Pedestal Base
+      for (let dy = 0; dy < 7; dy++) {
+        const pad = dy < 3 ? 5 : 2;
+        const c = dy === 0 ? spec : dy < 3 ? hi : dy === 3 ? mid : dark;
+        for (let xx = sx - pad; xx < sx + sw + pad; xx++) this.rawPx(xx, sy + dy, c);
+      }
+      for (let dy = 0; dy < 7; dy++) {
+        const pad = dy > 3 ? 5 : 2;
+        const c = dy === 0 ? hi : dy < 3 ? mid : dark;
+        for (let xx = sx - pad; xx < sx + sw + pad; xx++) this.rawPx(xx, ey - 7 + dy, c);
+      }
     }
-    // Archway cutout / silhouette
+    // Crisp 384x216 Gothic archway cutout with beveled stone voussoirs
     arch(cx, yTop, yBot, rx, wallCol, trimCol) {
-      for (let y = yTop; y <= yBot; y++) {
-        for (let x = cx - rx - 3; x <= cx + rx + 3; x++) {
-          const dy = y - (yTop + rx);
-          const inArch = dy >= 0 ? Math.abs(x - cx) <= rx : ((x - cx) * (x - cx) + dy * dy <= rx * rx);
-          if (!inArch && y >= yTop && Math.abs(x - cx) <= rx + 3) {
-            const border = dy >= 0 ? Math.abs(x - cx) <= rx + 2 : ((x - cx) * (x - cx) + dy * dy <= (rx + 2) * (rx + 2));
-            this.px(x, y, border ? trimCol : wallCol);
+      const scx = cx * SCALE, syTop = Math.round(yTop * SCALE), syBot = Math.round(yBot * SCALE);
+      const srx = rx * SCALE, pad = Math.round(3 * SCALE), bPad = Math.round(2 * SCALE);
+      const trimHi = hueShade(trimCol, 0.25);
+      for (let y = syTop; y <= syBot; y++) {
+        for (let x = Math.floor(scx - srx - pad); x <= Math.ceil(scx + srx + pad); x++) {
+          const dy = y - (syTop + srx);
+          const dist2 = (x - scx) * (x - scx) + dy * dy;
+          const inArch = dy >= 0 ? Math.abs(x - scx) <= srx : dist2 <= srx * srx;
+          if (!inArch && y >= syTop && Math.abs(x - scx) <= srx + pad) {
+            const border = dy >= 0 ? Math.abs(x - scx) <= srx + bPad : dist2 <= (srx + bPad) * (srx + bPad);
+            const innerRim = dy >= 0 ? Math.abs(x - scx) <= srx + 1.5 : dist2 <= (srx + 1.5) * (srx + 1.5);
+            this.rawPx(x, y, innerRim ? trimHi : border ? trimCol : wallCol);
           }
         }
       }
     }
-    // Jagged stalactites (ceiling) or stalagmites (floor)
+    // Organic ridged 384x216 cavern stalactites / stalagmites
     stalactites(yBase, count, maxLen, col, hi, seed = 42, flip = false) {
+      const syBase = Math.round(yBase * SCALE);
+      const lo = hueShade(col, -0.28);
       for (let i = 0; i < count; i++) {
-        const cx = Math.floor((i + 0.5) * (this.w / count) + (hash2d(i, 1, seed) - 0.5) * 10);
-        const len = Math.floor(6 + hash2d(i, 2, seed) * maxLen);
-        const halfW = Math.max(2, Math.floor(len * 0.35));
+        const cx = Math.floor((i + 0.5) * (this.w / count) + (hash2d(i, 1, seed) - 0.5) * 24);
+        const len = Math.floor((6 + hash2d(i, 2, seed) * maxLen) * SCALE);
+        const halfW = Math.max(4, Math.floor(len * 0.34));
         for (let s = 0; s < len; s++) {
-          const curW = Math.max(1, Math.round(halfW * (1 - s / len)));
-          const yy = flip ? yBase - s : yBase + s;
-          this.rect(cx - curW, yy, curW * 2, 1, col);
-          if (curW > 1) this.px(cx - curW, yy, hi);
+          const t = s / len;
+          const jitter = Math.sin(s * 0.45 + i) * 1.1;
+          const curW = Math.max(1, Math.round(halfW * Math.pow(1 - t, 1.15) + jitter));
+          const yy = flip ? syBase - s : syBase + s;
+          for (let dx = -curW; dx <= curW; dx++) {
+            let c = col;
+            if (dx <= -curW + 1) c = hi;
+            else if (dx >= curW - 1) c = lo;
+            else if (hash2d(cx + dx, yy, seed) > 0.92) c = lo;
+            this.rawPx(cx + dx, yy, c);
+          }
         }
       }
     }
-    // Glowing wall torch / brazier
+    // Atmospheric 384x216 wall torch with teardrop flame, lantern sconce & floating embers!
     torch(x, y, flameCore = '#fff7cc', flameMid = '#ff9f43', glowCol = '#b33939') {
-      this.glow(x, y - 2, 15, flameCore, flameMid, glowCol);
-      this.rect(x - 1, y, 3, 5, '#4a3525');
-      this.rect(x - 2, y, 5, 2, '#7f8fa6');
-      this.rect(x - 1, y - 3, 3, 3, flameMid);
-      this.px(x, y - 4, flameCore);
-      this.px(x, y - 2, flameCore);
+      this.glow(x, y - 2, 16, flameCore, flameMid, glowCol);
+      const sx = Math.round(x * SCALE), sy = Math.round(y * SCALE);
+      // Iron wall bracket + wooden torch handle
+      for (let dy = 0; dy < 11; dy++) {
+        for (let dx = -2; dx <= 2; dx++) this.rawPx(sx + dx, sy + dy, dx < 0 ? '#6e4c36' : '#3d281a');
+      }
+      for (let dy = 0; dy < 4; dy++) {
+        for (let dx = -4; dx <= 4; dx++) this.rawPx(sx + dx, sy + dy, dy === 0 ? '#b2bec3' : '#576574');
+      }
+      // Teardrop multi-layered flame
+      for (let dy = -10; dy <= 0; dy++) {
+        const w = Math.max(1, Math.round((1 - Math.abs(dy + 3) / 8) * 3.5));
+        for (let dx = -w; dx <= w; dx++) {
+          const d = Math.hypot(dx / Math.max(1, w), (dy + 3) / 6);
+          this.rawPx(sx + dx, sy + dy, d < 0.45 ? flameCore : d < 0.85 ? flameMid : glowCol);
+        }
+      }
+      // Rising pin-prick embers
+      this.rawPx(sx - 2, sy - 14, flameCore);
+      this.rawPx(sx + 3, sy - 18, flameMid);
+      this.rawPx(sx - 1, sy - 23, flameCore);
     }
-    // Starfield speckles
+    // Pinpoint 1px 384x216 starfield with cross-glint twinkle!
     stars(yMax, count, colors, seed = 99) {
-      for (let i = 0; i < count; i++) {
+      const syMax = Math.round(yMax * SCALE);
+      const total = Math.round(count * 1.8);
+      for (let i = 0; i < total; i++) {
         const x = Math.floor(hash2d(i, 11, seed) * this.w);
-        const y = Math.floor(hash2d(i, 23, seed) * yMax);
+        const y = Math.floor(hash2d(i, 23, seed) * syMax);
         const c = colors[i % colors.length];
-        this.px(x, y, c);
+        this.rawPx(x, y, c);
         if (i % 7 === 0) {
-          this.px(x - 1, y, mixHex(c, '#0b0e17', 0.5));
-          this.px(x + 1, y, mixHex(c, '#0b0e17', 0.5));
-          this.px(x, y - 1, mixHex(c, '#0b0e17', 0.5));
-          this.px(x, y + 1, mixHex(c, '#0b0e17', 0.5));
+          const dim = mixHex(c, '#0b0e17', 0.55);
+          this.rawPx(x - 1, y, dim); this.rawPx(x + 1, y, dim);
+          this.rawPx(x, y - 1, dim); this.rawPx(x, y + 1, dim);
         }
       }
     }
-    // Hanging dungeon iron chains
+    // Ultra-fine 1px 384x216 hanging dungeon iron chains
     chain(x, y0, y1, col = '#535c68', hi = '#95a5a6') {
-      for (let y = y0; y < y1; y++) {
-        if ((y & 3) === 0) { this.px(x, y, hi); }
-        else if ((y & 3) === 2) { this.px(x - 1, y, col); this.px(x + 1, y, col); }
-        else { this.px(x, y, col); }
+      const sx = Math.round(x * SCALE), sy0 = Math.round(y0 * SCALE), sy1 = Math.round(y1 * SCALE);
+      for (let y = sy0; y < sy1; y++) {
+        const m = y % 6;
+        if (m === 0 || m === 1) { this.rawPx(sx, y, hi); }
+        else if (m === 3 || m === 4) { this.rawPx(sx - 1, y, hi); this.rawPx(sx + 1, y, col); }
+        else { this.rawPx(sx, y, col); }
       }
     }
-    // Pixel spiderweb corner
+    // Gossamer 1px 384x216 spiderweb corner
     cobweb(x0, y0, dirX, dirY, radius, col = '#dfe6e9') {
-      const rays = 5;
+      const rays = 6;
       for (let r = 0; r < rays; r++) {
         const ang = (Math.PI * 0.5 * r) / (rays - 1);
-        const ex = x0 + Math.cos(ang) * radius * dirX;
-        const ey = y0 + Math.sin(ang) * radius * dirY;
-        this.line(x0, y0, ex, ey, col, 1);
+        this.line(x0, y0, x0 + Math.cos(ang) * radius * dirX, y0 + Math.sin(ang) * radius * dirY, col, 0.5);
       }
-      for (let ring = 6; ring < radius; ring += 6) {
+      for (let ring = 5; ring < radius; ring += 5) {
         for (let r = 0; r < rays - 1; r++) {
           const a1 = (Math.PI * 0.5 * r) / (rays - 1);
           const a2 = (Math.PI * 0.5 * (r + 1)) / (rays - 1);
           this.line(
             x0 + Math.cos(a1) * ring * dirX, y0 + Math.sin(a1) * ring * dirY,
             x0 + Math.cos(a2) * ring * dirX, y0 + Math.sin(a2) * ring * dirY,
-            col, 1
+            col, 0.45
           );
+        }
+      }
+    }
+    // Subtle 384x216 Cinematic Atmosphere Pass (floating dust motes + soft vignette!)
+    addAtmosphere(accent = '#f6c967', seed = 77) {
+      const moteHi = mixHex(accent, '#ffffff', 0.45);
+      for (let i = 0; i < 36; i++) {
+        const mx = Math.floor(hash2d(i, 3, seed) * this.w);
+        const my = Math.floor(hash2d(i, 9, seed) * (this.h * 0.85));
+        this.rawPx(mx, my, i % 3 === 0 ? moteHi : accent);
+      }
+      // Subtle Bayer-dithered dark atmospheric corner vignette for readability
+      for (let y = 0; y < this.h; y++) {
+        const ny = (y / (this.h - 1)) * 2 - 1;
+        for (let x = 0; x < this.w; x++) {
+          const nx = (x / (this.w - 1)) * 2 - 1;
+          const edge = Math.hypot(nx * 0.88, ny * 0.92);
+          if (edge > 0.98) {
+            const thr = (BAYER4[y & 3][x & 3] + 0.5) / 16;
+            if ((edge - 0.98) * 1.9 > thr) {
+              this.buf[y * this.w + x] = hueShade(this.buf[y * this.w + x], -0.32);
+            }
+          }
         }
       }
     }
@@ -985,6 +1135,7 @@
     const scene = SCENES[key] || SCENES.lobby;
     const g = new PixelBgCanvas(W, H);
     scene.draw(g);
+    g.addAtmosphere(scene.accent || '#f6c967', key.length * 31 + (scene.act || 1) * 17);
     return g;
   }
 

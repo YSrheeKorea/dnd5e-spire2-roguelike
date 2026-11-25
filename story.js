@@ -11,129 +11,131 @@
 // ============================================================================
 (function () {
   // --------------------------------------------------------------------------
-  // 0. COMPACT 32x32 SD PIXEL-ART NPC SPRITE RENDERER (Matches Hero SD Style!)
+  // 0. 80x80 HI-BIT NATURAL PIXEL-ART NPC SPRITE RENDERER (6.25x FINER!)
+  //    Uses shared window.HIBIT_ART engine from sprites.js (hue-shifted shading,
+  //    Bayer 4x4 dithering, selective colored outlines & crisp 2-frame PNGs!)
   // --------------------------------------------------------------------------
-  function hexToRgb(hex) {
-    const h = hex.replace('#', '');
-    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
-  }
-  function rgbToHex(r, g, b) {
-    const cl = v => Math.max(0, Math.min(255, Math.round(v)));
-    return '#' + [cl(r), cl(g), cl(b)].map(v => v.toString(16).padStart(2, '0')).join('');
-  }
-  function shade(hex, f) {
-    const [r, g, b] = hexToRgb(hex);
-    return f > 0
-      ? rgbToHex(r + (255 - r) * f, g + (255 - g) * f, b + (255 - b) * f)
-      : rgbToHex(r * (1 + f), g * (1 + f), b * (1 + f));
+  function renderHiBitNpc(drawFn, aura = '#f6c967', motion = 'px-motion-agile') {
+    const art = typeof window !== 'undefined' ? window.HIBIT_ART : null;
+    if (!art) return '';
+    return art.renderAnimatedSprite(80, 80, (c, f) => drawFn(c, f, art), { aura, motion });
   }
 
-  class NpcCanvas {
-    constructor(w = 32, h = 32) {
-      this.w = w; this.h = h;
-      this.buf = new Array(w * h).fill(null);
-    }
-    px(x, y, c) {
-      const ix = Math.round(x), iy = Math.round(y);
-      if (ix >= 0 && ix < this.w && iy >= 0 && iy < this.h) this.buf[iy * this.w + ix] = c;
-    }
-    get(x, y) { return (x < 0 || x >= this.w || y < 0 || y >= this.h) ? null : this.buf[y * this.w + x]; }
-    rect(x, y, w, h, c) {
-      for (let dy = 0; dy < Math.round(h); dy++) for (let dx = 0; dx < Math.round(w); dx++) this.px(x + dx, y + dy, c);
-    }
-    shadedRect(x, y, w, h, base) {
-      const hi = shade(base, 0.28), lo = shade(base, -0.32);
-      const rw = Math.round(w), rh = Math.round(h);
-      for (let dy = 0; dy < rh; dy++) {
-        for (let dx = 0; dx < rw; dx++) {
-          this.px(x + dx, y + dy, dy === 0 || dx === 0 ? hi : dy === rh - 1 || dx === rw - 1 ? lo : base);
+  const NPC_DRAWERS = {
+    durnan: (c, f, art) => {
+      art.drawHiBitHeroBase(c, f, {
+        skin: '#e6b896', armor: '#784212', pauldron: '#5d3410', belt: '#2f3640',
+        trim: '#f6c967', boots: '#3d2616', eye: '#74b9ff', tunicSkirt: '#dfe6e9',
+        drawHeadgear: (c, cx, b) => {
+          // Salt-and-pepper veteran hair + thick tavern-keeper beard
+          c.hairCap(cx, 18 + b, 15.2, 8.2, '#576574');
+          c.oval(cx, 37 + b, 11.5, 6.2, '#576574', { texture: 'fur' });
+          c.oval(cx, 40 + b, 7.5, 4.2, '#8395a7', { texture: 'fur' });
+        },
+        drawGear: (c, cx, b, f) => {
+          // Veteran Greatsword strapped across back + Foaming Golden Ale Mug!
+          c.sword(cx - 21, 10 + b, 46 + b, 2.8, '#b2bec3', '#f6c967', '#5d3410');
+          c.plate(cx + 18, 43 + b - f * 2, 12, 15, '#d4a017', { metallic: true, round: 2 });
+          c.oval(cx + 24, 42 + b - f * 2, 6.5, 3.2, '#ffffff');
+          c.oval(cx + 22, 41 + b - f * 2, 3.0, 2.2, '#f5f6fa');
         }
-      }
-    }
-    oval(cx, cy, rx, ry, base, shaded = true) {
-      const hi = shaded ? shade(base, 0.28) : base, lo = shaded ? shade(base, -0.32) : base;
-      for (let y = Math.floor(cy - ry - 1); y <= Math.ceil(cy + ry + 1); y++) {
-        for (let x = Math.floor(cx - rx - 1); x <= Math.ceil(cx + rx + 1); x++) {
-          const nx = (x - cx) / rx, ny = (y - cy) / ry;
-          if (nx * nx + ny * ny <= 1) {
-            this.px(x, y, shaded ? (nx + ny < -0.55 ? hi : nx + ny > 0.55 ? lo : base) : base);
-          }
+      });
+    },
+    jaheira: (c, f, art) => {
+      art.drawHiBitHeroBase(c, f, {
+        skin: '#ecc2a0', armor: '#1e6b43', pauldron: '#14472c', cape: '#123e27',
+        belt: '#5c3c24', trim: '#f6c967', boots: '#3d281a', eye: '#2ed573', tunicSkirt: '#185936',
+        drawHeadgear: (c, cx, b) => {
+          // Silver-streaked braided Harper hair + Golden Harper Pin
+          c.hairCap(cx, 18 + b, 15.6, 9.6, '#c8d6e5', { sideLocks: 17 });
+          c.plate(cx - 3, 42 + b, 7, 7, '#f6c967', { metallic: true, round: 2 });
+        },
+        drawGear: (c, cx, b, f) => {
+          // Twin Harper Curved Scimitars
+          c.curve(cx - 19, 53 + b, cx - 28, 40 + b - f * 2, cx - 31, 24 + b - f * 2, 2.8, 1.0, '#ecf0f1', { metallic: true });
+          c.curve(cx + 19, 53 + b, cx + 28, 40 + b + f * 2, cx + 31, 24 + b + f * 2, 2.8, 1.0, '#ecf0f1', { metallic: true });
         }
-      }
-    }
-    line(x0, y0, x1, y1, c, thick = 1) {
-      let ix0 = Math.round(x0), iy0 = Math.round(y0), ix1 = Math.round(x1), iy1 = Math.round(y1);
-      const dx = Math.abs(ix1 - ix0), dy = Math.abs(iy1 - iy0);
-      const sx = ix0 < ix1 ? 1 : -1, sy = iy0 < iy1 ? 1 : -1;
-      let err = dx - dy;
-      while (true) {
-        this.px(ix0, iy0, c);
-        if (thick > 1) { this.px(ix0 + 1, iy0, c); this.px(ix0, iy0 + 1, c); }
-        if (ix0 === ix1 && iy0 === iy1) break;
-        const e2 = 2 * err;
-        if (e2 > -dy) { err -= dy; ix0 += sx; }
-        if (e2 < dx) { err += dx; iy0 += sy; }
-      }
-    }
-    eye(x, y, iris) {
-      this.px(x, y, '#12131c'); this.px(x + 1, y, '#ffffff');
-      this.px(x, y + 1, iris); this.px(x + 1, y + 1, '#12131c');
-      this.px(x, y + 2, shade(iris, 0.35)); this.px(x + 1, y + 2, iris);
-    }
-    outline(col = '#10101a') {
-      const m = [];
-      for (let y = 0; y < this.h; y++) {
-        for (let x = 0; x < this.w; x++) {
-          if (this.buf[y * this.w + x]) continue;
-          if (this.get(x - 1, y) || this.get(x + 1, y) || this.get(x, y - 1) || this.get(x, y + 1)) m.push(y * this.w + x);
+      });
+    },
+    guardian: (c, f, art) => {
+      art.drawHiBitHeroBase(c, f, {
+        skin: '#dcd6f7', armor: '#4834d4', pauldron: '#341f97', cape: '#192a56',
+        trim: '#00d2d3', boots: '#192a56', eye: '#00d2d3', metalArmor: true, tunicSkirt: '#341f97',
+        drawHeadgear: (c, cx, b) => {
+          // Flowing Violet Astral Hair + Golden Circlet
+          c.hairCap(cx, 18 + b, 16, 10, '#6c5ce7', { sideLocks: 18 });
+          c.plate(cx - 12, 18 + b, 25, 2, '#f6c967', { metallic: true });
+        },
+        drawGear: (c, cx, b, f) => {
+          // Floating Luminous 20-Sided Astral Prism!
+          const py = 33 + b - f * 4;
+          c.glow(cx + 24, py, 13, '#ffffff', '#00d2d3', '#6c5ce7');
+          c.oval(cx + 24, py, 8.2, 8.2, '#00d2d3', { metallic: true });
+          c.plate(cx + 20, py - 4, 8, 8, '#a29bfe', { metallic: true, round: 2 });
+          c.oval(cx + 23, py - 2, 2.4, 2.4, '#ffffff', { shaded: false });
         }
-      }
-      for (const idx of m) this.buf[idx] = col;
-    }
-    toRects() {
-      const out = [];
-      for (let y = 0; y < this.h; y++) {
-        let x = 0; const off = y * this.w;
-        while (x < this.w) {
-          const c = this.buf[off + x];
-          if (!c) { x++; continue; }
-          let run = 1;
-          while (x + run < this.w && this.buf[off + x + run] === c) run++;
-          out.push(`<rect x="${x}" y="${y}" width="${run}" height="1" fill="${c}"/>`);
-          x += run;
+      });
+    },
+    withers: (c, f, art) => {
+      art.drawHiBitHeroBase(c, f, {
+        skin: '#d1ccc0', armor: '#3d312a', pauldron: '#b7791f', cape: '#1e1918',
+        trim: '#f6c967', boots: '#1e1918', noEyes: true, tunicSkirt: '#2e241f',
+        drawHeadgear: (c, cx, b) => {
+          // Golden Ceremonial Hood + Serene Ancient Jergal Skull Face
+          c.oval(cx, 22 + b, 17.6, 14, '#b7791f', { metallic: true });
+          c.oval(cx, 27 + b, 12.6, 10.6, '#d1ccc0');
+          c.oval(cx - 5.5, 26 + b, 3.6, 3.2, '#10101a', { shaded: false });
+          c.oval(cx + 5.5, 26 + b, 3.6, 3.2, '#10101a', { shaded: false });
+          c.glowEye(cx - 5.5, 26 + b, '#7ed6df', 1.8);
+          c.glowEye(cx + 5.5, 26 + b, '#7ed6df', 1.8);
+        },
+        drawGear: (c, cx, b, f) => {
+          // Floating Golden Scroll of Fate
+          const sy = 40 + b - f * 3;
+          c.glow(cx + 24, sy + 6, 10, '#ffffff', '#f6e58d', '#7ed6df');
+          c.plate(cx + 18, sy, 12, 16, '#f6e58d', { round: 2, trim: '#f6c967' });
+          c.plate(cx + 17, sy - 2, 14, 3, '#b7791f', { metallic: true, round: 1 });
+          c.plate(cx + 17, sy + 15, 14, 3, '#b7791f', { metallic: true, round: 1 });
         }
-      }
-      return out.join('');
+      });
+    },
+    raphael: (c, f, art) => {
+      art.drawHiBitHeroBase(c, f, {
+        skin: '#f2d4cc', armor: '#781023', pauldron: '#4a0915', cape: '#240811',
+        trim: '#f6c967', boots: '#1c060c', eye: '#ff4757', tunicSkirt: '#5c0c1b',
+        drawHeadgear: (c, cx, b) => {
+          // Slick Aristocratic Dark Hair + Swept Crimson Cambion Horns
+          c.hairCap(cx, 17 + b, 15.2, 8.2, '#1e1e2c');
+          c.curve(cx - 11, 14 + b, cx - 20, 9 + b, cx - 23, 3 + b, 3.4, 1.0, '#ff4757');
+          c.curve(cx + 11, 14 + b, cx + 20, 9 + b, cx + 23, 3 + b, 3.4, 1.0, '#ff4757');
+        },
+        drawGear: (c, cx, b, f) => {
+          // Blazing Infernal Contract Scroll
+          const cy = 40 + b - f * 3;
+          c.plate(cx + 18, cy, 12, 15, '#ffeaa7', { round: 2, trim: '#c0392b' });
+          c.glow(cx + 24, cy - 5, 10, '#ffffff', f ? '#ff9f43' : '#ff4757', '#c0392b');
+          c.curve(cx + 24, cy, cx + 21 + f * 4, cy - 7, cx + 24, cy - 13, 4.6, 1.1, f ? '#ff9f43' : '#ff4757');
+        }
+      });
+    },
+    volo: (c, f, art) => {
+      art.drawHiBitHeroBase(c, f, {
+        skin: '#f7d2b4', armor: '#2980b9', pauldron: '#1b4f72', cape: '#154360',
+        trim: '#f6c967', boots: '#5d4037', eye: '#3498db', tunicSkirt: '#1f618d',
+        drawHeadgear: (c, cx, b, f) => {
+          // Jaunty Plumed Bard Beret + Curly Mustache
+          c.oval(cx, 17 + b, 18, 7.2, '#2980b9');
+          c.curve(cx + 8, 14 + b, cx + 20, 8 + b - f * 2, cx + 27, 2 + b - f * 2, 3.6, 1.0, '#ff6b81');
+          c.oval(cx, 35 + b, 9.5, 2.8, '#6d4c41');
+        },
+        drawGear: (c, cx, b, f) => {
+          // Leather Monster Encyclopedia + White Feather Quill
+          c.plate(cx + 18, 43 + b, 12, 15, '#8d5524', { round: 2, trim: '#f6c967' });
+          c.curve(cx + 24, 42 + b - f * 2, cx + 28, 33 + b - f * 2, cx + 32, 23 + b - f * 2, 2.2, 0.7, '#ffffff');
+        }
+      });
     }
-  }
-
-  function renderNpcSvg(drawFn, aura = '#f6c967', motion = 'px-motion-agile') {
-    const c1 = new NpcCanvas(32, 32), c2 = new NpcCanvas(32, 32);
-    drawFn(c1, 0); drawFn(c2, 1);
-    c1.outline(); c2.outline();
-    return (
-      `<svg viewBox="0 0 32 32" shape-rendering="crispEdges" class="pixel-sprite ${motion}" aria-hidden="true">` +
-      `<ellipse cx="16" cy="18" rx="13" ry="11" fill="${aura}" opacity="0.2" class="px-aura"/>` +
-      `<ellipse cx="16" cy="30" rx="9" ry="1.6" fill="rgba(0,0,0,0.5)"/>` +
-      `<g class="px-f1">${c1.toRects()}</g><g class="px-f2">${c2.toRects()}</g></svg>`
-    );
-  }
-
-  function drawNpcBody(c, f, cfg) {
-    const cx = 15, b = f;
-    if (cfg.cape) { c.oval(cx - 1 - f, 21 + b, 7.5, 6.5, cfg.cape); }
-    c.shadedRect(cx - 4, 24, 3, 5, cfg.pants || '#2f3640');
-    c.shadedRect(cx + 2, 24, 3, 5, cfg.pants || '#2f3640');
-    c.shadedRect(cx - 5, 17 + b, 11, 8, cfg.robe);
-    c.rect(cx - 5, 22 + b, 11, 2, cfg.belt || '#3d2b1f');
-    c.rect(cx - 1, 22 + b, 3, 2, cfg.trim || '#f6c967');
-    c.oval(cx, 11 + b, 6.4, 5.4, cfg.skin || '#f4cfb2');
-    if (!cfg.noEyes) {
-      c.eye(cx - 4, 10 + b, cfg.eye || '#2e86de');
-      c.eye(cx + 2, 10 + b, cfg.eye || '#2e86de');
-    }
-    if (cfg.extra) cfg.extra(c, cx, b, f);
-  }
+  };
 
   const NPCS = {
     durnan: {
@@ -143,20 +145,8 @@
       faction: '워터딥 · 전설의 은퇴 모험가',
       accent: '#f6c967',
       icon: '🍺',
-      svg: renderNpcSvg((c, f) => {
-        drawNpcBody(c, f, {
-          skin: '#e8ba98', robe: '#784212', belt: '#2f3640', trim: '#f6c967', eye: '#74b9ff',
-          extra: (c, cx, b, f) => {
-            c.rect(cx - 3, 18 + b, 7, 7, '#dfe6e9'); // tavern apron
-            c.oval(cx, 7 + b, 6.5, 3, '#576574'); // salt-and-pepper hair
-            c.oval(cx, 15 + b, 5.2, 2.8, '#576574'); // thick veteran beard
-            // Foaming Ale Mug + Greatsword on back!
-            c.line(cx - 8, 22 + b, cx - 12, 6 + b, '#b2bec3', 2);
-            c.shadedRect(cx + 8, 17 + b - f, 5, 6, '#d4a017');
-            c.rect(cx + 8, 16 + b - f, 5, 2, '#ffffff');
-          }
-        });
-      }, '#f6c967', 'px-motion-heavy')
+      motion: 'px-motion-heavy',
+      svg: ''
     },
     jaheira: {
       id: 'jaheira',
@@ -165,21 +155,8 @@
       faction: '하퍼즈(Harpers) · 드루이드 전사',
       accent: '#2ed573',
       icon: '🌿',
-      svg: renderNpcSvg((c, f) => {
-        drawNpcBody(c, f, {
-          skin: '#edc3a1', robe: '#1e6b43', cape: '#14472c', belt: '#5c3c24', trim: '#f6c967', eye: '#2ed573',
-          extra: (c, cx, b, f) => {
-            // Silver-streaked braided hair & Harper brooch
-            c.oval(cx, 7 + b, 7, 3.6, '#c8d6e5');
-            c.rect(cx - 7, 8 + b, 2, 7, '#a4b0be');
-            c.rect(cx + 6, 8 + b, 2, 7, '#a4b0be');
-            c.rect(cx - 1, 18 + b, 3, 3, '#f6c967');
-            // Twin Scimitars
-            c.line(cx - 8, 20 + b, cx - 12, 11 + b - f, '#ecf0f1', 2);
-            c.line(cx + 9, 20 + b, cx + 13, 11 + b + f, '#ecf0f1', 2);
-          }
-        });
-      }, '#2ed573', 'px-motion-agile')
+      motion: 'px-motion-agile',
+      svg: ''
     },
     guardian: {
       id: 'guardian',
@@ -188,21 +165,8 @@
       faction: '아스트랄 차원 · 프리즘의 의지',
       accent: '#a29bfe',
       icon: '🔮',
-      svg: renderNpcSvg((c, f) => {
-        drawNpcBody(c, f, {
-          skin: '#dcd6f7', robe: '#4834d4', cape: '#192a56', trim: '#00d2d3', eye: '#00d2d3',
-          extra: (c, cx, b, f) => {
-            // Silver Astral Circlet & Flowing Violet Hair
-            c.oval(cx, 7 + b, 7, 3.6, '#6c5ce7');
-            c.rect(cx - 5, 8 + b, 11, 1, '#f6c967');
-            // Floating Glowing D20 Astral Prism!
-            const py = 13 + b - f * 2;
-            c.oval(cx + 10, py, 3.8, 3.8, '#00d2d3');
-            c.rect(cx + 9, py - 1, 2, 2, '#ffffff');
-            c.px(cx + 10, py - 5, '#f6c967');
-          }
-        });
-      }, '#a29bfe', 'px-motion-float')
+      motion: 'px-motion-float',
+      svg: ''
     },
     withers: {
       id: 'withers',
@@ -211,45 +175,18 @@
       faction: '운명의 기록관 · 제르갈의 화신',
       accent: '#7ed6df',
       icon: '💀',
-      svg: renderNpcSvg((c, f) => {
-        drawNpcBody(c, f, {
-          skin: '#d1ccc0', robe: '#3d312a', cape: '#1e1918', trim: '#f6c967', noEyes: true,
-          extra: (c, cx, b, f) => {
-            // Golden Ceremonial Hood + Serene Ancient Skull Face
-            c.oval(cx, 8 + b, 7.6, 5.2, '#b7791f');
-            c.oval(cx, 11 + b, 5.2, 4.4, '#d1ccc0');
-            c.rect(cx - 4, 10 + b, 3, 2, '#10101a');
-            c.rect(cx + 2, 10 + b, 3, 2, '#10101a');
-            c.px(cx - 3, 10 + b, '#7ed6df');
-            c.px(cx + 3, 10 + b, '#7ed6df');
-            // Golden Scroll of Fate
-            c.shadedRect(cx + 8, 16 + b - f, 5, 7, '#f6e58d');
-            c.rect(cx + 8, 15 + b - f, 5, 1, '#f6c967');
-          }
-        });
-      }, '#7ed6df', 'px-motion-float')
+      motion: 'px-motion-float',
+      svg: ''
     },
     raphael: {
       id: 'raphael',
       name: '라파엘 (Raphael)',
-      title: '아베르누스 "희망의 집"의 캄비온 귀족',
+      title: '아베르누스 "희망의 집"의 캠비온 귀족',
       faction: '나인 헬 · 계약의 악마',
       accent: '#ff4757',
       icon: '😈',
-      svg: renderNpcSvg((c, f) => {
-        drawNpcBody(c, f, {
-          skin: '#f2d4cc', robe: '#781023', cape: '#240811', trim: '#f6c967', eye: '#ff4757',
-          extra: (c, cx, b, f) => {
-            // Slick Noble Dark Hair + Subtle Crimson Devil Horns!
-            c.oval(cx, 7 + b, 6.6, 3.2, '#1e1e2c');
-            c.line(cx - 5, 6 + b, cx - 9, 2 + b, '#ff4757', 2);
-            c.line(cx + 5, 6 + b, cx + 9, 2 + b, '#ff4757', 2);
-            // Flaming Infernal Contract Paper!
-            c.shadedRect(cx + 8, 15 + b - f, 5, 7, '#ffeaa7');
-            c.oval(cx + 10, 12 + b - f, 2.5, 2.5, f ? '#ff9f43' : '#ff4757');
-          }
-        });
-      }, '#ff4757', 'px-motion-float')
+      motion: 'px-motion-float',
+      svg: ''
     },
     volo: {
       id: 'volo',
@@ -258,22 +195,20 @@
       faction: '소드 코스트 · 괴짜 연대기 작가',
       accent: '#74b9ff',
       icon: '🎻',
-      svg: renderNpcSvg((c, f) => {
-        drawNpcBody(c, f, {
-          skin: '#f7d2b4', robe: '#2980b9', cape: '#1b4f72', trim: '#f6c967', eye: '#3498db',
-          extra: (c, cx, b, f) => {
-            // Jaunty Plumed Bard Beret & Mustache
-            c.oval(cx, 7 + b, 7.6, 3, '#2980b9');
-            c.line(cx + 4, 6 + b, cx + 10, 1 + b - f, '#ff6b81', 2);
-            c.rect(cx - 4, 14 + b, 9, 2, '#6d4c41');
-            // Quill & Monster Encyclopedia
-            c.shadedRect(cx + 8, 17 + b, 5, 6, '#8d5524');
-            c.line(cx + 10, 16 + b - f, cx + 13, 10 + b - f, '#ffffff', 1);
-          }
-        });
-      }, '#74b9ff', 'px-motion-agile')
+      motion: 'px-motion-agile',
+      svg: ''
     }
   };
+
+  function rebuildNpcSprites() {
+    Object.keys(NPCS).forEach(id => {
+      const npc = NPCS[id];
+      if (NPC_DRAWERS[id]) {
+        npc.svg = renderHiBitNpc(NPC_DRAWERS[id], npc.accent, npc.motion);
+      }
+    });
+  }
+  rebuildNpcSprites();
 
   // --------------------------------------------------------------------------
   // 1. 8 CLASS ORIGIN PROLOGUE LINES (Baldur's Gate 3 Companion-Inspired!)
@@ -337,7 +272,7 @@
       location: '언더다크 → 롤스의 거미 신전 → 그림포지 심연',
       speaker: '🌿 하퍼즈 사령관 자헤이라 & 🔮 꿈의 수호자',
       paragraphs: [
-        '제1계층의 차원문을 열어젖히자 빛이 닿지 않는 언더다크가 펼쳐졌다. 롤스의 거미 신전과 두에르가의 강철 용광로 그림포지 너머로, 어둠의 여신 샤(Shar)가 남긴 짙은 "그림자 저주"가 안개처럼 밀려온다.',
+        '제1계층의 차원문을 열어젖히자 빛이 닿지 않는 언더다크가 펼쳐졌다. 롤스의 거미 신전과 듀에르가의 강철 용광로 그림포지 너머로, 어둠의 여신 샤(Shar)가 남긴 짙은 "그림자 저주"가 안개처럼 밀려온다.',
         '자헤이라의 하퍼즈 정찰대가 남긴 보고서에는 충격적인 기록이 적혀 있었다. "절대자 교단이 그림포지의 용광로와 언더다크 통로를 통해 수천 개의 올챙이 표본을 달오름 탑 지하로 운반하고 있다."',
         '아스트랄 프리즘이 뜨겁게 진동한다. 언더다크의 지배자를 쓰러뜨려야만 제3계층 일리시드 군락의 봉인을 열 수 있다.'
       ],
@@ -376,7 +311,7 @@
       location: '아베르누스 혈전 평원 → 희망의 집 → 최후의 신전',
       speaker: '😈 라파엘 & 🔮 꿈의 수호자',
       paragraphs: [
-        '언더마운틴 최하층 차원문을 넘어서자 유황 불길이 타오르는 나인 헬 제1계층 아베르누스가 눈앞에 펼쳐진다. 카서스의 왕관을 노리는 악마 라파엘과 아스모데우스, 타락 천사 자리에르, 그리고 차원 균열 너머에서 깨어난 티아마트가 최종 전장에 집결했다.',
+        '언더마운틴 최하층 차원문을 넘어서자 유황 불길이 타오르는 나인 헬 제1계층 아베르누스가 눈앞에 펼쳐진다. 카서스의 왕관을 노리는 악마 라파엘과 아스모데우스, 타락 천사 자리엘, 그리고 차원 균열 너머에서 깨어난 티아마트가 최종 전장에 집결했다.',
         '라파엘이 웃으며 마지막 유혹을 건네지만, 아스트랄 프리즘은 이제 당신의 의지와 완벽히 공명하며 눈부신 빛을 내뿜는다.',
         '"노틸로이드에서 시작된 여정의 마지막 페이지다. 올챙이의 저주도, 절대자의 음모도, 바알스폰의 숙명도 — 지금 이 검과 주문으로 끝내라!"'
       ],
@@ -464,7 +399,7 @@
         lines: [
           {
             speaker: 'npc', npcId: 'jaheira',
-            text: '"제1계층 고블린 성채를 뚫었군! 하지만 진짜 시련은 지금부터야. 차원문 너머 여기는 언더다크 — 롤스의 거미 신전과 두에르가의 그림포지 용광로가 있는 어둠의 땅이다."'
+            text: '"제1계층 고블린 성채를 뚫었군! 하지만 진짜 시련은 지금부터야. 차원문 너머 여기는 언더다크 — 롤스의 거미 신전과 듀에르가의 그림포지 용광로가 있는 어둠의 땅이다."'
           },
           {
             speaker: 'npc', npcId: 'raphael',
@@ -571,7 +506,7 @@
       lines: [
         {
           speaker: 'npc', npcId: 'raphael',
-          text: '"환영하네, 영웅이여! 드디어 마지막 무대 — 나인 헬 제1계층 아베르누스까지 당도했군. 내 희망의 집과 타락 천사 자리에르, 그리고 오색룡 티아마트가 기다리는 지옥의 심연이지."'
+          text: '"환영하네, 영웅이여! 드디어 마지막 무대 — 나인 헬 제1계층 아베르누스까지 당도했군. 내 희망의 집과 타락 천사 자리엘, 그리고 오색룡 티아마트가 기다리는 지옥의 심연이지."'
         },
         {
           speaker: 'npc', npcId: 'guardian',
@@ -755,7 +690,7 @@
               {
                 label: '🔥 "악마와는 거래하지 않는다. 5층에서 보자."',
                 replySpeaker: 'npc', replyNpcId: 'raphael',
-                reply: '"훌륭한 패기야! 자리에르와 티아마트 앞에서 그 기세가 얼마나 버틸지 기대하겠네!"'
+                reply: '"훌륭한 패기야! 자리엘과 티아마트 앞에서 그 기세가 얼마나 버틸지 기대하겠네!"'
               }
             ]
           }
@@ -776,9 +711,9 @@
             text: '"수술이 싫다면 내가 조사한 보스 생태 정보라도 들어보게!"',
             choices: [
               {
-                label: '👁️ "1층 보스 재나타의 약점이 있나요?"',
+                label: '👁️ "1층 보스 자나사르의 약점이 있나요?"',
                 replySpeaker: 'npc', replyNpcId: 'volo',
-                reply: '"비홀더 재나타는 자기 금붕어 \'실가\'를 끔찍이 아끼지! 전투할 땐 매 턴 공격력이 오르는 격노 패턴이 무서우니, 방어와 폭딜 타이밍을 잘 재야 살아남는다네!"'
+                reply: '"비홀더 자나사르는 자기 금붕어 \'실가\'를 끔찍이 아끼지! 전투할 땐 매 턴 공격력이 오르는 격노 패턴이 무서우니, 방어와 폭딜 타이밍을 잘 재야 살아남는다네!"'
               },
               {
                 label: '📖 "볼로, 제 모험을 멋지게 기록해 주세요!"',
@@ -816,7 +751,7 @@
     tiamat_dragon_queen: '"다섯 개의 머리가 지옥의 하늘을 찢는다! 아베르누스의 불꽃과 오색의 숨결 앞에서 필멸자의 오만을 불태워라!"',
     asmodeus_lord_of_ninth: '"라파엘 따위가 탐내던 카서스의 왕관과 네 영혼… 이제 나인 헬의 진정한 주인 앞에서 최종 계약서에 서명할 시간이다."',
     demogorgon_prince: '"아민과 헤슬라디아 두 머리가 광기의 합창을 울린다! 심연의 소용돌이 속에서 이성을 잃고 산산조각 나라!"',
-    halaster_mad_mage: '"하하하! 발더스 게이트에서 언더마운틴, 아베르누스까지 잘도 기어 올라왔구나! 내 차원 균열 비전탑의 마지막 실험체가 되어라!"'
+    halaster_mad_mage: '"하하하! 절대자 교단이 내 언더마운틴의 차원문을 훔쳐 아베르누스까지 이어붙였더군! 네놈이 그 혼돈을 끝낼 자격이 있는지, 이 미궁의 주인 할라스터가 직접 시험해주마!"'
   };
 
   // --------------------------------------------------------------------------
@@ -837,7 +772,7 @@
     {
       id: 'bg3_raphael_house_of_hope',
       npcId: 'raphael',
-      title: '😈 [BG3 스토리] 캄비온 라파엘의 붉은 만찬',
+      title: '😈 [BG3 스토리] 캠비온 라파엘의 붉은 만찬',
       desc: '손가락을 튕기는 경쾌한 소리와 함께 붉은 유황 연기가 피어오른다. 화려한 귀족 복장의 악마 라파엘이 진수성찬과 함께 피로 적힌 계약서를 내민다. "쥐구멍에 갇힌 생쥐처럼 헤매는군. 자, 내가 힘을 빌려주지 — 대가는 아주 사소한 서명 하나뿐이야."',
       choices: [
         { label: '📜 라파엘의 지옥 계약서에 서명한다 (HP -8, 고등급 희귀/전설 카드 선택!)', type: 'guaranteed', effect: 'hp_for_rare_draft' },
@@ -1006,7 +941,7 @@
         2: { name: '제2계층: 언더다크 & 롤스의 거미 신전', subtitle: '그림포지와 샤의 그림자 저주가 드리운 지하 세계 (Stage 1~15)' },
         3: { name: '제3계층: 달오름 탑 지하 일리시드 군락', subtitle: '카서스의 왕관에 속박된 엘더 브레인과 네더스톤의 진실 (Stage 1~15)' },
         4: { name: '제4계층: 섀도우펠 & 바알스폰의 무덤', subtitle: 'BG1·BG2 바알스폰의 유산과 아세라락의 공포의 무덤 (Stage 1~15)' },
-        5: { name: '제5계층: 나인 헬 아베르누스 & 최후의 신전', subtitle: '라파엘의 희망의 집, 자리에르, 그리고 오색룡 티아마트 결전 (Stage 1~15)' }
+        5: { name: '제5계층: 나인 헬 아베르누스 & 최후의 신전', subtitle: '라파엘의 희망의 집, 자리엘, 그리고 오색룡 티아마트 결전 (Stage 1~15)' }
       };
       gameData.acts.forEach(a => {
         if (actTitles[a.act]) { a.name = actTitles[a.act].name; a.subtitle = actTitles[a.act].subtitle; }
@@ -1023,6 +958,7 @@
 
   window.STORY_ENGINE = {
     NPCS,
+    rebuildNpcSprites,
     CLASS_ORIGINS,
     ACT_CHAPTERS,
     VICTORY_EPILOGUE,

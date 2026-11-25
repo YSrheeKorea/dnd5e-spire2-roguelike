@@ -1,28 +1,65 @@
 // ============================================================================
-// D&D 5E SPIRE II — FINE SD DEFORMED PIXEL-ART ENGINE (sprites.js)
-// - 32x32 High-Detail SD (2.5-Head Chibi) Pixel Art for All 8 Heroes & 62 Enemies
-// - 40x40 Ultra-Detail SD Pixel Art for All 20 Act Bosses & Midbosses
-// - 3-Tone Cel Shading + Crisp 1px Ink Outlines + Expressive Anime Eyes + 2-Frame Motion
-// - 90/90 100% Unique Sprites (ZERO duplicates!)
+// D&D 5E SPIRE II v2.0 — HI-BIT NATURAL PIXEL-ART ENGINE (sprites.js)
+// - 80x80 Hi-Bit Pixel Art (6,400 px = 6.25x finer than v1 32x32!) for 8 Heroes & 62 Monsters
+// - 96x96 Ultra-Detail Hi-Bit Pixel Art (9,216 px = 5.76x finer than v1 40x40!) for 20 Bosses
+// - 5-Tone Hue-Shifted Color Ramps + Ordered Bayer 4x4 Dithering + Rim Lighting
+// - Selective Colored Outlines (Sel-Out) + Expressive 6x7 Hi-Bit Eyes + Organic Tapered Anatomy
+// - Blazing-Fast Offscreen Canvas -> Crisp Pixelated PNG 2-Frame Sprites (90/90 100% Unique!)
 // ============================================================================
 (function () {
-  // Color shading helpers (auto-generate crisp pixel highlight & deep shadow tones!)
-  function hexToRgb(hex) {
-    const h = hex.replace('#', '');
-    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+  const BAYER4 = [
+    [0, 8, 2, 10],
+    [12, 4, 14, 6],
+    [3, 11, 1, 9],
+    [15, 7, 13, 5]
+  ];
+
+  function clamp(v, lo = 0, hi = 255) {
+    return v < lo ? lo : v > hi ? hi : Math.round(v);
   }
+
+  function hexToRgb(hex) {
+    const h = (hex || '#808080').replace('#', '');
+    return [
+      parseInt(h.slice(0, 2), 16) || 0,
+      parseInt(h.slice(2, 4), 16) || 0,
+      parseInt(h.slice(4, 6), 16) || 0
+    ];
+  }
+
   function rgbToHex(r, g, b) {
-    const clamp = v => Math.max(0, Math.min(255, Math.round(v)));
     return '#' + [clamp(r), clamp(g), clamp(b)].map(v => v.toString(16).padStart(2, '0')).join('');
   }
-  function shade(hex, factor) {
+
+  // Painterly Hue-Shifted Shading (warm golden highlights, cool indigo/plum shadows!)
+  function hueShade(hex, amt) {
     const [r, g, b] = hexToRgb(hex);
-    if (factor > 0) {
-      return rgbToHex(r + (255 - r) * factor, g + (255 - g) * factor, b + (255 - b) * factor);
+    if (amt >= 0) {
+      return rgbToHex(
+        r + (255 - r) * amt * 1.05,
+        g + (248 - g) * amt * 0.96,
+        b + (222 - b) * amt * 0.78
+      );
     }
-    const f = 1 + factor;
-    return rgbToHex(r * f, g * f, b * f);
+    const f = 1 + amt; // 0..1
+    const cool = -amt;
+    return rgbToHex(
+      r * f * (1 - cool * 0.14),
+      g * f * (1 - cool * 0.16),
+      b * f + 24 * cool * (1 - b / 340)
+    );
   }
+
+  function makeRamp(baseHex) {
+    return {
+      spec: hueShade(baseHex, 0.56),
+      hi: hueShade(baseHex, 0.26),
+      base: baseHex,
+      lo: hueShade(baseHex, -0.28),
+      deep: hueShade(baseHex, -0.54)
+    };
+  }
+
   function hashStr(s) {
     let h = 2166136261;
     for (let i = 0; i < s.length; i++) {
@@ -32,970 +69,1175 @@
     return h >>> 0;
   }
 
-  // Integer-Grid Pixel Art Canvas (zero blur, 3-tone shading, automatic 1px outline!)
-  class PixelCanvas {
+  function hash2d(x, y, seed = 17) {
+    let h = (x * 374761393 + y * 668265263 + seed * 1442695041) | 0;
+    h = Math.imul(h ^ (h >>> 13), 1274126177);
+    return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+  }
+
+  // Shared reusable offscreen canvas for fast PNG export in browser
+  let _sharedCanvas = null;
+  let _sharedCtx = null;
+  function getExportCanvas(w, h) {
+    if (typeof document === 'undefined' || typeof document.createElement !== 'function') return null;
+    if (!_sharedCanvas) {
+      _sharedCanvas = document.createElement('canvas');
+      _sharedCtx = _sharedCanvas.getContext ? _sharedCanvas.getContext('2d') : null;
+    }
+    if (!_sharedCtx) return null;
+    if (_sharedCanvas.width !== w || _sharedCanvas.height !== h) {
+      _sharedCanvas.width = w;
+      _sharedCanvas.height = h;
+    }
+    return { canvas: _sharedCanvas, ctx: _sharedCtx };
+  }
+
+  // ==========================================================================
+  // HI-BIT NATURAL PIXEL CANVAS (80x80 / 96x96 RGBA Buffer + Hue-Shifted Primitives)
+  // ==========================================================================
+  class HiBitCanvas {
     constructor(w, h) {
       this.w = w;
       this.h = h;
-      this.buf = new Array(w * h).fill(null);
+      this.data = new Uint8ClampedArray(w * h * 4);
+      this._rgbCache = {};
     }
-    px(x, y, c) {
+
+    _rgb(hex) {
+      let c = this._rgbCache[hex];
+      if (!c) {
+        c = hexToRgb(hex);
+        this._rgbCache[hex] = c;
+      }
+      return c;
+    }
+
+    px(x, y, hex, alpha = 255) {
       const ix = Math.round(x), iy = Math.round(y);
-      if (ix < 0 || ix >= this.w || iy < 0 || iy >= this.h) return;
-      this.buf[iy * this.w + ix] = c;
-    }
-    get(x, y) {
-      if (x < 0 || x >= this.w || y < 0 || y >= this.h) return null;
-      return this.buf[y * this.w + x];
-    }
-    rect(x, y, w, h, c) {
-      const x0 = Math.round(x), y0 = Math.round(y);
-      for (let dy = 0; dy < Math.round(h); dy++) {
-        for (let dx = 0; dx < Math.round(w); dx++) this.px(x0 + dx, y0 + dy, c);
+      if (ix < 0 || ix >= this.w || iy < 0 || iy >= this.h || !hex) return;
+      const [r, g, b] = this._rgb(hex);
+      const off = (iy * this.w + ix) * 4;
+      if (alpha >= 255 || this.data[off + 3] === 0) {
+        this.data[off] = r;
+        this.data[off + 1] = g;
+        this.data[off + 2] = b;
+        this.data[off + 3] = alpha;
+      } else {
+        const a = alpha / 255;
+        const ia = 1 - a;
+        this.data[off] = clamp(r * a + this.data[off] * ia);
+        this.data[off + 1] = clamp(g * a + this.data[off + 1] * ia);
+        this.data[off + 2] = clamp(b * a + this.data[off + 2] * ia);
+        this.data[off + 3] = Math.min(255, Math.round(this.data[off + 3] + alpha * ia));
       }
     }
-    shadedRect(x, y, w, h, base) {
-      const hi = shade(base, 0.28), lo = shade(base, -0.32);
-      const x0 = Math.round(x), y0 = Math.round(y), rw = Math.round(w), rh = Math.round(h);
+
+    hasPx(x, y) {
+      if (x < 0 || x >= this.w || y < 0 || y >= this.h) return false;
+      return this.data[(y * this.w + x) * 4 + 3] > 20;
+    }
+
+    getRgb(x, y) {
+      if (x < 0 || x >= this.w || y < 0 || y >= this.h) return null;
+      const off = (y * this.w + x) * 4;
+      if (this.data[off + 3] <= 20) return null;
+      return [this.data[off], this.data[off + 1], this.data[off + 2]];
+    }
+
+    rect(x, y, w, h, hex, alpha = 255) {
+      const x0 = Math.round(x), y0 = Math.round(y);
+      const rw = Math.round(w), rh = Math.round(h);
+      for (let dy = 0; dy < rh; dy++) {
+        for (let dx = 0; dx < rw; dx++) this.px(x0 + dx, y0 + dy, hex, alpha);
+      }
+    }
+
+    // 3D-lit beveled armor plate / tunic / shield with subtle Bayer gradient & specular rim
+    plate(x, y, w, h, baseHex, opts = {}) {
+      const ramp = makeRamp(baseHex);
+      const x0 = Math.round(x), y0 = Math.round(y);
+      const rw = Math.max(1, Math.round(w)), rh = Math.max(1, Math.round(h));
+      const round = opts.round || 0;
+      const metallic = !!opts.metallic;
       for (let dy = 0; dy < rh; dy++) {
         for (let dx = 0; dx < rw; dx++) {
-          let c = base;
-          if (dy === 0 || dx === 0) c = hi;
-          else if (dy === rh - 1 || dx === rw - 1) c = lo;
-          this.px(x0 + dx, y0 + dy, c);
+          if (round > 0) {
+            const cx = dx < round ? round - dx : dx >= rw - round ? dx - (rw - round - 1) : 0;
+            const cy = dy < round ? round - dy : dy >= rh - round ? dy - (rh - round - 1) : 0;
+            if (cx * cx + cy * cy > round * round + 0.5) continue;
+          }
+          const nx = (dx / Math.max(1, rw - 1)) * 2 - 1;
+          const ny = (dy / Math.max(1, rh - 1)) * 2 - 1;
+          const light = -nx * 0.45 - ny * 0.55;
+          const thr = (BAYER4[(y0 + dy) & 3][(x0 + dx) & 3] - 7.5) / 36;
+          const val = light + thr;
+          let col = ramp.base;
+          if (dy === 0 || (dx === 0 && dy < rh - 1)) col = metallic ? ramp.spec : ramp.hi;
+          else if (dy === rh - 1 || dx === rw - 1) col = ramp.deep;
+          else if (metallic && Math.abs(nx + ny + 0.35) < 0.22) col = ramp.spec;
+          else if (val > 0.34) col = ramp.hi;
+          else if (val < -0.32) col = ramp.lo;
+          if (opts.texture && hash2d(x0 + dx, y0 + dy, 31) > 0.86) {
+            col = val > 0 ? ramp.hi : ramp.lo;
+          }
+          this.px(x0 + dx, y0 + dy, col);
         }
       }
+      if (opts.trim) {
+        this.rect(x0 + 1, y0 + rh - 2, rw - 2, 1, opts.trim);
+      }
     }
-    oval(cx, cy, rx, ry, base, shaded = true) {
-      const hi = shaded ? shade(base, 0.3) : base;
-      const lo = shaded ? shade(base, -0.34) : base;
+
+    // Spherical 3D-lit natural oval with Bayer 4x4 dithering, specular highlight & rim bounce
+    oval(cx, cy, rx, ry, baseHex, opts = {}) {
+      const ramp = makeRamp(baseHex);
+      const shaded = opts.shaded !== false;
+      const metallic = !!opts.metallic;
+      const dither = opts.dither !== false;
+      const tex = opts.texture || null; // 'scale' | 'fur' | 'stone'
       const x0 = Math.floor(cx - rx - 1), x1 = Math.ceil(cx + rx + 1);
       const y0 = Math.floor(cy - ry - 1), y1 = Math.ceil(cy + ry + 1);
       for (let y = y0; y <= y1; y++) {
         for (let x = x0; x <= x1; x++) {
-          const nx = (x - cx) / rx, ny = (y - cy) / ry;
-          const d = nx * nx + ny * ny;
-          if (d <= 1.0) {
-            let c = base;
-            if (shaded) {
-              if (nx + ny < -0.58) c = hi;
-              else if (nx + ny > 0.55) c = lo;
-            }
-            this.px(x, y, c);
+          const nx = (x - cx) / rx;
+          const ny = (y - cy) / ry;
+          const r2 = nx * nx + ny * ny;
+          if (r2 > 1.0) continue;
+          if (!shaded) {
+            this.px(x, y, baseHex, opts.alpha || 255);
+            continue;
           }
+          const nz = Math.sqrt(Math.max(0, 1 - r2));
+          let light = -nx * 0.52 - ny * 0.62 + nz * 0.56;
+          // Subtle rim bounce on bottom-right edge
+          if (r2 > 0.72 && nx + ny > 0.45) light += 0.18;
+          if (tex === 'scale') {
+            const sc = ((x >> 1) + ((y >> 1) & 1)) & 1;
+            if ((y % 3 === 0 && sc) || (x % 3 === 0 && !sc)) light -= 0.18;
+          } else if (tex === 'fur') {
+            light += (hash2d(x, y >> 1, 73) - 0.5) * 0.34;
+          } else if (tex === 'stone') {
+            light += (hash2d(x, y, 91) - 0.5) * 0.28;
+          }
+          const b = dither ? (BAYER4[y & 3][x & 3] - 7.5) / 28 : 0;
+          const v = light + b;
+          let col = ramp.base;
+          if (v > (metallic ? 0.88 : 1.02)) col = ramp.spec;
+          else if (v > 0.58) col = ramp.hi;
+          else if (v < 0.02) col = ramp.deep;
+          else if (v < 0.26) col = ramp.lo;
+          this.px(x, y, col, opts.alpha || 255);
         }
       }
     }
-    line(x0, y0, x1, y1, c, thick = 1) {
-      let ix0 = Math.round(x0), iy0 = Math.round(y0), ix1 = Math.round(x1), iy1 = Math.round(y1);
-      const dx = Math.abs(ix1 - ix0), dy = Math.abs(iy1 - iy0);
-      const sx = ix0 < ix1 ? 1 : -1, sy = iy0 < iy1 ? 1 : -1;
-      let err = dx - dy;
-      while (true) {
-        this.px(ix0, iy0, c);
-        if (thick > 1) { this.px(ix0 + 1, iy0, c); this.px(ix0, iy0 + 1, c); }
-        if (ix0 === ix1 && iy0 === iy1) break;
-        const e2 = 2 * err;
-        if (e2 > -dy) { err -= dy; ix0 += sx; }
-        if (e2 < dx) { err += dx; iy0 += sy; }
+
+    // Tapered organic limb / horn / tentacle / wing bone / dragon neck
+    capsule(x0, y0, x1, y1, r0, r1, baseHex, opts = {}) {
+      const ramp = makeRamp(baseHex);
+      const steps = Math.max(6, Math.ceil(Math.hypot(x1 - x0, y1 - y0) * 1.5));
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const cx = x0 + (x1 - x0) * t;
+        const cy = y0 + (y1 - y0) * t;
+        const r = r0 + (r1 - r0) * t;
+        if (r <= 0.75) {
+          this.px(cx, cy, t < 0.5 ? ramp.hi : ramp.base);
+        } else {
+          this.oval(cx, cy, r, r, baseHex, { shaded: opts.shaded !== false, metallic: opts.metallic, texture: opts.texture });
+        }
       }
     }
-    // Crisp Chibi/SD Anime Eye (2x3 with white specular glint!)
-    chibiEye(x, y, iris, dark = '#12131c', blink = false) {
-      if (blink) {
-        this.rect(x, y + 1, 2, 1, dark);
-        return;
+
+    // Curved quadratic bezier stroke with taper (great for capes, horns, tendrils, hair locks!)
+    curve(x0, y0, cx, cy, x1, y1, r0, r1, baseHex, opts = {}) {
+      const steps = Math.max(10, Math.ceil((Math.hypot(cx - x0, cy - y0) + Math.hypot(x1 - cx, y1 - cy)) * 1.4));
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const it = 1 - t;
+        const px = it * it * x0 + 2 * it * t * cx + t * t * x1;
+        const py = it * it * y0 + 2 * it * t * cy + t * t * y1;
+        const r = r0 + (r1 - r0) * t;
+        if (r <= 0.8) this.px(px, py, baseHex);
+        else this.oval(px, py, r, r, baseHex, { shaded: opts.shaded !== false, metallic: opts.metallic });
       }
-      this.px(x, y, dark);
-      this.px(x + 1, y, '#ffffff'); // specular glint
-      this.px(x, y + 1, iris);
-      this.px(x + 1, y + 1, dark);
-      this.px(x, y + 2, shade(iris, 0.35));
-      this.px(x + 1, y + 2, iris);
     }
+
+    // Flowing draped fantasy cape with vertical cloth folds & trim hem
+    cape(cx, topY, botY, topW, botW, baseHex, sway = 0, trimHex = null) {
+      const ramp = makeRamp(baseHex);
+      const h = Math.max(4, Math.round(botY - topY));
+      for (let dy = 0; dy <= h; dy++) {
+        const t = dy / h;
+        const y = Math.round(topY + dy);
+        const halfW = (topW + (botW - topW) * Math.pow(t, 0.85)) * 0.5;
+        const shift = sway * t * t;
+        const xStart = Math.round(cx - halfW + shift);
+        const xEnd = Math.round(cx + halfW + shift);
+        for (let x = xStart; x <= xEnd; x++) {
+          const u = (x - (cx + shift)) / Math.max(1, halfW); // -1..1
+          const fold = Math.sin(u * 7.5 + t * 1.6);
+          const thr = (BAYER4[y & 3][x & 3] - 7.5) / 28;
+          const v = fold * 0.48 - t * 0.25 - u * 0.2 + thr;
+          let col = ramp.base;
+          if (v > 0.35) col = ramp.hi;
+          else if (v < -0.35) col = ramp.deep;
+          else if (v < -0.08) col = ramp.lo;
+          if (trimHex && dy >= h - 2 && dy <= h - 1) col = trimHex;
+          this.px(x, y, col);
+        }
+      }
+    }
+
+    // Detailed tapered fantasy blade / greatsword / runeblade with fuller & crossguard
+    sword(cx, topY, botY, halfW, bladeHex, guardHex, gripHex, glowHex = null) {
+      const ramp = makeRamp(bladeHex);
+      const len = Math.max(8, Math.round(botY - topY));
+      const tipLen = Math.max(4, Math.round(halfW * 2.4));
+      for (let dy = 0; dy < len; dy++) {
+        const y = Math.round(topY + dy);
+        const wFactor = dy < tipLen ? Math.max(0.25, dy / tipLen) : 1.0;
+        const hw = Math.max(1, Math.round(halfW * wFactor));
+        for (let dx = -hw; dx <= hw; dx++) {
+          let col = dx < 0 ? ramp.spec : dx === 0 ? ramp.base : ramp.lo;
+          if (dx === -hw) col = '#ffffff';
+          if (glowHex && dx === 0 && dy > tipLen && dy < len - 3 && (dy % 3 !== 0)) col = glowHex;
+          this.px(cx + dx, y, col);
+        }
+      }
+      // Crossguard + Pommel
+      this.plate(cx - halfW * 2.8, botY, halfW * 5.6 + 1, 3, guardHex, { metallic: true, round: 1 });
+      this.plate(cx - 1.5, botY + 3, 3, 7, gripHex, { round: 1 });
+      this.oval(cx, botY + 11, 2.3, 2.1, guardHex, { metallic: true });
+    }
+
+    // Soft radial magical/fire glow with Bayer dithering
+    glow(cx, cy, r, coreHex, midHex, outerHex = null) {
+      const x0 = Math.max(0, Math.floor(cx - r)), x1 = Math.min(this.w - 1, Math.ceil(cx + r));
+      const y0 = Math.max(0, Math.floor(cy - r)), y1 = Math.min(this.h - 1, Math.ceil(cy + r));
+      for (let y = y0; y <= y1; y++) {
+        for (let x = x0; x <= x1; x++) {
+          const d = Math.hypot(x - cx, y - cy) / r;
+          if (d >= 1) continue;
+          const thr = (BAYER4[y & 3][x & 3] + 0.5) / 16;
+          if (d < 0.28) this.px(x, y, coreHex, 235);
+          else if (d < 0.62 && (0.62 - d) / 0.34 > thr * 0.7) this.px(x, y, midHex, 170);
+          else if (outerHex && (1 - d) / 0.38 > thr * 0.85) this.px(x, y, outerHex, 105);
+        }
+      }
+    }
+
+    // Expressive 6x7 Hi-Bit Anime/Fantasy Eye (upper lash, sclera, 3-tone iris, dual catchlights!)
+    hiBitEye(x, y, irisHex, opts = {}) {
+      const ix = Math.round(x), iy = Math.round(y);
+      const lash = opts.lash || '#181425';
+      const ramp = makeRamp(irisHex);
+      // Curved upper lash
+      this.rect(ix, iy, 5, 1, lash);
+      this.px(ix - 1, iy + 1, lash);
+      this.px(ix + 5, iy + 1, lash);
+      // Sclera background
+      this.rect(ix, iy + 1, 5, 5, '#f4f6fc');
+      this.rect(ix, iy + 1, 5, 1, '#d3dae8'); // upper sclera shadow
+      // 3-tone Iris (3x4)
+      const ox = opts.lookRight ? ix + 1 : ix + 1;
+      this.rect(ox, iy + 1, 3, 1, ramp.deep);
+      this.rect(ox, iy + 2, 3, 2, ramp.base);
+      this.rect(ox, iy + 4, 3, 1, ramp.hi);
+      // Pupil
+      this.rect(ox + 1, iy + 2, 1, 2, '#11101b');
+      // Dual specular catchlights
+      this.px(ox, iy + 2, '#ffffff');
+      this.px(ox + 2, iy + 4, ramp.spec);
+      // Subtle lower lash hint
+      this.rect(ix + 1, iy + 6, 3, 1, hueShade(lash, 0.22), 140);
+    }
+
     // Fierce Glowing Monster Eye
-    glowEye(x, y, color, big = false) {
-      if (big) {
-        this.rect(x, y, 3, 2, color);
-        this.px(x + 1, y, '#ffffff');
-      } else {
-        this.rect(x, y, 2, 2, color);
-        this.px(x, y, '#ffffff');
+    glowEye(x, y, colHex, r = 2.6) {
+      this.glow(x, y, r * 1.9, '#ffffff', colHex, hueShade(colHex, -0.35));
+      this.oval(x, y, r, r * 0.85, colHex, { shaded: false });
+      this.px(x - 0.6, y - 0.5, '#ffffff');
+      this.px(x + 0.4, y - 0.5, '#ffffff');
+    }
+
+    // Natural Layered Hair Cap with Specular Halo Band & Flowing Bangs
+    hairCap(cx, cy, rx, ry, baseHex, opts = {}) {
+      const ramp = makeRamp(baseHex);
+      const x0 = Math.floor(cx - rx - 2), x1 = Math.ceil(cx + rx + 2);
+      const y0 = Math.floor(cy - ry - 2), y1 = Math.ceil(cy + ry + 3);
+      for (let y = y0; y <= y1; y++) {
+        for (let x = x0; x <= x1; x++) {
+          const nx = (x - cx) / rx;
+          const ny = (y - cy) / ry;
+          const strand = Math.sin((x - cx) * 0.9) * 0.14;
+          if (ny > 0.35 && Math.abs(nx) < 0.72) {
+            // Parted anime bangs hanging down over forehead
+            const bangEnd = 0.42 + Math.abs(Math.sin((x - cx) * 0.55)) * 0.55;
+            if (ny > bangEnd) continue;
+          }
+          if (nx * nx + ny * ny > 1.0 + strand) continue;
+          let col = ramp.base;
+          // Bright curved anime specular hair sheen!
+          if (ny > -0.58 && ny < -0.22 && Math.abs(nx) < 0.72 && ((x + y) & 1 || Math.abs(ny + 0.4) < 0.1)) {
+            col = ramp.spec;
+          } else if (ny < -0.15) {
+            col = ramp.hi;
+          } else if (ny > 0.35 || Math.abs(nx) > 0.75) {
+            col = ramp.lo;
+          }
+          if ((x - cx) % 4 === 0 && ny > -0.1) col = ramp.deep;
+          this.px(x, y, col);
+        }
+      }
+      if (opts.sideLocks) {
+        const len = opts.sideLocks;
+        this.curve(cx - rx + 1, cy, cx - rx - 2, cy + len * 0.5, cx - rx + 1, cy + len, 2.8, 1.3, baseHex);
+        this.curve(cx + rx - 1, cy, cx + rx + 2, cy + len * 0.5, cx + rx - 1, cy + len, 2.8, 1.3, baseHex);
       }
     }
-    // Crisp 1px dark outline around entire painted silhouette (MapleStory / Guardian Tales style!)
-    outline(color = '#12101c') {
-      const toMark = [];
-      for (let y = 0; y < this.h; y++) {
-        for (let x = 0; x < this.w; x++) {
-          if (this.buf[y * this.w + x] !== null) continue;
-          if (
-            this.get(x - 1, y) !== null ||
-            this.get(x + 1, y) !== null ||
-            this.get(x, y - 1) !== null ||
-            this.get(x, y + 1) !== null
-          ) {
-            toMark.push(y * this.w + x);
+
+    // Selective Colored Outline (Sel-Out): naturally darkens & cool-shifts adjacent pixel color!
+    selOut(fallbackHex = '#14111f') {
+      const w = this.w, h = this.h;
+      const marks = [];
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const off = (y * w + x) * 4;
+          if (this.data[off + 3] > 20) continue;
+          const n =
+            this.getRgb(x, y - 1) ||
+            this.getRgb(x - 1, y) ||
+            this.getRgb(x + 1, y) ||
+            this.getRgb(x, y + 1);
+          if (!n) continue;
+          // Deep cool-shifted selective outline derived from interior neighbor
+          const or = clamp(n[0] * 0.32);
+          const og = clamp(n[1] * 0.28);
+          const ob = clamp(n[2] * 0.38 + 14);
+          marks.push(off, or, og, ob);
+        }
+      }
+      for (let i = 0; i < marks.length; i += 4) {
+        const off = marks[i];
+        this.data[off] = marks[i + 1];
+        this.data[off + 1] = marks[i + 2];
+        this.data[off + 2] = marks[i + 3];
+        this.data[off + 3] = 248;
+      }
+    }
+
+    // Ground contact shadow painted cleanly underneath feet
+    groundShadow(cx, cy, rx, ry) {
+      const x0 = Math.max(0, Math.floor(cx - rx)), x1 = Math.min(this.w - 1, Math.ceil(cx + rx));
+      const y0 = Math.max(0, Math.floor(cy - ry)), y1 = Math.min(this.h - 1, Math.ceil(cy + ry));
+      for (let y = y0; y <= y1; y++) {
+        for (let x = x0; x <= x1; x++) {
+          const off = (y * this.w + x) * 4;
+          if (this.data[off + 3] > 20) continue;
+          const d = Math.hypot((x - cx) / rx, (y - cy) / ry);
+          if (d <= 1) {
+            this.data[off] = 8;
+            this.data[off + 1] = 7;
+            this.data[off + 2] = 18;
+            this.data[off + 3] = d < 0.62 ? 135 : 70;
           }
         }
       }
-      for (const idx of toMark) this.buf[idx] = color;
     }
-    // Compile horizontal same-color runs into ultra-compact crisp SVG rects
-    toRects() {
-      const out = [];
-      for (let y = 0; y < this.h; y++) {
-        let x = 0;
-        const rowOff = y * this.w;
-        while (x < this.w) {
-          const c = this.buf[rowOff + x];
-          if (!c) { x++; continue; }
-          let run = 1;
-          while (x + run < this.w && this.buf[rowOff + x + run] === c) run++;
-          out.push(`<rect x="${x}" y="${y}" width="${run}" height="1" fill="${c}"/>`);
-          x += run;
-        }
+
+    // Fast RGBA buffer fingerprint (used for Node.js tests & uniqueness checks)
+    checksum() {
+      let h = 2166136261;
+      for (let i = 0; i < this.data.length; i += 4) {
+        if (this.data[i + 3] === 0) continue;
+        h ^= (this.data[i] << 16) | (this.data[i + 1] << 8) | this.data[i + 2] ^ i;
+        h = Math.imul(h, 16777619);
       }
-      return out.join('');
+      return (h >>> 0).toString(36);
+    }
+
+    toDataUrl() {
+      const exp = getExportCanvas(this.w, this.h);
+      if (exp) {
+        const img = exp.ctx.createImageData(this.w, this.h);
+        img.data.set(this.data);
+        exp.ctx.putImageData(img, 0, 0);
+        return exp.canvas.toDataURL('image/png');
+      }
+      // Deterministic lightweight fallback for headless Node.js audits
+      return `data:image/png;base64,HIBIT_${this.w}x${this.h}_${this.checksum()}`;
     }
   }
 
   function renderAnimatedSprite(w, h, drawFn, opts = {}) {
-    const c1 = new PixelCanvas(w, h);
-    const c2 = new PixelCanvas(w, h);
+    const c1 = new HiBitCanvas(w, h);
+    const c2 = new HiBitCanvas(w, h);
     drawFn(c1, 0);
     drawFn(c2, 1);
-    c1.outline(opts.outlineColor || '#10101a');
-    c2.outline(opts.outlineColor || '#10101a');
+    c1.selOut();
+    c2.selOut();
+    c1.groundShadow(w / 2, h - 4, w * 0.28, 3.2);
+    c2.groundShadow(w / 2, h - 4, w * 0.26, 3.0);
 
+    const url1 = c1.toDataUrl();
+    const url2 = c2.toDataUrl();
     const motion = opts.motion || 'px-motion-agile';
     const isBoss = !!opts.isBoss;
     const aura = opts.aura || '';
-    const auraSvg = aura
-      ? `<ellipse cx="${w / 2}" cy="${h * 0.56}" rx="${w * 0.42}" ry="${h * 0.36}" fill="${aura}" opacity="0.2" class="px-aura"/>`
+    const auraHtml = aura
+      ? `<span class="px-aura-glow" style="background:radial-gradient(circle, ${aura}55 0%, ${aura}00 72%);"></span>`
       : '';
     return (
-      `<svg viewBox="0 0 ${w} ${h}" shape-rendering="crispEdges" class="pixel-sprite ${motion}${isBoss ? ' px-boss' : ''}" aria-hidden="true">` +
-      auraSvg +
-      `<ellipse cx="${w / 2}" cy="${h - 2}" rx="${Math.round(w * 0.28)}" ry="1.6" fill="rgba(0,0,0,0.5)"/>` +
-      `<g class="px-f1">${c1.toRects()}</g>` +
-      `<g class="px-f2">${c2.toRects()}</g>` +
-      `</svg>`
+      `<div class="pixel-sprite px-hibit ${motion}${isBoss ? ' px-boss' : ''}" data-res="${w}x${h}" aria-hidden="true">` +
+      auraHtml +
+      `<img class="px-frame px-f1" src="${url1}" alt="" decoding="async">` +
+      `<img class="px-frame px-f2" src="${url2}" alt="" decoding="async">` +
+      `</div>`
     );
   }
 
   // ==========================================================================
-  // 1. ALL 8 HEROES — FINE 32x32 SD DEFORMED CHIBI PIXEL ART (2.5-HEAD RATIO!)
+  // 1. ALL 8 HEROES — 80x80 HI-BIT NATURAL FANTASY RPG PIXEL ART (6.25x FINER!)
   // ==========================================================================
-  function drawChibiBase(c, f, cfg) {
-    const cx = 15;
-    const bob = f === 1 ? 1 : 0;
-    const skin = cfg.skin || '#f7d2b4';
+  function drawHiBitHeroBase(c, f, cfg) {
+    const cx = 39;
+    const bob = f ? 2 : 0;
+    const skin = cfg.skin || '#f6d2b6';
 
-    // Flowing Back Cape
+    // Flowing Back Cape with natural folds
     if (cfg.cape) {
-      c.oval(cx - 1 - f, 21 + bob, 7.5, 6.5, cfg.cape);
-      c.rect(cx - 7 - f, 23 + bob, 13, 4, shade(cfg.cape, -0.2));
+      c.cape(cx - 1, 41 + bob, 71, 24, 38, cfg.cape, f ? -3.5 : -1.2, cfg.capeTrim || cfg.trim);
     }
 
-    // Chibi Legs & Boots (stepping slightly on f=1)
-    c.shadedRect(cx - 4, 24, 3, 4, cfg.pants || '#2f3640');
-    c.shadedRect(cx + 2, 24, 3, 4, cfg.pants || '#2f3640');
-    c.shadedRect(cx - 5, 27 - (f ? 0 : 0), 4, 3, cfg.boots || '#4a3525');
-    c.shadedRect(cx + 2, 27, 4, 3, cfg.boots || '#4a3525');
+    // Dynamic Striding Boots & Armored Greaves
+    c.plate(cx - 10, 58, 7, 11, cfg.pants || '#2d3442', { round: 1 });
+    c.plate(cx + 4, 58, 7, 11, cfg.pants || '#2d3442', { round: 1 });
+    c.plate(cx - 12, 66, 9, 8, cfg.boots || '#4a3525', { round: 2, metallic: !!cfg.metalBoots, trim: cfg.trim });
+    c.plate(cx + 4, 66, 9, 8, cfg.boots || '#4a3525', { round: 2, metallic: !!cfg.metalBoots, trim: cfg.trim });
 
-    // Compact Heroic Torso (10x8)
-    c.shadedRect(cx - 4, 17 + bob, 9, 8, cfg.armor);
-    // Belt & Golden Buckle
-    c.rect(cx - 4, 22 + bob, 9, 2, cfg.belt || '#3d2b1f');
-    c.rect(cx - 1, 22 + bob, 3, 2, cfg.trim || '#f6c967');
-    // Chest Emblem / Pauldrons
-    c.shadedRect(cx - 7, 17 + bob, 4, 4, cfg.pauldron || cfg.armor);
-    c.shadedRect(cx + 4, 17 + bob, 4, 4, cfg.pauldron || cfg.armor);
-    if (cfg.chestAccent) c.rect(cx - 1, 18 + bob, 3, 3, cfg.chestAccent);
+    // Layered Fantasy Torso Armor / Robe (22x20)
+    c.plate(cx - 11, 40 + bob, 23, 20, cfg.armor, { round: 3, metallic: !!cfg.metalArmor });
+    if (cfg.tunicSkirt) {
+      c.cape(cx, 54 + bob, 69, 20, 26, cfg.tunicSkirt, f ? 1 : 0, cfg.trim);
+    }
+    // Ornate Leather Belt & Gem/Gold Buckle
+    c.plate(cx - 11, 52 + bob, 23, 5, cfg.belt || '#3f2a1d', { round: 1 });
+    c.plate(cx - 3, 51 + bob, 7, 6, cfg.trim || '#f6c967', { metallic: true, round: 1 });
+    if (cfg.chestAccent) {
+      c.plate(cx - 3, 43 + bob, 7, 7, cfg.chestAccent, { metallic: true, round: 2 });
+    }
 
-    // Big Expressive Chibi Head (14x11)
-    c.oval(cx, 11 + bob, 6.5, 5.5, skin);
-    // Subtle rosy cheeks
-    c.px(cx - 4, 13 + bob, '#f29e9e');
-    c.px(cx + 4, 13 + bob, '#f29e9e');
+    // Layered Shoulder Pauldrons & Arms
+    c.oval(cx - 14, 44 + bob, 6.2, 5.4, cfg.pauldron || cfg.armor, { metallic: !!cfg.metalArmor });
+    c.oval(cx + 14, 44 + bob, 6.2, 5.4, cfg.pauldron || cfg.armor, { metallic: !!cfg.metalArmor });
+    c.capsule(cx - 15, 47 + bob, cx - 18, 55 + bob, 3.2, 2.8, cfg.sleeve || cfg.armor);
+    c.capsule(cx + 15, 47 + bob, cx + 18, 54 + bob - f, 3.2, 2.8, cfg.sleeve || cfg.armor);
+    // Hands / Gauntlets
+    c.oval(cx - 18, 56 + bob, 3.0, 2.8, cfg.glove || skin, { metallic: !!cfg.metalArmor });
+    c.oval(cx + 18, 54 + bob - f, 3.0, 2.8, cfg.glove || skin, { metallic: !!cfg.metalArmor });
 
-    // Cute Anime Chibi Eyes
+    // Neck Shadow + Expressive Hi-Bit Head (28x24)
+    c.plate(cx - 4, 37 + bob, 9, 5, hueShade(skin, -0.22));
+    c.oval(cx, 27 + bob, 14.2, 12.6, skin);
+    // Subtle anime nose & chin soft highlight + rosy blush
+    c.px(cx, 31 + bob, hueShade(skin, -0.18));
+    c.oval(cx - 9, 32 + bob, 2.3, 1.3, '#f09499', { shaded: false, alpha: 135 });
+    c.oval(cx + 9, 32 + bob, 2.3, 1.3, '#f09499', { shaded: false, alpha: 135 });
+    // Determined mouth
+    c.rect(cx - 2, 34 + bob, 5, 1, hueShade(skin, -0.35));
+
+    // Detailed 6x7 Hi-Bit Fantasy Eyes
     if (!cfg.noEyes) {
-      c.chibiEye(cx - 4, 10 + bob, cfg.eye || '#2e86de');
-      c.chibiEye(cx + 2, 10 + bob, cfg.eye || '#2e86de');
+      c.hiBitEye(cx - 10, 24 + bob, cfg.eye || '#2e86de');
+      c.hiBitEye(cx + 5, 24 + bob, cfg.eye || '#2e86de');
     }
 
-    // Hair / Hat / Helm overlay callback
     if (cfg.drawHeadgear) cfg.drawHeadgear(c, cx, bob, f);
-
-    // Hands & Signature Weapons callback
     if (cfg.drawGear) cfg.drawGear(c, cx, bob, f);
   }
 
   const HERO_SPRITES = {
     fighter: () =>
-      renderAnimatedSprite(32, 32, (c, f) => {
-        drawChibiBase(c, f, {
-          armor: '#b2bec3', pauldron: '#95a5a6', cape: '#c0392b', trim: '#f6c967',
-          chestAccent: '#e74c3c', boots: '#576574', eye: '#3498db',
+      renderAnimatedSprite(80, 80, (c, f) => {
+        drawHiBitHeroBase(c, f, {
+          armor: '#aeb9c4', pauldron: '#95a5b5', cape: '#c0392b', trim: '#f6c967',
+          chestAccent: '#e74c3c', boots: '#576574', eye: '#3498db', metalArmor: true, metalBoots: true,
           drawHeadgear: (c, cx, b, f) => {
-            // Crimson Plume waving on helm
-            c.oval(cx - 1 - f, 3 + b, 3.5, 2.2, '#e74c3c');
-            c.oval(cx + 1, 4 + b, 2.5, 1.8, '#ff6b81');
-            // Steel Knight Helmet framing expressive face
-            c.oval(cx, 8 + b, 7, 3.5, '#cfd8dc');
-            c.rect(cx - 7, 8 + b, 2, 5, '#95a5a6');
-            c.rect(cx + 6, 8 + b, 2, 5, '#95a5a6');
-            c.rect(cx - 5, 7 + b, 11, 1, '#f6c967');
-            c.rect(cx, 6 + b, 1, 4, '#7f8fa6');
+            // Sweeping Crimson Knight Plume
+            c.curve(cx, 12 + b, cx - 8 - f * 2, 4 + b, cx - 16 - f * 2, 10 + b, 5.2, 2.0, '#e74c3c');
+            c.curve(cx + 2, 11 + b, cx - 4 - f, 6 + b, cx - 10 - f, 9 + b, 3.2, 1.2, '#ff7675');
+            // Layered Steel Knight Helmet with Gold Trim & Noseguard
+            c.oval(cx, 18 + b, 15.5, 8.8, '#cfd8dc', { metallic: true });
+            c.plate(cx - 15, 19 + b, 5, 14, '#95a5b5', { metallic: true, round: 1 });
+            c.plate(cx + 11, 19 + b, 5, 14, '#95a5b5', { metallic: true, round: 1 });
+            c.plate(cx - 13, 17 + b, 27, 3, '#f6c967', { metallic: true });
+            c.plate(cx - 1, 14 + b, 3, 11, '#7f8fa6', { metallic: true });
           },
           drawGear: (c, cx, b, f) => {
-            // Left: Royal Kite Shield with Gold Cross
-            c.shadedRect(cx - 11, 17 + b, 6, 9, '#2e86de');
-            c.rect(cx - 10, 18 + b, 4, 7, '#54a0ff');
-            c.rect(cx - 9, 19 + b, 2, 5, '#f6c967');
-            c.rect(cx - 10, 20 + b, 4, 2, '#f6c967');
-            // Right: Gleaming Broadsword (raises slightly on f=1)
-            const sy = 6 + b - f * 2;
-            c.rect(cx + 9, sy, 2, 13, '#ecf0f1');
-            c.rect(cx + 9, sy, 1, 12, '#ffffff');
-            c.rect(cx + 7, sy + 12, 6, 2, '#f6c967');
-            c.rect(cx + 9, sy + 14, 2, 3, '#7f5539');
+            // Left: Royal Kite Shield with Gold Heraldry
+            c.plate(cx - 28, 41 + b, 15, 22, '#2e86de', { metallic: true, round: 3 });
+            c.plate(cx - 26, 43 + b, 11, 18, '#54a0ff', { metallic: true, round: 2 });
+            c.plate(cx - 22, 45 + b, 3, 14, '#f6c967', { metallic: true });
+            c.plate(cx - 25, 49 + b, 9, 3, '#f6c967', { metallic: true });
+            // Right: Gleaming Knightly Greatsword
+            const sy = 12 + b - f * 3;
+            c.sword(cx + 23, sy, sy + 34, 3, '#dfe6e9', '#f6c967', '#6d4c41', '#74b9ff');
           }
         });
       }, { motion: 'px-motion-heavy', aura: '#74b9ff' }),
 
     barbarian: () =>
-      renderAnimatedSprite(32, 32, (c, f) => {
-        drawChibiBase(c, f, {
-          skin: '#e0a278', armor: '#d9966b', pauldron: '#6d4c41', belt: '#5d4037',
-          trim: '#f6c967', pants: '#4e342e', boots: '#3e2723', eye: '#ff4757',
+      renderAnimatedSprite(80, 80, (c, f) => {
+        drawHiBitHeroBase(c, f, {
+          skin: '#dfa074', armor: '#d48f63', pauldron: '#6d4c41', belt: '#5d4037',
+          trim: '#f6c967', pants: '#4e342e', boots: '#3e2723', eye: '#ff4757', tunicSkirt: '#5d4037',
           drawHeadgear: (c, cx, b) => {
-            // Wild spiky dark mane + Fierce Horned Iron Crown
-            c.oval(cx, 7 + b, 7.2, 3.2, '#3d251e');
-            c.rect(cx - 6, 8 + b, 13, 2, '#636e72');
-            c.line(cx - 6, 8 + b, cx - 10, 3 + b, '#f5f6fa', 2);
-            c.line(cx + 6, 8 + b, cx + 10, 3 + b, '#f5f6fa', 2);
-            // Red Rage War-Paint Stripes on chest & cheeks
-            c.rect(cx - 3, 19 + b, 7, 1, '#ff4757');
-            c.rect(cx - 2, 20 + b, 5, 1, '#eb3b5a');
+            // Wild Dark Spiky Mane + Fur Mantle + Horned Iron Crown
+            c.hairCap(cx, 18 + b, 16, 10, '#3a221c', { sideLocks: 13 });
+            c.plate(cx - 15, 18 + b, 31, 4, '#636e72', { metallic: true, round: 1 });
+            c.curve(cx - 14, 19 + b, cx - 22, 14 + b, cx - 23, 6 + b, 3.6, 1.0, '#f5f6fa');
+            c.curve(cx + 14, 19 + b, cx + 22, 14 + b, cx + 23, 6 + b, 3.6, 1.0, '#f5f6fa');
+            // Crimson War-Paint Stripes
+            c.rect(cx - 8, 44 + b, 17, 2, '#ff4757');
+            c.rect(cx - 6, 48 + b, 13, 2, '#eb3b5a');
+            c.rect(cx - 11, 31 + b, 4, 2, '#ff4757');
+            c.rect(cx + 8, 31 + b, 4, 2, '#ff4757');
           },
           drawGear: (c, cx, b, f) => {
-            // Massive Double-Bit Greataxe pulsing with crimson rage
-            const ay = 5 + b - f * 2;
-            c.line(cx + 9, ay + 2, cx + 9, ay + 20, '#8d5524', 2);
-            c.oval(cx + 6, ay + 5, 3.5, 4.5, '#b2bec3');
-            c.oval(cx + 12, ay + 5, 3.5, 4.5, '#b2bec3');
-            c.rect(cx + 3, ay + 3, 1, 5, f ? '#ff4757' : '#ffffff');
-            c.rect(cx + 15, ay + 3, 1, 5, f ? '#ff4757' : '#ffffff');
+            // Massive Double-Bit Rage Greataxe
+            const ay = 10 + b - f * 3;
+            c.capsule(cx + 22, ay + 6, cx + 22, ay + 52, 2.2, 2.2, '#784212');
+            c.oval(cx + 15, ay + 15, 7.5, 11, '#b2bec3', { metallic: true });
+            c.oval(cx + 29, ay + 15, 7.5, 11, '#b2bec3', { metallic: true });
+            c.plate(cx + 19, ay + 10, 7, 10, '#636e72', { metallic: true, round: 1 });
+            if (f) {
+              c.glow(cx + 10, ay + 15, 6, '#ffffff', '#ff4757', '#eb3b5a');
+              c.glow(cx + 34, ay + 15, 6, '#ffffff', '#ff4757', '#eb3b5a');
+            }
           }
         });
       }, { motion: 'px-motion-heavy', aura: '#ff4757' }),
 
     rogue: () =>
-      renderAnimatedSprite(32, 32, (c, f) => {
-        drawChibiBase(c, f, {
+      renderAnimatedSprite(80, 80, (c, f) => {
+        drawHiBitHeroBase(c, f, {
           armor: '#2c3147', pauldron: '#1e2233', cape: '#1b1e2e', belt: '#4a3525',
-          trim: '#2ed573', boots: '#1a1c29', eye: '#2ed573',
+          trim: '#2ed573', boots: '#1a1c29', eye: '#2ed573', noEyes: true,
           drawHeadgear: (c, cx, b, f) => {
-            // Shadow Cowl Hood + Crimson/Dark Face Mask + Flowing Scarf
-            c.oval(cx, 9 + b, 7.5, 6.2, '#25293d');
-            c.oval(cx, 11 + b, 5.2, 4.0, '#141722');
-            c.oval(cx, 11 + b, 4.6, 2.2, '#f3d1b0', false);
-            c.chibiEye(cx - 4, 10 + b, '#2ed573');
-            c.chibiEye(cx + 2, 10 + b, '#2ed573');
-            // Mask covering lower face
-            c.rect(cx - 5, 13 + b, 11, 3, '#1e2233');
-            // Flowing scarf tail
-            c.line(cx - 5, 16 + b, cx - 11 - f, 19 + b, '#2ed573', 2);
+            // Layered Shadow Assassin Cowl + Glowing Emerald Eyes + Lower Face Mask
+            c.oval(cx, 23 + b, 17, 14.5, '#25293d');
+            c.oval(cx, 27 + b, 12.2, 9.6, '#141722', { shaded: false });
+            c.oval(cx, 27 + b, 11, 5.2, '#f3d1b0');
+            c.hiBitEye(cx - 10, 24 + b, '#2ed573');
+            c.hiBitEye(cx + 5, 24 + b, '#2ed573');
+            c.plate(cx - 11, 31 + b, 23, 8, '#1e2233', { round: 2, trim: '#2ed573' });
+            // Flowing Emerald Assassin Scarf
+            c.curve(cx - 10, 39 + b, cx - 22 - f * 2, 42 + b, cx - 30 - f * 3, 49 + b, 3.6, 1.5, '#2ed573');
           },
           drawGear: (c, cx, b, f) => {
-            // Twin Poisoned Curved Daggers
-            c.line(cx - 8, 20 + b, cx - 12, 15 + b - f, '#dfe6e9', 2);
-            c.px(cx - 12, 14 + b - f, '#2ed573');
-            c.line(cx + 8, 19 + b, cx + 13, 14 + b + f, '#dfe6e9', 2);
-            c.px(cx + 13, 13 + b + f, '#55efc4');
+            // Twin Poison-Tipped Curved Daggers
+            c.curve(cx - 18, 54 + b, cx - 26, 46 + b - f * 2, cx - 30, 36 + b - f * 2, 2.6, 0.9, '#dfe6e9', { metallic: true });
+            c.glow(cx - 30, 36 + b - f * 2, 5, '#ffffff', '#2ed573', '#1e8449');
+            c.curve(cx + 18, 52 + b, cx + 26, 44 + b + f * 2, cx + 31, 34 + b + f * 2, 2.6, 0.9, '#dfe6e9', { metallic: true });
+            c.glow(cx + 31, 34 + b + f * 2, 5, '#ffffff', '#55efc4', '#2ed573');
           }
         });
       }, { motion: 'px-motion-agile', aura: '#2ed573' }),
 
     ranger: () =>
-      renderAnimatedSprite(32, 32, (c, f) => {
-        drawChibiBase(c, f, {
-          armor: '#27ae60', pauldron: '#196f3d', cape: '#145a32', belt: '#784212',
-          trim: '#f6c967', pants: '#34495e', boots: '#5d4037', eye: '#55efc4',
+      renderAnimatedSprite(80, 80, (c, f) => {
+        drawHiBitHeroBase(c, f, {
+          armor: '#249454', pauldron: '#196f3d', cape: '#145a32', belt: '#784212',
+          trim: '#f6c967', pants: '#34495e', boots: '#5d4037', eye: '#55efc4', tunicSkirt: '#1e8449',
           drawHeadgear: (c, cx, b) => {
-            // Elven Forest Hood + Silver Flowing Bangs (Drizzt!) + Pointed Ears
-            c.oval(cx, 8 + b, 7.4, 4.6, '#1e8449');
-            c.rect(cx - 6, 9 + b, 13, 2, '#ecf0f1'); // silver hair fringe
-            c.rect(cx - 7, 10 + b, 2, 5, '#dfe6e9');
-            c.rect(cx + 6, 10 + b, 2, 5, '#dfe6e9');
-            c.px(cx - 8, 11 + b, '#f7d2b4'); // pointed elven ear
-            c.px(cx + 8, 11 + b, '#f7d2b4');
+            // Pointed Elven Ears + Silver Drizzt Hair + Forest Hood
+            c.capsule(cx - 13, 27 + b, cx - 19, 24 + b, 2.2, 0.8, '#f6d2b6');
+            c.capsule(cx + 13, 27 + b, cx + 19, 24 + b, 2.2, 0.8, '#f6d2b6');
+            c.hairCap(cx, 20 + b, 15.2, 9.8, '#e8eef5', { sideLocks: 15 });
+            c.curve(cx - 16, 22 + b, cx, 7 + b, cx + 16, 22 + b, 4.6, 4.6, '#1e8449');
+            c.plate(cx - 12, 16 + b, 25, 2, '#f6c967', { metallic: true });
           },
           drawGear: (c, cx, b, f) => {
-            // Ornate Silver Longbow + Glowing Emerald Arrow
-            const bx = cx + 9;
-            c.line(bx - 1, 9 + b, bx + 3, 15 + b, '#a0522d', 2);
-            c.line(bx + 3, 15 + b, bx + 3, 22 + b, '#a0522d', 2);
-            c.line(bx + 3, 22 + b, bx - 1, 27 + b, '#a0522d', 2);
-            c.line(bx - 1, 10 + b, bx - 1, 26 + b, '#dfe6e9', 1);
-            // Glowing Magic Arrow pulled slightly on f=1
-            c.line(bx - 4 - f, 18 + b, bx + 5, 18 + b, '#55efc4', 1);
-            c.rect(bx + 4, 17 + b, 2, 3, '#ffffff');
+            // Ornate Elven Recurve Longbow + Luminous Emerald Arrow
+            const bx = cx + 22;
+            c.curve(bx - 3, 20 + b, bx + 11, 44 + b, bx - 3, 68 + b, 2.8, 2.8, '#9b5926');
+            c.capsule(bx - 3, 22 + b, bx - 4 - f * 2, 44 + b, 0.7, 0.7, '#ecf0f1', { shaded: false });
+            c.capsule(bx - 4 - f * 2, 44 + b, bx - 3, 66 + b, 0.7, 0.7, '#ecf0f1', { shaded: false });
+            c.capsule(bx - 8 - f * 2, 44 + b, bx + 13, 44 + b, 1.2, 1.2, '#55efc4', { shaded: false });
+            c.glow(bx + 13, 44 + b, 6.5, '#ffffff', '#55efc4', '#2ed573');
           }
         });
       }, { motion: 'px-motion-agile', aura: '#55efc4' }),
 
     wizard: () =>
-      renderAnimatedSprite(32, 32, (c, f) => {
-        drawChibiBase(c, f, {
-          armor: '#2e86de', pauldron: '#1b4f72', cape: '#192a56', belt: '#f6c967',
-          trim: '#00d2d3', chestAccent: '#f6c967', boots: '#1b4f72', eye: '#00d2d3',
+      renderAnimatedSprite(80, 80, (c, f) => {
+        drawHiBitHeroBase(c, f, {
+          armor: '#2874c5', pauldron: '#1b4f72', cape: '#192a56', belt: '#f6c967',
+          trim: '#00d2d3', chestAccent: '#f6c967', boots: '#1b4f72', eye: '#00d2d3', tunicSkirt: '#1e5ba0',
           drawHeadgear: (c, cx, b, f) => {
-            // Flowing white sage beard
-            c.oval(cx, 15 + b, 4.5, 2.8, '#f5f6fa');
-            // Iconic Floppy Starry Pointed Wizard Hat!
-            c.oval(cx, 8 + b, 9.5, 2.2, '#2e86de');
-            c.line(cx - 6, 7 + b, cx + 1 + f, 1 + b, '#2e86de', 4);
-            c.line(cx + 5, 7 + b, cx + 1 + f, 1 + b, '#1b4f72', 3);
-            c.rect(cx - 6, 7 + b, 13, 1, '#f6c967'); // gold hatband
-            c.px(cx - 2, 4 + b, '#f6c967'); // star
-            c.px(cx + 2, 5 + b, '#ffeaa7');
+            // Flowing White Sage Beard & Mustache
+            c.oval(cx, 37 + b, 9.5, 6.2, '#f0f4f8', { texture: 'fur' });
+            c.oval(cx, 41 + b, 5.5, 4.5, '#dfe6e9', { texture: 'fur' });
+            // Iconic Starry Pointed Archmage Hat!
+            c.oval(cx, 19 + b, 22, 4.8, '#2874c5');
+            c.curve(cx - 13, 18 + b, cx - 2, 7 + b, cx + 6 + f * 2, 3 + b, 9.5, 1.8, '#2874c5');
+            c.plate(cx - 13, 16 + b, 27, 3, '#f6c967', { metallic: true });
+            c.px(cx - 5, 10 + b, '#ffeaa7');
+            c.px(cx + 3, 12 + b, '#f6c967');
           },
           drawGear: (c, cx, b, f) => {
-            // Tall Arcane Staff + Floating Pulsing Crystal
-            const sx = cx + 10;
-            c.rect(sx, 10 + b, 2, 19, '#784212');
-            c.oval(sx + 1, 8 + b - f, 3.2, 3.2, f ? '#a29bfe' : '#00d2d3');
-            c.rect(sx, 7 + b - f, 2, 2, '#ffffff');
-            // Orbiting mini arcane spark
-            c.px(sx - 4 + f * 7, 6 + b, '#ffeaa7');
+            // Tall Carved Arcane Staff + Orbiting Pulsing Astral Crystal
+            const sx = cx + 24;
+            c.capsule(sx, 24 + b, sx, 72, 2.2, 2.0, '#784212');
+            c.glow(sx, 19 + b - f * 2, 10, '#ffffff', f ? '#a29bfe' : '#00d2d3', '#2e86de');
+            c.oval(sx, 19 + b - f * 2, 5.2, 6.2, f ? '#a29bfe' : '#00d2d3', { metallic: true });
+            c.oval(sx - 1, 17 + b - f * 2, 1.8, 2.0, '#ffffff', { shaded: false });
+            // Orbiting star mote
+            c.glow(sx + (f ? 8 : -8), 15 + b, 3.5, '#ffffff', '#ffeaa7');
           }
         });
       }, { motion: 'px-motion-float', aura: '#00d2d3' }),
 
     cleric: () =>
-      renderAnimatedSprite(32, 32, (c, f) => {
-        drawChibiBase(c, f, {
-          armor: '#f5f6fa', pauldron: '#f6c967', cape: '#74b9ff', belt: '#f6c967',
-          trim: '#ffd32a', chestAccent: '#f6c967', boots: '#f6c967', eye: '#f39c12',
+      renderAnimatedSprite(80, 80, (c, f) => {
+        drawHiBitHeroBase(c, f, {
+          armor: '#eef2f7', pauldron: '#f6c967', cape: '#5ea8f0', belt: '#f6c967',
+          trim: '#ffd32a', chestAccent: '#f6c967', boots: '#d4a017', eye: '#f39c12',
+          metalArmor: true, tunicSkirt: '#dfe6ee',
           drawHeadgear: (c, cx, b, f) => {
-            // Floating Golden Pixel Halo!
-            c.rect(cx - 4, 2 + b - f, 9, 1, '#ffd32a');
-            c.rect(cx - 5, 3 + b - f, 2, 1, '#ffeaa7');
-            c.rect(cx + 4, 3 + b - f, 2, 1, '#ffeaa7');
-            // Warm Blonde Hair + Gold Circlet
-            c.oval(cx, 7 + b, 7, 3.5, '#f6c967');
-            c.rect(cx - 7, 8 + b, 2, 7, '#f1c40f');
-            c.rect(cx + 6, 8 + b, 2, 7, '#f1c40f');
-            c.rect(cx - 4, 8 + b, 9, 1, '#ffffff');
+            // Radiant Floating Golden Halo
+            c.glow(cx, 7 + b - f * 2, 11, '#ffffff', '#ffd32a', '#f6c967');
+            c.oval(cx, 7 + b - f * 2, 10.5, 2.4, '#ffd32a', { metallic: true });
+            c.oval(cx, 7 + b - f * 2, 7.2, 1.1, '#1a2038', { shaded: false, alpha: 0 });
+            // Golden Flowing Hair + Silver Circlet
+            c.hairCap(cx, 19 + b, 15.6, 10.2, '#f2c14e', { sideLocks: 18 });
+            c.plate(cx - 11, 18 + b, 23, 2, '#ffffff', { metallic: true });
           },
           drawGear: (c, cx, b, f) => {
-            // Radiant Sun Morningstar Mace
-            const mx = cx + 10;
-            c.rect(mx, 12 + b, 2, 14, '#b7791f');
-            c.oval(mx + 1, 10 + b - f, 3.5, 3.5, '#ffd32a');
-            c.px(mx + 1, 5 + b - f, '#ffffff');
-            c.px(mx + 5, 10 + b - f, '#ffffff');
-            c.px(mx - 3, 10 + b - f, '#ffffff');
+            // Blazing Sun Morningstar Mace
+            const mx = cx + 23;
+            c.capsule(mx, 28 + b, mx, 66, 2.1, 1.9, '#b7791f', { metallic: true });
+            c.glow(mx, 22 + b - f * 2, 11, '#ffffff', '#ffd32a', '#ff9f43');
+            c.oval(mx, 22 + b - f * 2, 6.2, 6.2, '#ffd32a', { metallic: true });
+            for (let a = 0; a < 8; a++) {
+              const ang = (Math.PI * 2 * a) / 8 + (f ? 0.2 : 0);
+              c.capsule(mx + Math.cos(ang) * 5, 22 + b - f * 2 + Math.sin(ang) * 5, mx + Math.cos(ang) * 10, 22 + b - f * 2 + Math.sin(ang) * 10, 1.4, 0.5, '#ffeaa7');
+            }
           }
         });
       }, { motion: 'px-motion-float', aura: '#ffeaa7' }),
 
     paladin: () =>
-      renderAnimatedSprite(32, 32, (c, f) => {
-        drawChibiBase(c, f, {
-          armor: '#f6c967', pauldron: '#ffeaa7', cape: '#eb3b5a', belt: '#b7791f',
-          trim: '#ffffff', chestAccent: '#ffffff', boots: '#f6c967', eye: '#3498db',
+      renderAnimatedSprite(80, 80, (c, f) => {
+        drawHiBitHeroBase(c, f, {
+          armor: '#f2c14e', pauldron: '#ffeaa7', cape: '#d6304c', belt: '#b7791f',
+          trim: '#ffffff', chestAccent: '#ffffff', boots: '#e1b12c', eye: '#3498db',
+          metalArmor: true, metalBoots: true,
           drawHeadgear: (c, cx, b, f) => {
-            // Golden Winged Greathelm!
-            c.oval(cx, 7 + b, 7, 3.5, '#f6c967');
-            c.rect(cx - 7, 8 + b, 2, 5, '#ffd32a');
-            c.rect(cx + 6, 8 + b, 2, 5, '#ffd32a');
-            // Twin White Angel Wings on Helm sides
-            c.line(cx - 7, 8 + b, cx - 12, 3 + b - f, '#ffffff', 2);
-            c.line(cx + 7, 8 + b, cx + 12, 3 + b - f, '#ffffff', 2);
+            // Golden Winged Crusader Greathelm!
+            c.oval(cx, 18 + b, 15.6, 9.2, '#f6c967', { metallic: true });
+            c.plate(cx - 15, 19 + b, 5, 14, '#e1b12c', { metallic: true, round: 1 });
+            c.plate(cx + 11, 19 + b, 5, 14, '#e1b12c', { metallic: true, round: 1 });
+            // Feathered White Angel Wings on Helmet
+            c.curve(cx - 15, 20 + b, cx - 25, 14 + b - f * 2, cx - 29, 6 + b - f * 2, 4.2, 1.4, '#ffffff');
+            c.curve(cx - 15, 23 + b, cx - 23, 19 + b - f * 2, cx - 26, 13 + b - f * 2, 3.0, 1.0, '#dfe6e9');
+            c.curve(cx + 15, 20 + b, cx + 25, 14 + b - f * 2, cx + 29, 6 + b - f * 2, 4.2, 1.4, '#ffffff');
+            c.curve(cx + 15, 23 + b, cx + 23, 19 + b - f * 2, cx + 26, 13 + b - f * 2, 3.0, 1.0, '#dfe6e9');
           },
           drawGear: (c, cx, b, f) => {
             // Left: Holy Tower Shield
-            c.shadedRect(cx - 11, 16 + b, 6, 10, '#f5f6fa');
-            c.rect(cx - 9, 17 + b, 2, 8, '#f6c967');
-            c.rect(cx - 10, 19 + b, 4, 2, '#f6c967');
+            c.plate(cx - 28, 39 + b, 15, 26, '#f5f6fa', { metallic: true, round: 3 });
+            c.plate(cx - 22, 42 + b, 3, 20, '#f6c967', { metallic: true });
+            c.plate(cx - 26, 48 + b, 11, 3, '#f6c967', { metallic: true });
             // Right: Blazing Sunblade Greatsword
-            const sy = 4 + b - f * 2;
-            c.rect(cx + 9, sy, 3, 15, '#ffeaa7');
-            c.rect(cx + 10, sy, 1, 14, '#ffffff');
-            c.rect(cx + 7, sy + 14, 7, 2, '#f6c967');
-            c.rect(cx + 9, sy + 16, 3, 3, '#c0392b');
+            const sy = 9 + b - f * 3;
+            c.glow(cx + 23, sy + 16, 12, '#ffffff', '#ffeaa7', '#f6c967');
+            c.sword(cx + 23, sy, sy + 37, 3.4, '#ffeaa7', '#f6c967', '#c0392b', '#ffffff');
           }
         });
       }, { motion: 'px-motion-heavy', aura: '#f6c967' }),
 
     warlock: () =>
-      renderAnimatedSprite(32, 32, (c, f) => {
-        drawChibiBase(c, f, {
+      renderAnimatedSprite(80, 80, (c, f) => {
+        drawHiBitHeroBase(c, f, {
           armor: '#5b2c6f', pauldron: '#3c1e5a', cape: '#211033', belt: '#1a0c29',
           trim: '#e056fd', chestAccent: '#e056fd', boots: '#1a0c29', eye: '#e056fd',
+          noEyes: true, tunicSkirt: '#3c1e5a',
           drawHeadgear: (c, cx, b) => {
-            // Horned Occult Hood + Shadowed Face + Glowing Magenta Eyes
-            c.oval(cx, 9 + b, 7.6, 6.4, '#4a235a');
-            c.oval(cx, 11 + b, 5.2, 4.2, '#14091f', false);
-            c.glowEye(cx - 4, 10 + b, '#e056fd');
-            c.glowEye(cx + 2, 10 + b, '#e056fd');
-            // Curved Demon Horns piercing hood
-            c.line(cx - 5, 5 + b, cx - 9, 1 + b, '#e056fd', 2);
-            c.line(cx + 5, 5 + b, cx + 9, 1 + b, '#e056fd', 2);
+            // Horned Occult Hood + Shadowed Face + Blazing Eldritch Eyes
+            c.oval(cx, 23 + b, 17.5, 15.2, '#4a235a');
+            c.oval(cx, 27 + b, 12.2, 10.2, '#12081c', { shaded: false });
+            c.glowEye(cx - 7, 26 + b, '#e056fd', 2.8);
+            c.glowEye(cx + 7, 26 + b, '#e056fd', 2.8);
+            // Swept Crimson-Magenta Demon Horns
+            c.curve(cx - 11, 13 + b, cx - 20, 9 + b, cx - 22, 3 + b, 3.6, 1.0, '#e056fd');
+            c.curve(cx + 11, 13 + b, cx + 20, 9 + b, cx + 22, 3 + b, 3.6, 1.0, '#e056fd');
           },
           drawGear: (c, cx, b, f) => {
-            // Floating Eldritch Grimoire + Crackling Void Flame
-            const gx = cx + 9, gy = 14 + b - f * 2;
-            c.shadedRect(gx - 1, gy + 2, 6, 7, '#2c193d');
-            c.rect(gx, gy + 3, 4, 5, '#f5f6fa');
-            c.oval(gx + 2, gy - 2, 3.2, 3.6, f ? '#ff4757' : '#e056fd');
-            c.rect(gx + 1, gy - 3, 2, 2, '#ffffff');
+            // Levitating Eldritch Grimoire + Crackling Void Flame
+            const gx = cx + 23, gy = 38 + b - f * 3;
+            c.plate(gx - 6, gy + 5, 13, 15, '#2c193d', { round: 2, trim: '#f6c967' });
+            c.plate(gx - 4, gy + 7, 9, 11, '#f4efe6', { round: 1 });
+            c.glow(gx, gy - 4, 11, '#ffffff', f ? '#ff4757' : '#e056fd', '#6c5ce7');
+            c.curve(gx, gy + 2, gx - 3 + f * 4, gy - 6, gx + (f ? 2 : -2), gy - 13, 5.5, 1.2, f ? '#ff4757' : '#e056fd');
           }
         });
       }, { motion: 'px-motion-float', aura: '#e056fd' })
   };
 
   // ==========================================================================
-  // 2. FINE 32x32 / 40x40 SD DEFORMED MONSTER DRAWERS (ALL 82 MONSTERS UNIQUE!)
+  // 2. HI-BIT 80x80 & 96x96 MONSTER DRAWERS (ALL 82 MONSTERS 100% UNIQUE!)
   // ==========================================================================
   const MONSTER_DRAWERS = {
     beholder(c, f, s) {
-      const cx = Math.floor(c.w / 2), cy = Math.floor(c.h * 0.56);
-      const r = Math.floor(c.w * 0.27);
-      // 6 Curved Waving Eyestalks!
+      const cx = c.w / 2, cy = c.h * 0.56, r = c.w * 0.27;
       const stalks = [
-        [-r - 3, -r - 3 - f], [-r + 1, -r - 6 + f], [0, -r - 7 - f],
-        [r - 1, -r - 6 + f], [r + 3, -r - 3 - f], [-r - 4, -2 + f], [r + 4, -2 - f]
+        [-r - 8, -r - 8 - f * 3], [-r + 3, -r - 15 + f * 3], [0, -r - 17 - f * 3],
+        [r - 3, -r - 15 + f * 3], [r + 8, -r - 8 - f * 3], [-r - 10, -4 + f * 3], [r + 10, -4 - f * 3]
       ];
       stalks.forEach(([dx, dy]) => {
-        c.line(cx + dx * 0.55, cy + dy * 0.55, cx + dx, cy + dy, s.p, 2);
-        c.oval(cx + dx, cy + dy, 2.1, 2.1, '#ffffff', false);
-        c.px(cx + dx, cy + dy, s.e);
+        c.curve(cx + dx * 0.52, cy + dy * 0.52, cx + dx * 0.8, cy + dy * 0.9 - 4, cx + dx, cy + dy, 3.8, 2.2, s.p);
+        c.oval(cx + dx, cy + dy, 4.4, 4.2, '#f5f6fa');
+        c.glowEye(cx + dx, cy + dy, s.e, 1.9);
       });
-      // Round Shaded Beholder Body
-      c.oval(cx, cy, r, r - 1, s.p);
-      // Giant Glossy Central Eye!
-      const er = Math.max(4, Math.floor(r * 0.52));
-      c.oval(cx, cy - 2, er, er - 1, '#f5f6fa', false);
-      c.oval(cx, cy - 2, Math.floor(er * 0.65), Math.floor(er * 0.65), s.a);
-      c.oval(cx, cy - 2, Math.max(1.5, er * 0.32), Math.max(1.5, er * 0.35), '#0e1018', false);
-      c.rect(cx - 2, cy - 4, 2, 2, '#ffffff');
-      // Jagged Grinning Maw
-      c.rect(cx - Math.floor(r * 0.6), cy + Math.floor(r * 0.38), Math.floor(r * 1.2), 3, '#1a0a14');
-      for (let tx = -Math.floor(r * 0.5); tx <= Math.floor(r * 0.45); tx += 3) {
-        c.px(cx + tx, cy + Math.floor(r * 0.38) + (f ? 1 : 0), '#ffffff');
+      c.oval(cx, cy, r, r * 0.94, s.p, { texture: 'scale' });
+      const er = r * 0.52;
+      c.oval(cx, cy - 4, er, er * 0.92, '#f7f8fc');
+      c.oval(cx, cy - 4, er * 0.66, er * 0.66, s.a);
+      c.oval(cx, cy - 4, er * 0.34, er * 0.42, '#0e1018', { shaded: false });
+      c.oval(cx - er * 0.3, cy - 4 - er * 0.3, er * 0.22, er * 0.18, '#ffffff', { shaded: false });
+      // Jagged Fanged Maw
+      c.oval(cx, cy + r * 0.52, r * 0.58, r * 0.22, '#210a16', { shaded: false });
+      for (let tx = -r * 0.46; tx <= r * 0.46; tx += 5.5) {
+        c.capsule(cx + tx, cy + r * 0.36, cx + tx, cy + r * 0.52 + (f ? 1.5 : 0), 1.6, 0.5, '#f5f6fa');
       }
     },
 
     dragon(c, f, s) {
-      const cx = Math.floor(c.w / 2), cy = Math.floor(c.h * 0.55);
-      const wf = f ? 4 : -3;
-      // Sweeping Webbed Wings (flapping F1 <-> F2)
-      c.line(cx - 4, cy - 1, cx - Math.floor(c.w * 0.44), cy - 8 + wf, s.d, 3);
-      c.line(cx + 4, cy - 1, cx + Math.floor(c.w * 0.44), cy - 8 + wf, s.d, 3);
-      c.oval(cx - Math.floor(c.w * 0.28), cy - 2 + Math.floor(wf * 0.5), 6, 4.5, s.d);
-      c.oval(cx + Math.floor(c.w * 0.28), cy - 2 + Math.floor(wf * 0.5), 6, 4.5, s.d);
-      // Curled Tail
-      c.line(cx + 5, cy + 7, cx + 13, cy + 4 - f, s.p, 2);
-      c.px(cx + 14, cy + 3 - f, s.a);
-      // Chibi Plated Dragon Body & Belly
-      c.oval(cx, cy + 4, 6.5, 7, s.p);
-      c.oval(cx, cy + 5, 4, 5, s.a);
-      // Sturdy Legs + Claws
-      c.shadedRect(cx - 6, cy + 8, 4, 4, s.d);
-      c.shadedRect(cx + 3, cy + 8, 4, 4, s.d);
-      // Expressive SD Dragon Head + Horns + Snout
-      c.oval(cx, cy - 6 + f, 7, 5.5, s.p);
-      c.line(cx - 5, cy - 10 + f, cx - 9, cy - 14 + f, s.a, 2);
-      c.line(cx + 5, cy - 10 + f, cx + 9, cy - 14 + f, s.a, 2);
-      c.chibiEye(cx - 4, cy - 7 + f, s.e);
-      c.chibiEye(cx + 2, cy - 7 + f, s.e);
-      // Glowing Breath Ember
-      c.rect(cx - 2, cy - 2 + f, 5, 2, f ? s.e : s.a);
+      const cx = c.w / 2, cy = c.h * 0.55, sc = c.w / 80;
+      const wf = (f ? 7 : -6) * sc;
+      // Sweeping Webbed Dragon Wings
+      c.curve(cx - 8 * sc, cy - 3 * sc, cx - 24 * sc, cy - 22 * sc + wf, cx - 34 * sc, cy - 12 * sc + wf, 6 * sc, 2.5 * sc, s.d);
+      c.curve(cx + 8 * sc, cy - 3 * sc, cx + 24 * sc, cy - 22 * sc + wf, cx + 34 * sc, cy - 12 * sc + wf, 6 * sc, 2.5 * sc, s.d);
+      c.oval(cx - 22 * sc, cy - 5 * sc + wf * 0.5, 13 * sc, 9.5 * sc, s.d);
+      c.oval(cx + 22 * sc, cy - 5 * sc + wf * 0.5, 13 * sc, 9.5 * sc, s.d);
+      // Curled Spiked Tail
+      c.curve(cx + 12 * sc, cy + 16 * sc, cx + 26 * sc, cy + 18 * sc, cx + 32 * sc, cy + 6 * sc - f * 3, 4.2 * sc, 1.4 * sc, s.p);
+      // Scaled Body & Segmented Belly
+      c.oval(cx, cy + 9 * sc, 15 * sc, 16 * sc, s.p, { texture: 'scale' });
+      c.oval(cx, cy + 11 * sc, 9.5 * sc, 11.5 * sc, s.a);
+      c.plate(cx - 14 * sc, cy + 18 * sc, 9 * sc, 10 * sc, s.d, { round: 2 });
+      c.plate(cx + 6 * sc, cy + 18 * sc, 9 * sc, 10 * sc, s.d, { round: 2 });
+      // Fierce Dragon Head + Swept Horns + Glowing Breath
+      c.oval(cx, cy - 14 * sc + f * 2, 15.5 * sc, 12.2 * sc, s.p, { texture: 'scale' });
+      c.curve(cx - 10 * sc, cy - 22 * sc + f * 2, cx - 18 * sc, cy - 28 * sc + f * 2, cx - 22 * sc, cy - 34 * sc + f * 2, 4.2 * sc, 1.1 * sc, s.a);
+      c.curve(cx + 10 * sc, cy - 22 * sc + f * 2, cx + 18 * sc, cy - 28 * sc + f * 2, cx + 22 * sc, cy - 34 * sc + f * 2, 4.2 * sc, 1.1 * sc, s.a);
+      c.glowEye(cx - 6.5 * sc, cy - 15 * sc + f * 2, s.e, 2.7 * sc);
+      c.glowEye(cx + 6.5 * sc, cy - 15 * sc + f * 2, s.e, 2.7 * sc);
+      c.glow(cx, cy - 5 * sc + f * 2, 8 * sc, '#ffffff', s.e, s.a);
     },
 
     tiamat(c, f, s) {
-      const cx = Math.floor(c.w / 2), cy = Math.floor(c.h * 0.62);
-      const wf = f ? 4 : -4;
-      // Colossal Dark Dragon Wings
-      c.oval(cx - 13, cy - 3 + wf, 8, 6, '#3d1530');
-      c.oval(cx + 13, cy - 3 + wf, 8, 6, '#3d1530');
+      const cx = c.w / 2, cy = c.h * 0.63, sc = c.w / 96;
+      const wf = (f ? 8 : -7) * sc;
+      // Colossal Abyssal Wings
+      c.oval(cx - 28 * sc, cy - 8 * sc + wf, 18 * sc, 13 * sc, '#3d1530');
+      c.oval(cx + 28 * sc, cy - 8 * sc + wf, 18 * sc, 13 * sc, '#3d1530');
       // Armored Dragon Queen Body
-      c.oval(cx, cy + 3, 9, 8.5, '#4a1936');
-      c.oval(cx, cy + 4, 5.5, 6, '#f6c967');
-      c.shadedRect(cx - 7, cy + 10, 5, 5, '#2d1022');
-      c.shadedRect(cx + 3, cy + 10, 5, 5, '#2d1022');
+      c.oval(cx, cy + 6 * sc, 20 * sc, 18 * sc, '#4a1936', { texture: 'scale' });
+      c.oval(cx, cy + 8 * sc, 12 * sc, 13 * sc, '#f6c967', { metallic: true });
+      c.plate(cx - 16 * sc, cy + 20 * sc, 11 * sc, 11 * sc, '#2d1022', { round: 2 });
+      c.plate(cx + 6 * sc, cy + 20 * sc, 11 * sc, 11 * sc, '#2d1022', { round: 2 });
       // ALL 5 CHROMATIC DRAGON HEADS (Red, Blue, Green, Black, White)!
       const heads = [
-        { dx: -13, dy: -11 + f, col: '#ff4757', eye: '#fff200' },
-        { dx: -7,  dy: -16 - f, col: '#2e86de', eye: '#00d2d3' },
-        { dx: 0,   dy: -18 + f, col: '#2ed573', eye: '#ffeaa7' },
-        { dx: 7,   dy: -16 - f, col: '#2f3542', eye: '#ff4757' },
-        { dx: 13,  dy: -11 + f, col: '#ecf0f1', eye: '#74b9ff' }
+        { dx: -29, dy: -22 + f * 3, col: '#ff4757', eye: '#fff200' },
+        { dx: -16, dy: -34 - f * 3, col: '#2e86de', eye: '#00d2d3' },
+        { dx: 0,   dy: -39 + f * 3, col: '#2ed573', eye: '#ffeaa7' },
+        { dx: 16,  dy: -34 - f * 3, col: '#2f3542', eye: '#ff4757' },
+        { dx: 29,  dy: -22 + f * 3, col: '#ecf0f1', eye: '#74b9ff' }
       ];
       heads.forEach(hd => {
-        c.line(cx + hd.dx * 0.35, cy - 3, cx + hd.dx, cy + hd.dy + 2, hd.col, 3);
-        c.oval(cx + hd.dx, cy + hd.dy, 3.6, 3.2, hd.col);
-        c.px(cx + hd.dx - 1, cy + hd.dy, hd.eye);
-        c.px(cx + hd.dx + 1, cy + hd.dy, hd.eye);
+        c.curve(cx + hd.dx * 0.3 * sc, cy - 6 * sc, cx + hd.dx * 0.72 * sc, cy + hd.dy * 0.55 * sc, cx + hd.dx * sc, cy + hd.dy * sc, 6.2 * sc, 4.2 * sc, hd.col, { texture: 'scale' });
+        c.oval(cx + hd.dx * sc, cy + hd.dy * sc, 7.6 * sc, 6.4 * sc, hd.col, { texture: 'scale' });
+        c.glowEye(cx + (hd.dx - 2.6) * sc, cy + hd.dy * sc, hd.eye, 1.8 * sc);
+        c.glowEye(cx + (hd.dx + 2.6) * sc, cy + hd.dy * sc, hd.eye, 1.8 * sc);
       });
     },
 
     mindflayer(c, f, s) {
-      const cx = Math.floor(c.w / 2), b = f;
-      // High-Collared Illithid Robe
-      c.oval(cx, Math.floor(c.h * 0.68) + b, 7, 8, s.d);
-      c.shadedRect(cx - 7, Math.floor(c.h * 0.44) + b, 15, 4, s.a);
-      // Bulbous Squid Head
-      c.oval(cx, Math.floor(c.h * 0.31) + b, 7.2, 6.2, s.p);
-      // Luminous Psionic Eyes
-      c.glowEye(cx - 4, Math.floor(c.h * 0.3) + b, s.e);
-      c.glowEye(cx + 2, Math.floor(c.h * 0.3) + b, s.e);
-      // 4 Wriggling Face Tentacles
+      const cx = c.w / 2, sc = c.w / 80, b = f * 2 * sc;
+      c.cape(cx, 34 * sc + b, 73 * sc, 24 * sc, 36 * sc, s.d, f ? -2 : 2, s.a);
+      c.plate(cx - 17 * sc, 34 * sc + b, 35 * sc, 9 * sc, s.a, { round: 2, metallic: true });
+      c.oval(cx, 24 * sc + b, 15.5 * sc, 13.5 * sc, s.p);
+      c.glowEye(cx - 6.5 * sc, 23 * sc + b, s.e, 2.8 * sc);
+      c.glowEye(cx + 6.5 * sc, 23 * sc + b, s.e, 2.8 * sc);
       for (let i = -3; i <= 3; i += 2) {
-        const sway = (i < 0 ? -1 : 1) * (f ? 2 : 0);
-        c.line(cx + i, Math.floor(c.h * 0.4) + b, cx + i + sway, Math.floor(c.h * 0.56) + b, s.p, 2);
+        const sway = (i < 0 ? -1 : 1) * (f ? 4 : -1) * sc;
+        c.curve(cx + i * 2.5 * sc, 32 * sc + b, cx + i * 3 * sc + sway, 40 * sc + b, cx + i * 2.2 * sc + sway, 47 * sc + b, 3.0 * sc, 1.2 * sc, s.p);
       }
-      // Floating Psionic Orb
-      c.oval(cx + 10, Math.floor(c.h * 0.45) - f * 2, 3, 3, s.a);
-      c.px(cx + 10, Math.floor(c.h * 0.45) - f * 2, '#ffffff');
+      c.glow(cx + 24 * sc, 36 * sc - f * 4 * sc, 11 * sc, '#ffffff', s.a, s.p);
+      c.oval(cx + 24 * sc, 36 * sc - f * 4 * sc, 6 * sc, 6 * sc, s.a, { metallic: true });
     },
 
     brain(c, f, s) {
-      const cx = Math.floor(c.w / 2), cy = Math.floor(c.h * 0.46) + f;
-      const rx = Math.floor(c.w * 0.33), ry = Math.floor(c.h * 0.25);
-      // Glowing Psionic Aura Rings / Legs
-      for (let lx = -rx + 2; lx <= rx - 2; lx += 4) {
-        c.line(cx + lx, cy + ry - 1, cx + lx + (f ? 1 : -1), cy + ry + 7, s.d, 2);
+      const cx = c.w / 2, cy = c.h * 0.45 + f * 2, rx = c.w * 0.34, ry = c.h * 0.25;
+      for (let lx = -rx + 6; lx <= rx - 6; lx += 9) {
+        c.curve(cx + lx, cy + ry - 3, cx + lx + (f ? 4 : -4), cy + ry + 10, cx + lx - (f ? 2 : -2), cy + ry + 18, 3.2, 1.2, s.d);
       }
-      // Convoluted Brain Lobes
       c.oval(cx, cy, rx, ry, s.p);
-      c.oval(cx - Math.floor(rx * 0.4), cy - 2, rx * 0.45, ry * 0.55, shade(s.p, 0.25));
-      c.oval(cx + Math.floor(rx * 0.4), cy - 2, rx * 0.45, ry * 0.55, shade(s.p, 0.25));
-      // Brain groove lines
-      c.line(cx, cy - ry + 2, cx, cy + ry - 2, s.d, 1);
-      c.line(cx - rx + 3, cy, cx - 2, cy - 2, s.d, 1);
-      c.line(cx + 2, cy + 1, cx + rx - 3, cy - 1, s.d, 1);
-      // Glowing Psionic Core Eyes
-      c.glowEye(cx - 4, cy + 1, s.e);
-      c.glowEye(cx + 2, cy + 1, s.e);
+      c.oval(cx - rx * 0.38, cy - 4, rx * 0.46, ry * 0.56, hueShade(s.p, 0.22));
+      c.oval(cx + rx * 0.38, cy - 4, rx * 0.46, ry * 0.56, hueShade(s.p, 0.22));
+      c.curve(cx, cy - ry + 4, cx, cy, cx, cy + ry - 4, 1.8, 1.8, s.d);
+      c.curve(cx - rx + 6, cy - 2, cx - rx * 0.4, cy + 4, cx - 4, cy - 4, 1.5, 1.5, s.d);
+      c.curve(cx + 4, cy + 2, cx + rx * 0.4, cy - 4, cx + rx - 6, cy + 2, 1.5, 1.5, s.d);
+      c.glowEye(cx - 9, cy + 2, s.e, 3.2);
+      c.glowEye(cx + 9, cy + 2, s.e, 3.2);
     },
 
     spider(c, f, s) {
-      const cx = Math.floor(c.w / 2), cy = Math.floor(c.h * 0.56);
-      const sc = c.w >= 40 ? 1.2 : 1;
-      // 8 Jointed Scuttling Pixel Legs!
+      const cx = c.w / 2, cy = c.h * 0.56, sc = c.w / 80;
       for (let i = 0; i < 4; i++) {
-        const yOff = (-4 + i * 3) * sc;
-        const step = (i % 2 === f) ? -2 : 2;
-        c.line(cx - 5 * sc, cy + yOff, cx - 12 * sc, cy + yOff - 3 + step, s.d, 2);
-        c.line(cx - 12 * sc, cy + yOff - 3 + step, cx - 14 * sc, cy + yOff + 4 + step, s.d, 1);
-        c.line(cx + 5 * sc, cy + yOff, cx + 12 * sc, cy + yOff - 3 - step, s.d, 2);
-        c.line(cx + 12 * sc, cy + yOff - 3 - step, cx + 14 * sc, cy + yOff + 4 - step, s.d, 1);
+        const yOff = (-9 + i * 7) * sc;
+        const step = (i % 2 === f ? -5 : 5) * sc;
+        c.curve(cx - 11 * sc, cy + yOff, cx - 26 * sc, cy + yOff - 10 * sc + step, cx - 33 * sc, cy + yOff + 10 * sc + step, 3.2 * sc, 1.3 * sc, s.d);
+        c.curve(cx + 11 * sc, cy + yOff, cx + 26 * sc, cy + yOff - 10 * sc - step, cx + 33 * sc, cy + yOff + 10 * sc - step, 3.2 * sc, 1.3 * sc, s.d);
       }
-      // Plump Shaded Abdomen with Crimson/Gold Hourglass
-      c.oval(cx, cy - 4 * sc + f, 7.5 * sc, 6.5 * sc, s.p);
-      c.rect(cx - 2, cy - 6 * sc + f, 5, 2, s.a);
-      c.rect(cx - 1, cy - 4 * sc + f, 3, 2, s.a);
-      // Spider Head + Cluster of 4 Glowing Eyes + Fangs
-      c.oval(cx, cy + 4 * sc, 5.5 * sc, 4.5 * sc, s.d);
-      c.px(cx - 3, cy + 3 * sc, s.e); c.px(cx - 1, cy + 2 * sc, s.e);
-      c.px(cx + 1, cy + 2 * sc, s.e); c.px(cx + 3, cy + 3 * sc, s.e);
-      c.rect(cx - 2, cy + 7 * sc, 1, 2, '#ffffff');
-      c.rect(cx + 2, cy + 7 * sc, 1, 2, '#ffffff');
+      c.oval(cx, cy - 9 * sc + f * 2, 17 * sc, 14.5 * sc, s.p, { texture: 'fur' });
+      c.plate(cx - 5 * sc, cy - 14 * sc + f * 2, 11 * sc, 4 * sc, s.a, { round: 1 });
+      c.plate(cx - 3 * sc, cy - 9 * sc + f * 2, 7 * sc, 4 * sc, s.a, { round: 1 });
+      c.oval(cx, cy + 10 * sc, 12.5 * sc, 10 * sc, s.d);
+      [-7, -2.5, 2.5, 7].forEach((dx, idx) => c.glowEye(cx + dx * sc, cy + (idx === 1 || idx === 2 ? 7 : 9) * sc, s.e, 1.8 * sc));
+      c.capsule(cx - 5 * sc, cy + 16 * sc, cx - 3 * sc, cy + 22 * sc, 2 * sc, 0.6 * sc, '#f5f6fa');
+      c.capsule(cx + 5 * sc, cy + 16 * sc, cx + 3 * sc, cy + 22 * sc, 2 * sc, 0.6 * sc, '#f5f6fa');
     },
 
     slime(c, f, s) {
-      const cx = Math.floor(c.w / 2), cy = Math.floor(c.h * 0.56);
-      const sw = f ? 2 : 0, sh = f ? -2 : 0;
-      // Translucent Gel Body
-      c.shadedRect(cx - 9 - sw, cy - 8 - sh, 19 + sw * 2, 17 + sh, s.p);
-      // Glossy top-left shine
-      c.rect(cx - 7 - sw, cy - 6 - sh, 5, 2, '#ffffff');
-      c.rect(cx - 7 - sw, cy - 4 - sh, 2, 4, s.a);
-      // Floating Pixel Skull & Sword trapped inside!
-      c.oval(cx + 1, cy - 1 - f, 3.5, 3, '#f5f6fa', false);
-      c.px(cx, cy - 1 - f, '#12131c');
-      c.px(cx + 2, cy - 1 - f, '#12131c');
-      c.line(cx - 5, cy + 4, cx + 5, cy + 2, '#dfe6e9', 1);
+      const cx = c.w / 2, cy = c.h * 0.56, sc = c.w / 80;
+      const sw = (f ? 4 : 0) * sc, sh = (f ? -4 : 0) * sc;
+      c.plate(cx - 22 * sc - sw, cy - 20 * sc - sh, 45 * sc + sw * 2, 41 * sc + sh, s.p, { round: 6, metallic: true });
+      c.oval(cx - 11 * sc - sw, cy - 11 * sc - sh, 7 * sc, 3.2 * sc, '#ffffff', { shaded: false, alpha: 210 });
+      // Floating Skull & Rusty Sword inside translucent cube!
+      c.oval(cx + 4 * sc, cy - 3 * sc - f * 2, 8 * sc, 7 * sc, '#f5f6fa');
+      c.oval(cx + 1 * sc, cy - 3 * sc - f * 2, 2.2 * sc, 2.4 * sc, '#14141f', { shaded: false });
+      c.oval(cx + 7 * sc, cy - 3 * sc - f * 2, 2.2 * sc, 2.4 * sc, '#14141f', { shaded: false });
+      c.capsule(cx - 13 * sc, cy + 10 * sc, cx + 12 * sc, cy + 5 * sc, 2 * sc, 1 * sc, '#dfe6e9', { metallic: true });
     },
 
     mimic(c, f, s) {
-      const cx = Math.floor(c.w / 2), cy = Math.floor(c.h * 0.58);
-      // Wooden & Gold Chest Base
-      c.shadedRect(cx - 10, cy, 21, 9, s.p);
-      c.rect(cx - 10, cy, 21, 2, s.a);
-      c.rect(cx - 2, cy, 5, 4, s.a);
+      const cx = c.w / 2, cy = c.h * 0.59, sc = c.w / 80;
+      c.plate(cx - 24 * sc, cy, 49 * sc, 21 * sc, s.p, { round: 3, texture: true });
+      c.plate(cx - 24 * sc, cy, 49 * sc, 5 * sc, s.a, { metallic: true });
+      c.plate(cx - 5 * sc, cy - 1 * sc, 11 * sc, 9 * sc, s.a, { metallic: true, round: 2 });
       if (f === 0) {
-        // Lid closed with glowing eyes peeking through crack!
-        c.shadedRect(cx - 10, cy - 7, 21, 7, shade(s.p, 0.15));
-        c.rect(cx - 10, cy - 1, 21, 2, '#140812');
-        c.glowEye(cx - 5, cy - 2, s.e);
-        c.glowEye(cx + 3, cy - 2, s.e);
+        c.plate(cx - 24 * sc, cy - 17 * sc, 49 * sc, 17 * sc, hueShade(s.p, 0.12), { round: 4 });
+        c.rect(cx - 24 * sc, cy - 3 * sc, 49 * sc, 4 * sc, '#140812');
+        c.glowEye(cx - 10 * sc, cy - 2 * sc, s.e, 2.5 * sc);
+        c.glowEye(cx + 10 * sc, cy - 2 * sc, s.e, 2.5 * sc);
       } else {
-        // Lid snapped wide open with fangs & purple tongue!
-        c.shadedRect(cx - 11, cy - 12, 23, 6, shade(s.p, 0.2));
-        c.rect(cx - 9, cy - 6, 19, 7, '#4a0e24');
-        for (let tx = -7; tx <= 7; tx += 3) {
-          c.rect(cx + tx, cy - 6, 2, 2, '#ffffff');
-          c.rect(cx + tx, cy - 1, 2, 2, '#ffffff');
+        c.plate(cx - 26 * sc, cy - 29 * sc, 53 * sc, 14 * sc, hueShade(s.p, 0.16), { round: 4 });
+        c.plate(cx - 22 * sc, cy - 15 * sc, 45 * sc, 16 * sc, '#4a0e24');
+        for (let tx = -18; tx <= 18; tx += 7) {
+          c.capsule(cx + tx * sc, cy - 15 * sc, cx + tx * sc, cy - 10 * sc, 2.2 * sc, 0.6 * sc, '#ffffff');
+          c.capsule(cx + tx * sc, cy - 1 * sc, cx + tx * sc, cy - 6 * sc, 2.2 * sc, 0.6 * sc, '#ffffff');
         }
-        c.oval(cx + 2, cy - 2, 4, 2.5, s.e);
-        c.glowEye(cx - 6, cy - 10, '#ffdd59');
-        c.glowEye(cx + 4, cy - 10, '#ffdd59');
+        c.curve(cx, cy - 5 * sc, cx + 10 * sc, cy - 10 * sc, cx + 20 * sc, cy + 4 * sc, 5.2 * sc, 2.4 * sc, s.e);
+        c.glowEye(cx - 12 * sc, cy - 23 * sc, '#ffdd59', 2.4 * sc);
+        c.glowEye(cx + 12 * sc, cy - 23 * sc, '#ffdd59', 2.4 * sc);
       }
     },
 
     goblin(c, f, s) {
-      const cx = Math.floor(c.w / 2), oy = c.h - 32, b = f + oy;
-      // Compact SD Goblin Body + Leather Tunic
-      c.shadedRect(cx - 4, 23 + oy, 3, 5, s.d);
-      c.shadedRect(cx + 2, 23 + oy, 3, 5, s.d);
-      c.shadedRect(cx - 5, 17 + b, 11, 7, s.d);
-      c.rect(cx - 5, 21 + b, 11, 2, s.a);
-      // Big Chibi Head + Huge Pointed Goblin Ears!
-      c.line(cx - 6, 11 + b, cx - 13, 8 + b - f, s.p, 3);
-      c.line(cx + 6, 11 + b, cx + 13, 8 + b - f, s.p, 3);
-      c.oval(cx, 11 + b, 6.5, 5.5, s.p);
-      c.chibiEye(cx - 4, 10 + b, s.e);
-      c.chibiEye(cx + 2, 10 + b, s.e);
-      // Jagged Grin & Crude Spear/Dagger
-      c.rect(cx - 2, 14 + b, 5, 1, '#ffffff');
-      c.line(cx + 8, 22 + b, cx + 12, 8 + b - f * 2, '#8d5524', 2);
-      c.rect(cx + 11, 6 + b - f * 2, 3, 4, '#dfe6e9');
+      const cx = c.w / 2, sc = c.w / 80, b = f * 2 * sc;
+      c.plate(cx - 10 * sc, 58 * sc, 7 * sc, 13 * sc, s.d, { round: 2 });
+      c.plate(cx + 4 * sc, 58 * sc, 7 * sc, 13 * sc, s.d, { round: 2 });
+      c.plate(cx - 12 * sc, 42 * sc + b, 25 * sc, 17 * sc, s.d, { round: 3 });
+      c.plate(cx - 12 * sc, 52 * sc + b, 25 * sc, 4 * sc, s.a, { metallic: true });
+      // Huge Pointed Goblin Ears!
+      c.curve(cx - 12 * sc, 28 * sc + b, cx - 24 * sc, 22 * sc + b - f * 3, cx - 32 * sc, 18 * sc + b - f * 3, 5.2 * sc, 1.4 * sc, s.p);
+      c.curve(cx + 12 * sc, 28 * sc + b, cx + 24 * sc, 22 * sc + b - f * 3, cx + 32 * sc, 18 * sc + b - f * 3, 5.2 * sc, 1.4 * sc, s.p);
+      c.oval(cx, 28 * sc + b, 15 * sc, 13 * sc, s.p);
+      c.hiBitEye(cx - 10 * sc, 24 * sc + b, s.e);
+      c.hiBitEye(cx + 5 * sc, 24 * sc + b, s.e);
+      c.rect(cx - 5 * sc, 35 * sc + b, 11 * sc, 2 * sc, '#ffffff');
+      c.capsule(cx + 20 * sc, 55 * sc + b, cx + 27 * sc, 18 * sc + b - f * 4, 2.2 * sc, 1.8 * sc, '#8d5524');
+      c.sword(cx + 27 * sc, 10 * sc + b - f * 4, 22 * sc + b - f * 4, 2.5 * sc, '#dfe6e9', s.a, '#6d4c41');
     },
 
     brute(c, f, s) {
-      const cx = Math.floor(c.w / 2), b = f;
-      // Massive Heavy SD Shoulders & Torso
-      c.shadedRect(cx - 6, Math.floor(c.h * 0.72), 5, 6, s.d);
-      c.shadedRect(cx + 2, Math.floor(c.h * 0.72), 5, 6, s.d);
-      c.oval(cx, Math.floor(c.h * 0.56) + b, 9.5, 7.5, s.p);
-      c.shadedRect(cx - 8, Math.floor(c.h * 0.62) + b, 17, 3, s.d);
-      c.rect(cx - 2, Math.floor(c.h * 0.62) + b, 5, 3, s.a);
-      // Fierce Big Head + Tusks
-      c.oval(cx, Math.floor(c.h * 0.31) + b, 7, 5.5, s.p);
-      c.chibiEye(cx - 4, Math.floor(c.h * 0.28) + b, s.e);
-      c.chibiEye(cx + 2, Math.floor(c.h * 0.28) + b, s.e);
-      c.rect(cx - 4, Math.floor(c.h * 0.39) + b, 2, 3, '#ffffff');
-      c.rect(cx + 3, Math.floor(c.h * 0.39) + b, 2, 3, '#ffffff');
-      // Giant Club / Cleaver
-      c.line(cx + 10, Math.floor(c.h * 0.64) + b, cx + 13, Math.floor(c.h * 0.22) - f * 2, '#6d4c41', 3);
-      c.oval(cx + 13, Math.floor(c.h * 0.22) - f * 2, 3.5, 4, s.a);
+      const cx = c.w / 2, sc = c.w / 80, b = f * 2 * sc;
+      c.plate(cx - 15 * sc, 57 * sc, 11 * sc, 16 * sc, s.d, { round: 2 });
+      c.plate(cx + 5 * sc, 57 * sc, 11 * sc, 16 * sc, s.d, { round: 2 });
+      c.oval(cx, 44 * sc + b, 22 * sc, 17 * sc, s.p, { texture: 'fur' });
+      c.plate(cx - 18 * sc, 50 * sc + b, 37 * sc, 6 * sc, s.d, { round: 2 });
+      c.plate(cx - 5 * sc, 49 * sc + b, 11 * sc, 8 * sc, s.a, { metallic: true, round: 2 });
+      c.oval(cx, 24 * sc + b, 16 * sc, 13 * sc, s.p);
+      c.hiBitEye(cx - 10 * sc, 21 * sc + b, s.e);
+      c.hiBitEye(cx + 5 * sc, 21 * sc + b, s.e);
+      c.capsule(cx - 8 * sc, 34 * sc + b, cx - 9 * sc, 29 * sc + b, 2.2 * sc, 0.8 * sc, '#ffffff');
+      c.capsule(cx + 8 * sc, 34 * sc + b, cx + 9 * sc, 29 * sc + b, 2.2 * sc, 0.8 * sc, '#ffffff');
+      c.capsule(cx + 22 * sc, 52 * sc + b, cx + 30 * sc, 18 * sc - f * 4, 3.6 * sc, 4.4 * sc, '#6d4c41');
+      c.oval(cx + 30 * sc, 17 * sc - f * 4, 8.5 * sc, 9.5 * sc, s.a, { metallic: true });
     },
 
     ettin(c, f, s) {
-      const cx = Math.floor(c.w / 2), b = f;
-      c.shadedRect(cx - 7, Math.floor(c.h * 0.72), 6, 7, s.d);
-      c.shadedRect(cx + 2, Math.floor(c.h * 0.72), 6, 7, s.d);
-      c.oval(cx, Math.floor(c.h * 0.56) + b, 11, 8.5, s.p);
-      c.rect(cx - 9, Math.floor(c.h * 0.62) + b, 19, 3, s.a);
-      // TWO DISTINCT CHIBI GIANT HEADS!
-      c.oval(cx - 6, Math.floor(c.h * 0.28) + b, 5.2, 4.8, s.p);
-      c.oval(cx + 6, Math.floor(c.h * 0.28) - b, 5.2, 4.8, s.p);
-      c.glowEye(cx - 8, Math.floor(c.h * 0.26) + b, s.e);
-      c.glowEye(cx - 5, Math.floor(c.h * 0.26) + b, s.e);
-      c.glowEye(cx + 4, Math.floor(c.h * 0.26) - b, s.e);
-      c.glowEye(cx + 7, Math.floor(c.h * 0.26) - b, s.e);
-      // Dual Spiked Clubs
-      c.line(cx - 13, Math.floor(c.h * 0.6), cx - 15, Math.floor(c.h * 0.28) + f * 2, '#784212', 3);
-      c.line(cx + 13, Math.floor(c.h * 0.6), cx + 15, Math.floor(c.h * 0.28) - f * 2, '#784212', 3);
+      const cx = c.w / 2, sc = c.w / 96, b = f * 2 * sc;
+      c.plate(cx - 18 * sc, 68 * sc, 14 * sc, 18 * sc, s.d, { round: 3 });
+      c.plate(cx + 5 * sc, 68 * sc, 14 * sc, 18 * sc, s.d, { round: 3 });
+      c.oval(cx, 54 * sc + b, 25 * sc, 20 * sc, s.p);
+      c.plate(cx - 21 * sc, 60 * sc + b, 43 * sc, 7 * sc, s.a, { metallic: true });
+      c.oval(cx - 14 * sc, 27 * sc + b, 12.5 * sc, 11.5 * sc, s.p);
+      c.oval(cx + 14 * sc, 27 * sc - b, 12.5 * sc, 11.5 * sc, s.p);
+      c.glowEye(cx - 18 * sc, 25 * sc + b, s.e, 2.4 * sc);
+      c.glowEye(cx - 10 * sc, 25 * sc + b, s.e, 2.4 * sc);
+      c.glowEye(cx + 10 * sc, 25 * sc - b, s.e, 2.4 * sc);
+      c.glowEye(cx + 18 * sc, 25 * sc - b, s.e, 2.4 * sc);
+      c.capsule(cx - 30 * sc, 56 * sc, cx - 36 * sc, 24 * sc + f * 5, 4.2 * sc, 5.2 * sc, '#784212');
+      c.capsule(cx + 30 * sc, 56 * sc, cx + 36 * sc, 24 * sc - f * 5, 4.2 * sc, 5.2 * sc, '#784212');
     },
 
     skeleton(c, f, s) {
-      const cx = Math.floor(c.w / 2), oy = c.h - 32, b = f + oy;
-      // Ribcage & Armor
-      c.rect(cx - 3, 23 + oy, 2, 5, '#e8e8e8');
-      c.rect(cx + 2, 23 + oy, 2, 5, '#e8e8e8');
-      c.shadedRect(cx - 4, 17 + b, 9, 6, s.p);
-      c.rect(cx - 3, 18 + b, 7, 1, '#f5f6fa');
-      c.rect(cx - 3, 20 + b, 7, 1, '#f5f6fa');
-      // Detailed SD Skull
-      c.oval(cx, 10 + b, 6.2, 5.4, '#f5f6fa');
-      c.rect(cx - 3, 14 + b, 7, 3, '#dcdde1');
-      c.rect(cx - 4, 9 + b, 3, 3, '#10101a');
-      c.rect(cx + 2, 9 + b, 3, 3, '#10101a');
-      c.px(cx - 3, 10 + b, s.e);
-      c.px(cx + 3, 10 + b, s.e);
-      // Curved Scimitar / Shield
-      c.line(cx + 8, 20 + b, cx + 12, 7 + b - f * 2, '#ecf0f1', 2);
-      c.shadedRect(cx - 10, 17 + b, 5, 7, s.d);
+      const cx = c.w / 2, sc = c.w / 80, b = f * 2 * sc;
+      c.plate(cx - 8 * sc, 56 * sc, 5 * sc, 16 * sc, '#e8e8e8', { round: 1 });
+      c.plate(cx + 4 * sc, 56 * sc, 5 * sc, 16 * sc, '#e8e8e8', { round: 1 });
+      c.plate(cx - 10 * sc, 42 * sc + b, 21 * sc, 15 * sc, s.p, { round: 2, metallic: true });
+      for (let ry = 44; ry <= 52; ry += 4) c.rect(cx - 7 * sc, ry * sc + b, 15 * sc, 2 * sc, '#f5f6fa');
+      c.oval(cx, 25 * sc + b, 14.5 * sc, 12.5 * sc, '#f5f6fa');
+      c.plate(cx - 7 * sc, 34 * sc + b, 15 * sc, 6 * sc, '#dcdde1', { round: 2 });
+      c.oval(cx - 6 * sc, 25 * sc + b, 4.0 * sc, 4.2 * sc, '#10101a', { shaded: false });
+      c.oval(cx + 6 * sc, 25 * sc + b, 4.0 * sc, 4.2 * sc, '#10101a', { shaded: false });
+      c.glowEye(cx - 6 * sc, 25 * sc + b, s.e, 1.8 * sc);
+      c.glowEye(cx + 6 * sc, 25 * sc + b, s.e, 1.8 * sc);
+      c.plate(cx - 25 * sc, 42 * sc + b, 12 * sc, 18 * sc, s.d, { metallic: true, round: 3 });
+      c.sword(cx + 22 * sc, 14 * sc + b - f * 4, 48 * sc + b - f * 4, 2.8 * sc, '#ecf0f1', s.a, '#576574');
     },
 
     wraith(c, f, s) {
-      const cx = Math.floor(c.w / 2), b = f;
-      // Ethereal Swirling Spectral Shroud
-      c.oval(cx, Math.floor(c.h * 0.52) + b, 8, 9, s.p);
-      c.line(cx - 5, Math.floor(c.h * 0.72) + b, cx - 8 - f, Math.floor(c.h * 0.88), s.d, 2);
-      c.line(cx, Math.floor(c.h * 0.74) + b, cx + f, Math.floor(c.h * 0.9), s.p, 3);
-      c.line(cx + 5, Math.floor(c.h * 0.72) + b, cx + 8 + f, Math.floor(c.h * 0.88), s.d, 2);
-      // Hooded Void Face + Burning Spectral Eyes
-      c.oval(cx, Math.floor(c.h * 0.3) + b, 6.8, 5.8, s.d);
-      c.oval(cx, Math.floor(c.h * 0.33) + b, 4.5, 3.8, '#090910', false);
-      c.glowEye(cx - 3, Math.floor(c.h * 0.31) + b, s.e);
-      c.glowEye(cx + 2, Math.floor(c.h * 0.31) + b, s.e);
-      // Spectral Claws
-      c.line(cx - 8, Math.floor(c.h * 0.5) + b, cx - 12, Math.floor(c.h * 0.44) - f, s.a, 2);
-      c.line(cx + 8, Math.floor(c.h * 0.5) + b, cx + 12, Math.floor(c.h * 0.44) + f, s.a, 2);
+      const cx = c.w / 2, sc = c.w / 80, b = f * 2 * sc;
+      c.cape(cx, 30 * sc + b, 72 * sc, 26 * sc, 40 * sc, s.p, f ? -4 : 4);
+      c.oval(cx, 24 * sc + b, 16 * sc, 13.5 * sc, s.d);
+      c.oval(cx, 26 * sc + b, 10.5 * sc, 8.8 * sc, '#090910', { shaded: false });
+      c.glowEye(cx - 5.5 * sc, 25 * sc + b, s.e, 2.5 * sc);
+      c.glowEye(cx + 5.5 * sc, 25 * sc + b, s.e, 2.5 * sc);
+      c.curve(cx - 16 * sc, 40 * sc + b, cx - 26 * sc, 36 * sc + b, cx - 31 * sc, 32 * sc - f * 4, 3.6 * sc, 1.2 * sc, s.a);
+      c.curve(cx + 16 * sc, 40 * sc + b, cx + 26 * sc, 36 * sc + b, cx + 31 * sc, 32 * sc + f * 4, 3.6 * sc, 1.2 * sc, s.a);
     },
 
     lich(c, f, s) {
-      const cx = Math.floor(c.w / 2), b = f;
-      // Ornate Royal Lich Robes + Gold Trim
-      c.oval(cx, Math.floor(c.h * 0.64) + b, 9, 10, s.p);
-      c.rect(cx - 2, Math.floor(c.h * 0.46) + b, 5, 14, s.a);
-      // Glowing Skeletal Skull + Golden Crown
-      c.oval(cx, Math.floor(c.h * 0.31) + b, 6.5, 5.5, '#ecf0f1');
-      c.rect(cx - 4, Math.floor(c.h * 0.3) + b, 3, 3, '#10101a');
-      c.rect(cx + 2, Math.floor(c.h * 0.3) + b, 3, 3, '#10101a');
-      c.px(cx - 3, Math.floor(c.h * 0.31) + b, s.e);
-      c.px(cx + 3, Math.floor(c.h * 0.31) + b, s.e);
-      // Phylactery Necrotic Staff
-      const sx = cx + 12;
-      c.rect(sx, Math.floor(c.h * 0.28) + b, 2, 22, '#4a235a');
-      c.oval(sx + 1, Math.floor(c.h * 0.22) - f * 2, 4, 4, s.e);
-      c.rect(sx, Math.floor(c.h * 0.21) - f * 2, 2, 2, '#ffffff');
+      const cx = c.w / 2, sc = c.w / 96, b = f * 2 * sc;
+      c.cape(cx, 38 * sc + b, 88 * sc, 30 * sc, 48 * sc, s.p, f ? -3 : 3, s.a);
+      c.plate(cx - 6 * sc, 44 * sc + b, 13 * sc, 34 * sc, s.a, { metallic: true, round: 2 });
+      c.oval(cx, 29 * sc + b, 15.5 * sc, 13.5 * sc, '#ecf0f1');
+      c.oval(cx - 6 * sc, 29 * sc + b, 4.2 * sc, 4.4 * sc, '#10101a', { shaded: false });
+      c.oval(cx + 6 * sc, 29 * sc + b, 4.2 * sc, 4.4 * sc, '#10101a', { shaded: false });
+      c.glowEye(cx - 6 * sc, 29 * sc + b, s.e, 2.2 * sc);
+      c.glowEye(cx + 6 * sc, 29 * sc + b, s.e, 2.2 * sc);
+      const sx = cx + 28 * sc;
+      c.capsule(sx, 28 * sc + b, sx, 84 * sc, 2.6 * sc, 2.2 * sc, '#4a235a');
+      c.glow(sx, 20 * sc - f * 4 * sc, 13 * sc, '#ffffff', s.e, s.a);
+      c.oval(sx, 20 * sc - f * 4 * sc, 7.5 * sc, 7.5 * sc, s.e, { metallic: true });
     },
 
     vampire(c, f, s) {
-      const cx = Math.floor(c.w / 2), b = f;
-      // Dramatic High-Collar Crimson Cape
-      c.oval(cx, Math.floor(c.h * 0.58) + b, 10 + f, 10, s.p);
-      c.line(cx - 9, Math.floor(c.h * 0.26) + b, cx - 5, Math.floor(c.h * 0.42) + b, s.p, 3);
-      c.line(cx + 9, Math.floor(c.h * 0.26) + b, cx + 5, Math.floor(c.h * 0.42) + b, s.p, 3);
-      // Aristocratic Dark Suit + Gold Cravat
-      c.shadedRect(cx - 5, Math.floor(c.h * 0.46) + b, 11, 12, s.d);
-      c.rect(cx - 1, Math.floor(c.h * 0.47) + b, 3, 5, s.a);
-      // Pale Noble Chibi Face + Slick Hair + Glowing Red Eyes + Fangs
-      c.oval(cx, Math.floor(c.h * 0.3) + b, 6.4, 5.5, '#f2e8eb');
-      c.oval(cx, Math.floor(c.h * 0.22) + b, 6.8, 3, '#1b1b26');
-      c.chibiEye(cx - 4, Math.floor(c.h * 0.29) + b, s.e);
-      c.chibiEye(cx + 2, Math.floor(c.h * 0.29) + b, s.e);
-      c.px(cx - 1, Math.floor(c.h * 0.38) + b, '#ffffff');
-      c.px(cx + 2, Math.floor(c.h * 0.38) + b, '#ffffff');
+      const cx = c.w / 2, sc = c.w / 80, b = f * 2 * sc;
+      c.cape(cx, 30 * sc + b, 73 * sc, 30 * sc, 48 * sc, s.p, f ? -4 : 4, s.a);
+      c.curve(cx - 12 * sc, 34 * sc + b, cx - 22 * sc, 24 * sc + b, cx - 20 * sc, 16 * sc + b, 4.2 * sc, 1.8 * sc, s.p);
+      c.curve(cx + 12 * sc, 34 * sc + b, cx + 22 * sc, 24 * sc + b, cx + 20 * sc, 16 * sc + b, 4.2 * sc, 1.8 * sc, s.p);
+      c.plate(cx - 12 * sc, 37 * sc + b, 25 * sc, 28 * sc, s.d, { round: 3 });
+      c.plate(cx - 3 * sc, 39 * sc + b, 7 * sc, 12 * sc, s.a, { metallic: true, round: 1 });
+      c.oval(cx, 24 * sc + b, 14.5 * sc, 12.5 * sc, '#f2e8eb');
+      c.hairCap(cx, 17 * sc + b, 15.2 * sc, 7.8 * sc, '#1b1b26');
+      c.hiBitEye(cx - 10 * sc, 22 * sc + b, s.e);
+      c.hiBitEye(cx + 5 * sc, 22 * sc + b, s.e);
+      c.px(cx - 3 * sc, 31 * sc + b, '#ffffff');
+      c.px(cx + 3 * sc, 31 * sc + b, '#ffffff');
     },
 
     demon(c, f, s) {
-      const cx = Math.floor(c.w / 2), b = f;
-      const wf = f ? 3 : -3;
-      // Bat-Demon Wings
-      c.oval(cx - 11, Math.floor(c.h * 0.44) + wf, 6, 5, s.d);
-      c.oval(cx + 11, Math.floor(c.h * 0.44) + wf, 6, 5, s.d);
-      // Muscular Fiend Body
-      c.shadedRect(cx - 6, Math.floor(c.h * 0.72), 4, 6, s.d);
-      c.shadedRect(cx + 3, Math.floor(c.h * 0.72), 4, 6, s.d);
-      c.oval(cx, Math.floor(c.h * 0.56) + b, 8, 7, s.p);
-      c.rect(cx - 6, Math.floor(c.h * 0.62) + b, 13, 2, s.a);
-      // Horned Demon Head
-      c.oval(cx, Math.floor(c.h * 0.32) + b, 6.5, 5.4, s.p);
-      c.line(cx - 5, Math.floor(c.h * 0.24) + b, cx - 10, Math.floor(c.h * 0.12) + b, s.a, 2);
-      c.line(cx + 5, Math.floor(c.h * 0.24) + b, cx + 10, Math.floor(c.h * 0.12) + b, s.a, 2);
-      c.glowEye(cx - 4, Math.floor(c.h * 0.31) + b, s.e);
-      c.glowEye(cx + 2, Math.floor(c.h * 0.31) + b, s.e);
-      // Hellfire Blade
-      c.line(cx + 9, Math.floor(c.h * 0.58) + b, cx + 14, Math.floor(c.h * 0.24) - f * 2, s.a, 2);
+      const cx = c.w / 2, sc = c.w / 80, b = f * 2 * sc;
+      const wf = (f ? 6 : -5) * sc;
+      c.oval(cx - 24 * sc, 35 * sc + wf, 14 * sc, 11.5 * sc, s.d);
+      c.oval(cx + 24 * sc, 35 * sc + wf, 14 * sc, 11.5 * sc, s.d);
+      c.plate(cx - 14 * sc, 57 * sc, 10 * sc, 16 * sc, s.d, { round: 2 });
+      c.plate(cx + 5 * sc, 57 * sc, 10 * sc, 16 * sc, s.d, { round: 2 });
+      c.oval(cx, 44 * sc + b, 19 * sc, 16 * sc, s.p);
+      c.plate(cx - 14 * sc, 50 * sc + b, 29 * sc, 5 * sc, s.a, { metallic: true });
+      c.oval(cx, 25 * sc + b, 15 * sc, 12.5 * sc, s.p);
+      c.curve(cx - 10 * sc, 17 * sc + b, cx - 20 * sc, 12 * sc + b, cx - 24 * sc, 6 * sc + b, 4.2 * sc, 1.1 * sc, s.a);
+      c.curve(cx + 10 * sc, 17 * sc + b, cx + 20 * sc, 12 * sc + b, cx + 24 * sc, 6 * sc + b, 4.2 * sc, 1.1 * sc, s.a);
+      c.glowEye(cx - 6.5 * sc, 24 * sc + b, s.e, 2.7 * sc);
+      c.glowEye(cx + 6.5 * sc, 24 * sc + b, s.e, 2.7 * sc);
+      c.sword(cx + 25 * sc, 14 * sc + b - f * 4, 48 * sc + b - f * 4, 3.0 * sc, s.a, '#2f3640', '#1e1e2c', '#ffffff');
     },
 
     demogorgon(c, f, s) {
-      const cx = Math.floor(c.w / 2), b = f;
-      // Twin Tentacle Arms
-      c.line(cx - 8, Math.floor(c.h * 0.52), cx - 16, Math.floor(c.h * 0.38) + f * 3, s.a, 3);
-      c.line(cx + 8, Math.floor(c.h * 0.52), cx + 16, Math.floor(c.h * 0.38) - f * 3, s.a, 3);
-      c.oval(cx, Math.floor(c.h * 0.58) + b, 9.5, 8.5, s.p);
-      c.shadedRect(cx - 7, Math.floor(c.h * 0.74), 5, 6, s.d);
-      c.shadedRect(cx + 3, Math.floor(c.h * 0.74), 5, 6, s.d);
-      // Twin Mandrill Demon Heads!
-      c.oval(cx - 6, Math.floor(c.h * 0.28) + b, 5.2, 4.8, s.p);
-      c.oval(cx + 6, Math.floor(c.h * 0.28) - b, 5.2, 4.8, s.p);
-      c.glowEye(cx - 8, Math.floor(c.h * 0.26) + b, s.e);
-      c.glowEye(cx + 6, Math.floor(c.h * 0.26) - b, s.e);
+      const cx = c.w / 2, sc = c.w / 96, b = f * 2 * sc;
+      c.curve(cx - 18 * sc, 50 * sc, cx - 32 * sc, 42 * sc + f * 6, cx - 40 * sc, 34 * sc + f * 6, 5.2 * sc, 2.0 * sc, s.a);
+      c.curve(cx + 18 * sc, 50 * sc, cx + 32 * sc, 42 * sc - f * 6, cx + 40 * sc, 34 * sc - f * 6, 5.2 * sc, 2.0 * sc, s.a);
+      c.oval(cx, 56 * sc + b, 22 * sc, 20 * sc, s.p, { texture: 'scale' });
+      c.plate(cx - 16 * sc, 70 * sc, 12 * sc, 16 * sc, s.d, { round: 2 });
+      c.plate(cx + 5 * sc, 70 * sc, 12 * sc, 16 * sc, s.d, { round: 2 });
+      c.oval(cx - 14 * sc, 27 * sc + b, 12 * sc, 11 * sc, s.p);
+      c.oval(cx + 14 * sc, 27 * sc - b, 12 * sc, 11 * sc, s.p);
+      c.glowEye(cx - 18 * sc, 25 * sc + b, s.e, 2.4 * sc);
+      c.glowEye(cx + 18 * sc, 25 * sc - b, s.e, 2.4 * sc);
     },
 
     knight(c, f, s) {
-      const cx = Math.floor(c.w / 2), b = f;
-      c.oval(cx - 1, Math.floor(c.h * 0.62) + b, 8, 7, s.d); // cape
-      c.shadedRect(cx - 5, Math.floor(c.h * 0.73), 4, 6, s.d);
-      c.shadedRect(cx + 2, Math.floor(c.h * 0.73), 4, 6, s.d);
-      c.shadedRect(cx - 6, Math.floor(c.h * 0.46) + b, 13, 9, s.p);
-      c.rect(cx - 1, Math.floor(c.h * 0.48) + b, 3, 6, s.a);
-      // Dark Horned Greathelm + Glowing Visor Eyes
-      c.oval(cx, Math.floor(c.h * 0.3) + b, 6.5, 5.6, s.p);
-      c.rect(cx - 5, Math.floor(c.h * 0.3) + b, 11, 3, '#0c0d14');
-      c.glowEye(cx - 4, Math.floor(c.h * 0.3) + b, s.e);
-      c.glowEye(cx + 2, Math.floor(c.h * 0.3) + b, s.e);
-      c.line(cx - 5, Math.floor(c.h * 0.22) + b, cx - 9, Math.floor(c.h * 0.12) + b, s.a, 2);
-      c.line(cx + 5, Math.floor(c.h * 0.22) + b, cx + 9, Math.floor(c.h * 0.12) + b, s.a, 2);
-      // Runeblade
-      c.rect(cx + 10, Math.floor(c.h * 0.18) + b - f * 2, 3, 15, s.a);
-      c.rect(cx + 11, Math.floor(c.h * 0.18) + b - f * 2, 1, 14, '#ffffff');
+      const cx = c.w / 2, sc = c.w / 80, b = f * 2 * sc;
+      c.cape(cx - 1, 36 * sc + b, 72 * sc, 26 * sc, 40 * sc, s.d, f ? -3 : 3, s.a);
+      c.plate(cx - 12 * sc, 58 * sc, 9 * sc, 15 * sc, s.d, { metallic: true, round: 2 });
+      c.plate(cx + 4 * sc, 58 * sc, 9 * sc, 15 * sc, s.d, { metallic: true, round: 2 });
+      c.plate(cx - 14 * sc, 37 * sc + b, 29 * sc, 22 * sc, s.p, { metallic: true, round: 3 });
+      c.plate(cx - 3 * sc, 40 * sc + b, 7 * sc, 14 * sc, s.a, { metallic: true, round: 1 });
+      c.oval(cx, 24 * sc + b, 15 * sc, 13 * sc, s.p, { metallic: true });
+      c.plate(cx - 12 * sc, 23 * sc + b, 25 * sc, 6 * sc, '#0c0d14', { round: 1 });
+      c.glowEye(cx - 6 * sc, 25 * sc + b, s.e, 2.3 * sc);
+      c.glowEye(cx + 6 * sc, 25 * sc + b, s.e, 2.3 * sc);
+      c.curve(cx - 11 * sc, 16 * sc + b, cx - 20 * sc, 11 * sc + b, cx - 22 * sc, 5 * sc + b, 3.6 * sc, 1.0 * sc, s.a);
+      c.curve(cx + 11 * sc, 16 * sc + b, cx + 20 * sc, 11 * sc + b, cx + 22 * sc, 5 * sc + b, 3.6 * sc, 1.0 * sc, s.a);
+      c.sword(cx + 24 * sc, 12 * sc + b - f * 4, 48 * sc + b - f * 4, 3.2 * sc, s.a, s.p, '#1e1e2c', '#ffffff');
     },
 
     golem(c, f, s) {
-      const cx = Math.floor(c.w / 2), b = f;
-      // Heavy Blocky Armored Construct
-      c.shadedRect(cx - 7, Math.floor(c.h * 0.72), 5, 7, s.d);
-      c.shadedRect(cx + 3, Math.floor(c.h * 0.72), 5, 7, s.d);
-      c.shadedRect(cx - 10, Math.floor(c.h * 0.42) + b, 21, 11, s.p);
-      c.shadedRect(cx - 13, Math.floor(c.h * 0.46) + b, 4, 9, s.d);
-      c.shadedRect(cx + 10, Math.floor(c.h * 0.46) + b, 4, 9, s.d);
-      // Glowing Core Furnace / Rune on Chest
-      c.oval(cx, Math.floor(c.h * 0.55) + b, 3.5, 3.5, f ? s.e : s.a);
-      // Compact Heavy Head
-      c.shadedRect(cx - 6, Math.floor(c.h * 0.24) + b, 13, 7, s.p);
-      c.glowEye(cx - 4, Math.floor(c.h * 0.29) + b, s.e);
-      c.glowEye(cx + 2, Math.floor(c.h * 0.29) + b, s.e);
+      const cx = c.w / 2, sc = c.w / 80, b = f * 2 * sc;
+      c.plate(cx - 17 * sc, 57 * sc, 12 * sc, 17 * sc, s.d, { metallic: true, round: 2 });
+      c.plate(cx + 6 * sc, 57 * sc, 12 * sc, 17 * sc, s.d, { metallic: true, round: 2 });
+      c.plate(cx - 24 * sc, 34 * sc + b, 49 * sc, 26 * sc, s.p, { metallic: true, round: 4, texture: true });
+      c.plate(cx - 32 * sc, 37 * sc + b, 10 * sc, 22 * sc, s.d, { metallic: true, round: 3 });
+      c.plate(cx + 23 * sc, 37 * sc + b, 10 * sc, 22 * sc, s.d, { metallic: true, round: 3 });
+      c.glow(cx, 45 * sc + b, 12 * sc, '#ffffff', f ? s.e : s.a, s.d);
+      c.oval(cx, 45 * sc + b, 7 * sc, 7 * sc, f ? s.e : s.a);
+      c.plate(cx - 14 * sc, 18 * sc + b, 29 * sc, 16 * sc, s.p, { metallic: true, round: 3 });
+      c.glowEye(cx - 6.5 * sc, 25 * sc + b, s.e, 2.6 * sc);
+      c.glowEye(cx + 6.5 * sc, 25 * sc + b, s.e, 2.6 * sc);
     },
 
     beast(c, f, s) {
-      const cx = Math.floor(c.w / 2), b = f;
-      // Fierce SD Quadruped Beast (Owlbear / Displacer Beast / Gnoll)
-      c.oval(cx + 2, 19 + b, 8.5, 6, s.p);
-      c.oval(cx + 2, 20 + b, 5.5, 4, s.a);
-      c.shadedRect(cx - 5, 23 - f, 3, 5, s.d);
-      c.shadedRect(cx + 7, 23 + f, 3, 5, s.d);
-      // Tail whipping
-      c.line(cx + 9, 17 + b, cx + 14, 11 - f * 2, s.a, 2);
-      // Expressive Big Beast Head + Ears
-      c.oval(cx - 5, 13 + b, 6.2, 5.5, s.p);
-      c.line(cx - 9, 9 + b, cx - 10, 5 + b, s.d, 2);
-      c.line(cx - 2, 9 + b, cx - 1, 5 + b, s.d, 2);
-      c.chibiEye(cx - 9, 12 + b, s.e);
-      c.chibiEye(cx - 4, 12 + b, s.e);
-      c.rect(cx - 7, 15 + b, 3, 2, s.a);
+      const cx = c.w / 2, sc = c.w / 80, b = f * 2 * sc;
+      c.oval(cx + 5 * sc, 48 * sc + b, 20 * sc, 14 * sc, s.p, { texture: 'fur' });
+      c.oval(cx + 5 * sc, 50 * sc + b, 13 * sc, 9 * sc, s.a);
+      c.plate(cx - 12 * sc, 56 * sc - f * 2, 7 * sc, 14 * sc, s.d, { round: 2 });
+      c.plate(cx + 16 * sc, 56 * sc + f * 2, 7 * sc, 14 * sc, s.d, { round: 2 });
+      c.curve(cx + 22 * sc, 42 * sc + b, cx + 30 * sc, 34 * sc, cx + 34 * sc, 26 * sc - f * 4, 3.6 * sc, 1.4 * sc, s.a);
+      c.oval(cx - 11 * sc, 33 * sc + b, 14.5 * sc, 13 * sc, s.p, { texture: 'fur' });
+      c.capsule(cx - 21 * sc, 23 * sc + b, cx - 24 * sc, 12 * sc + b, 3.6 * sc, 1.2 * sc, s.d);
+      c.capsule(cx - 3 * sc, 23 * sc + b, cx - 1 * sc, 12 * sc + b, 3.6 * sc, 1.2 * sc, s.d);
+      c.hiBitEye(cx - 21 * sc, 29 * sc + b, s.e);
+      c.hiBitEye(cx - 9 * sc, 29 * sc + b, s.e);
+      c.oval(cx - 13 * sc, 38 * sc + b, 4.5 * sc, 3.2 * sc, s.a);
     },
 
     worm(c, f, s) {
-      const cx = Math.floor(c.w / 2), b = f;
-      // Segmented Coiled Underground Titan Worm
-      c.oval(cx + 5, Math.floor(c.h * 0.72), 7.5, 5, s.d);
-      c.oval(cx + 1, Math.floor(c.h * 0.62) + b, 8, 5.5, s.p);
-      c.oval(cx - 2, Math.floor(c.h * 0.48) + b, 8, 6, s.p);
-      // Giant Circular Toothed Maw!
-      c.oval(cx - 3, Math.floor(c.h * 0.31) + b, 7.5, 6.5, s.p);
-      c.oval(cx - 3, Math.floor(c.h * 0.31) + b, 4.5, 4, '#2b0916', false);
-      for (let ang = 0; ang < 8; ang++) {
-        const a = (Math.PI * 2 * ang) / 8 + (f ? 0.2 : 0);
-        c.px(cx - 3 + Math.cos(a) * 4.5, Math.floor(c.h * 0.31) + b + Math.sin(a) * 4, '#ffffff');
+      const cx = c.w / 2, sc = c.w / 80, b = f * 2 * sc;
+      c.oval(cx + 12 * sc, 58 * sc, 17 * sc, 12 * sc, s.d, { texture: 'scale' });
+      c.oval(cx + 3 * sc, 49 * sc + b, 18.5 * sc, 13 * sc, s.p, { texture: 'scale' });
+      c.oval(cx - 5 * sc, 38 * sc + b, 18.5 * sc, 14 * sc, s.p, { texture: 'scale' });
+      c.oval(cx - 7 * sc, 25 * sc + b, 17.5 * sc, 15 * sc, s.p, { texture: 'scale' });
+      c.oval(cx - 7 * sc, 25 * sc + b, 11 * sc, 9.5 * sc, '#2b0916', { shaded: false });
+      for (let ang = 0; ang < 10; ang++) {
+        const a = (Math.PI * 2 * ang) / 10 + (f ? 0.2 : 0);
+        c.capsule(cx - 7 * sc + Math.cos(a) * 11 * sc, 25 * sc + b + Math.sin(a) * 9.5 * sc, cx - 7 * sc + Math.cos(a) * 6 * sc, 25 * sc + b + Math.sin(a) * 5 * sc, 1.8 * sc, 0.5 * sc, '#ffffff');
       }
     },
 
     mushroom(c, f, s) {
-      const cx = Math.floor(c.w / 2), b = f;
-      // Plump Myconid Stem + Glowing Eyes
-      c.oval(cx, 21 + b, 5.5, 6.5, s.d);
-      c.chibiEye(cx - 3, 19 + b, s.e);
-      c.chibiEye(cx + 2, 19 + b, s.e);
-      // Oversized Glowing Spotted Mushroom Cap!
-      c.oval(cx, 12 + b, 11 + f, 6, s.p);
-      c.oval(cx - 5, 11 + b, 2.2, 2, s.a);
-      c.oval(cx + 4, 10 + b, 2.5, 2, s.a);
-      c.oval(cx, 13 + b, 2, 1.5, s.a);
-      // Floating glowing spores
-      c.px(cx - 10, 7 - f, s.a);
-      c.px(cx + 10, 8 + f, s.e);
+      const cx = c.w / 2, sc = c.w / 80, b = f * 2 * sc;
+      c.oval(cx, 53 * sc + b, 13 * sc, 16 * sc, s.d);
+      c.hiBitEye(cx - 9 * sc, 47 * sc + b, s.e);
+      c.hiBitEye(cx + 4 * sc, 47 * sc + b, s.e);
+      c.oval(cx, 30 * sc + b, (26 + f * 2) * sc, 14.5 * sc, s.p);
+      c.oval(cx - 12 * sc, 27 * sc + b, 5.2 * sc, 4.4 * sc, s.a);
+      c.oval(cx + 10 * sc, 25 * sc + b, 5.8 * sc, 4.6 * sc, s.a);
+      c.oval(cx, 32 * sc + b, 4.4 * sc, 3.6 * sc, s.a);
+      c.glow(cx - 24 * sc, 18 * sc - f * 3, 5 * sc, '#ffffff', s.a);
+      c.glow(cx + 24 * sc, 20 * sc + f * 3, 5 * sc, '#ffffff', s.e);
     },
 
     serpent(c, f, s) {
-      const cx = Math.floor(c.w / 2), b = f;
-      // Coiled Naga / Basilisk / Aboleth Body
-      c.oval(cx, Math.floor(c.h * 0.72), 10.5, 4.5, s.d);
-      c.oval(cx + (f ? 1 : -1), Math.floor(c.h * 0.6), 8.5, 4, s.p);
-      c.line(cx + 2, Math.floor(c.h * 0.56), cx - 1, Math.floor(c.h * 0.34) + b, s.p, 4);
-      // Hooded Viper Head + Glowing Eyes + Forked Tongue
-      c.oval(cx - 1, Math.floor(c.h * 0.3) + b, 6.5, 5, s.p);
-      c.glowEye(cx - 4, Math.floor(c.h * 0.29) + b, s.e);
-      c.glowEye(cx + 1, Math.floor(c.h * 0.29) + b, s.e);
-      if (f) c.line(cx - 1, Math.floor(c.h * 0.39), cx - 1, Math.floor(c.h * 0.45), '#ff4757', 1);
+      const cx = c.w / 2, sc = c.w / 80, b = f * 2 * sc;
+      c.oval(cx, 59 * sc, 25 * sc, 10.5 * sc, s.d, { texture: 'scale' });
+      c.oval(cx + (f ? 3 : -3) * sc, 48 * sc, 20 * sc, 9.5 * sc, s.p, { texture: 'scale' });
+      c.curve(cx + 5 * sc, 45 * sc, cx + 10 * sc, 34 * sc, cx - 2 * sc, 26 * sc + b, 8.5 * sc, 6.5 * sc, s.p, { texture: 'scale' });
+      c.oval(cx - 2 * sc, 24 * sc + b, 15.5 * sc, 12 * sc, s.p, { texture: 'scale' });
+      c.glowEye(cx - 8.5 * sc, 23 * sc + b, s.e, 2.5 * sc);
+      c.glowEye(cx + 4.5 * sc, 23 * sc + b, s.e, 2.5 * sc);
+      if (f) {
+        c.capsule(cx - 2 * sc, 34 * sc, cx - 5 * sc, 42 * sc, 1.1 * sc, 0.5 * sc, '#ff4757');
+        c.capsule(cx - 2 * sc, 34 * sc, cx + 1 * sc, 42 * sc, 1.1 * sc, 0.5 * sc, '#ff4757');
+      }
     },
 
     insect(c, f, s) {
-      const cx = Math.floor(c.w / 2), b = f;
-      // Antennae / Pincers
-      c.line(cx - 5, 11 + b, cx - 11, 5 + b - f, s.a, 2);
-      c.line(cx + 5, 11 + b, cx + 11, 5 + b + f, s.a, 2);
-      // Carapace Body + Legs
+      const cx = c.w / 2, sc = c.w / 80, b = f * 2 * sc;
+      c.curve(cx - 12 * sc, 27 * sc + b, cx - 20 * sc, 18 * sc + b, cx - 26 * sc, 12 * sc + b - f * 3, 3.2 * sc, 1.0 * sc, s.a);
+      c.curve(cx + 12 * sc, 27 * sc + b, cx + 20 * sc, 18 * sc + b, cx + 26 * sc, 12 * sc + b + f * 3, 3.2 * sc, 1.0 * sc, s.a);
       for (let i = -1; i <= 1; i++) {
-        c.line(cx - 6, 19 + i * 3, cx - 12, 22 + i * 3 + (i % 2 === f ? -1 : 1), s.d, 2);
-        c.line(cx + 6, 19 + i * 3, cx + 12, 22 + i * 3 - (i % 2 === f ? -1 : 1), s.d, 2);
+        c.curve(cx - 14 * sc, (48 + i * 8) * sc, cx - 24 * sc, (46 + i * 8) * sc, cx - 30 * sc, (56 + i * 8 + (i % 2 === f ? -3 : 3)) * sc, 2.8 * sc, 1.2 * sc, s.d);
+        c.curve(cx + 14 * sc, (48 + i * 8) * sc, cx + 24 * sc, (46 + i * 8) * sc, cx + 30 * sc, (56 + i * 8 - (i % 2 === f ? -3 : 3)) * sc, 2.8 * sc, 1.2 * sc, s.d);
       }
-      c.oval(cx, 19 + b, 7.5, 6.5, s.p);
-      c.oval(cx, 12 + b, 5.5, 4.5, s.d);
-      c.glowEye(cx - 3, 11 + b, s.e);
-      c.glowEye(cx + 2, 11 + b, s.e);
+      c.oval(cx, 48 * sc + b, 18 * sc, 15.5 * sc, s.p, { texture: 'scale', metallic: true });
+      c.oval(cx, 30 * sc + b, 13 * sc, 10.5 * sc, s.d, { metallic: true });
+      c.glowEye(cx - 6 * sc, 28 * sc + b, s.e, 2.3 * sc);
+      c.glowEye(cx + 6 * sc, 28 * sc + b, s.e, 2.3 * sc);
     },
 
     mage(c, f, s) {
-      const cx = Math.floor(c.w / 2), b = f;
-      c.oval(cx, Math.floor(c.h * 0.66) + b, 8.5, 9.5, s.p);
-      c.rect(cx - 2, Math.floor(c.h * 0.5) + b, 5, 12, s.a);
-      c.oval(cx, Math.floor(c.h * 0.34) + b, 6.2, 5.2, '#f0d8c8');
-      // Tall Evil Wizard Hat
-      c.oval(cx, Math.floor(c.h * 0.24) + b, 9.5, 2.2, s.d);
-      c.line(cx - 5, Math.floor(c.h * 0.22) + b, cx + 2, Math.floor(c.h * 0.06) + b, s.p, 4);
-      c.chibiEye(cx - 4, Math.floor(c.h * 0.33) + b, s.e);
-      c.chibiEye(cx + 2, Math.floor(c.h * 0.33) + b, s.e);
-      // Arcane Staff
-      const sx = cx + 11;
-      c.rect(sx, Math.floor(c.h * 0.3) + b, 2, 20, s.d);
-      c.oval(sx + 1, Math.floor(c.h * 0.24) - f * 2, 3.5, 3.5, s.a);
-      c.px(sx + 1, Math.floor(c.h * 0.24) - f * 2, '#ffffff');
+      const cx = c.w / 2, sc = c.w / 96, b = f * 2 * sc;
+      c.cape(cx, 42 * sc + b, 88 * sc, 28 * sc, 46 * sc, s.p, f ? -3 : 3, s.a);
+      c.plate(cx - 6 * sc, 46 * sc + b, 13 * sc, 30 * sc, s.a, { metallic: true, round: 2 });
+      c.oval(cx, 32 * sc + b, 14.5 * sc, 12.5 * sc, '#f0d8c8');
+      c.oval(cx, 22 * sc + b, 23 * sc, 5.2 * sc, s.d);
+      c.curve(cx - 12 * sc, 21 * sc + b, cx, 10 * sc + b, cx + 6 * sc, 5 * sc + b, 9.5 * sc, 1.8 * sc, s.p);
+      c.hiBitEye(cx - 10 * sc, 29 * sc + b, s.e);
+      c.hiBitEye(cx + 5 * sc, 29 * sc + b, s.e);
+      const sx = cx + 27 * sc;
+      c.capsule(sx, 29 * sc + b, sx, 84 * sc, 2.6 * sc, 2.2 * sc, s.d);
+      c.glow(sx, 22 * sc - f * 4 * sc, 12 * sc, '#ffffff', s.a, s.p);
+      c.oval(sx, 22 * sc - f * 4 * sc, 6.8 * sc, 6.8 * sc, s.a, { metallic: true });
     },
 
     frog(c, f, s) {
-      const cx = Math.floor(c.w / 2), b = f * 2;
-      // Chaos Slaad Toad Demon
-      c.shadedRect(cx - 8, 23, 5, 5, s.d);
-      c.shadedRect(cx + 4, 23, 5, 5, s.d);
-      c.oval(cx, 19 - b, 9.5, 7, s.p);
-      c.oval(cx, 20 - b, 6, 4.5, s.a);
-      c.oval(cx - 5, 11 - b, 3.2, 3.2, s.p);
-      c.oval(cx + 5, 11 - b, 3.2, 3.2, s.p);
-      c.glowEye(cx - 6, 10 - b, s.e);
-      c.glowEye(cx + 4, 10 - b, s.e);
-      c.rect(cx - 5, 16 - b, 11, 2, '#ffffff');
+      const cx = c.w / 2, sc = c.w / 80, b = f * 4 * sc;
+      c.plate(cx - 19 * sc, 57 * sc, 12 * sc, 13 * sc, s.d, { round: 3 });
+      c.plate(cx + 8 * sc, 57 * sc, 12 * sc, 13 * sc, s.d, { round: 3 });
+      c.oval(cx, 48 * sc - b, 23 * sc, 17 * sc, s.p, { texture: 'scale' });
+      c.oval(cx, 50 * sc - b, 14.5 * sc, 11 * sc, s.a);
+      c.oval(cx - 12 * sc, 28 * sc - b, 7.6 * sc, 7.6 * sc, s.p);
+      c.oval(cx + 12 * sc, 28 * sc - b, 7.6 * sc, 7.6 * sc, s.p);
+      c.glowEye(cx - 12 * sc, 27 * sc - b, s.e, 2.6 * sc);
+      c.glowEye(cx + 12 * sc, 27 * sc - b, s.e, 2.6 * sc);
+      c.plate(cx - 12 * sc, 40 * sc - b, 25 * sc, 4 * sc, '#ffffff', { round: 1 });
     },
 
     angel(c, f, s) {
-      const cx = Math.floor(c.w / 2), b = f;
-      const wf = f ? 4 : -3;
-      // Blazing Fallen Angel Wings
-      c.oval(cx - 12, Math.floor(c.h * 0.42) + wf, 7.5, 6, s.p);
-      c.oval(cx + 12, Math.floor(c.h * 0.42) + wf, 7.5, 6, s.p);
-      // Armored Valkyrie Body + Flowing Battle Skirt & Greaves
-      c.shadedRect(cx - 5, Math.floor(c.h * 0.48) + b, 11, 11, s.d);
-      c.oval(cx, Math.floor(c.h * 0.78) + b, 6.5, 4.5, s.p);
-      c.shadedRect(cx - 4, Math.floor(c.h * 0.8) + b, 3, 4, s.a);
-      c.shadedRect(cx + 2, Math.floor(c.h * 0.8) + b, 3, 4, s.a);
-      c.rect(cx - 1, Math.floor(c.h * 0.49) + b, 3, 12, s.a);
-      // Halo & Face
-      c.rect(cx - 5, Math.floor(c.h * 0.14) + b, 11, 2, s.a);
-      c.oval(cx, Math.floor(c.h * 0.3) + b, 6, 5.2, '#f5e1d3');
-      c.chibiEye(cx - 4, Math.floor(c.h * 0.29) + b, s.e);
-      c.chibiEye(cx + 2, Math.floor(c.h * 0.29) + b, s.e);
-      // Blazing Flail / Greatsword
-      c.rect(cx + 10, Math.floor(c.h * 0.2) + b - f * 2, 3, 18, s.a);
-      c.rect(cx + 11, Math.floor(c.h * 0.2) + b - f * 2, 1, 16, '#ffffff');
+      const cx = c.w / 2, sc = c.w / 96, b = f * 2 * sc;
+      const wf = (f ? 8 : -6) * sc;
+      // Blazing Feathered Angel Wings
+      c.oval(cx - 28 * sc, 40 * sc + wf, 18 * sc, 14 * sc, s.p);
+      c.oval(cx + 28 * sc, 40 * sc + wf, 18 * sc, 14 * sc, s.p);
+      c.cape(cx, 46 * sc + b, 86 * sc, 22 * sc, 32 * sc, s.p, f ? -2 : 2, s.a);
+      c.plate(cx - 12 * sc, 46 * sc + b, 25 * sc, 24 * sc, s.d, { metallic: true, round: 3 });
+      c.plate(cx - 3 * sc, 48 * sc + b, 7 * sc, 28 * sc, s.a, { metallic: true });
+      c.glow(cx, 12 * sc + b, 13 * sc, '#ffffff', s.a, s.p);
+      c.oval(cx, 12 * sc + b, 12 * sc, 2.8 * sc, s.a, { metallic: true });
+      c.oval(cx, 28 * sc + b, 14 * sc, 12 * sc, '#f5e1d3');
+      c.hiBitEye(cx - 10 * sc, 26 * sc + b, s.e);
+      c.hiBitEye(cx + 5 * sc, 26 * sc + b, s.e);
+      c.sword(cx + 26 * sc, 14 * sc + b - f * 4, 62 * sc + b - f * 4, 3.6 * sc, s.a, '#f6c967', '#3b151e', '#ffffff');
     },
 
     skull_lord(c, f, s) {
-      const cx = Math.floor(c.w / 2), b = f;
-      c.oval(cx, 21 + b, 8.5, 8.5, s.d);
-      c.rect(cx - 2, 16 + b, 5, 11, s.a);
-      // THREE FLOATING SKULLS!
-      [[-7, 10 + b], [0, 8 - b], [7, 10 + b]].forEach(([dx, sy]) => {
-        c.oval(cx + dx, sy, 4, 3.6, '#ecf0f1');
-        c.px(cx + dx - 1, sy, s.e);
-        c.px(cx + dx + 1, sy, s.e);
+      const cx = c.w / 2, sc = c.w / 80, b = f * 2 * sc;
+      c.cape(cx, 36 * sc + b, 72 * sc, 26 * sc, 42 * sc, s.d, f ? -3 : 3, s.a);
+      c.plate(cx - 5 * sc, 40 * sc + b, 11 * sc, 25 * sc, s.a, { metallic: true });
+      [[-17, 25 + f * 2], [0, 19 - f * 2], [17, 25 + f * 2]].forEach(([dx, sy]) => {
+        c.oval(cx + dx * sc, sy * sc, 9.2 * sc, 8.2 * sc, '#ecf0f1');
+        c.glowEye(cx + (dx - 3) * sc, sy * sc, s.e, 1.8 * sc);
+        c.glowEye(cx + (dx + 3) * sc, sy * sc, s.e, 1.8 * sc);
       });
     }
   };
 
-  // Motion mapping by monster silhouette
   const MOTION_BY_TPL = {
     beholder: 'px-motion-float', dragon: 'px-motion-float', tiamat: 'px-motion-float',
     mindflayer: 'px-motion-float', wraith: 'px-motion-float', lich: 'px-motion-float',
@@ -1108,7 +1350,7 @@
   function generateMonsterSprite(id) {
     const spec = MONSTER_SPECS[id] || { tpl: 'brute', p: '#e74c3c', d: '#641e16', a: '#f6c967', e: '#ffffff' };
     const drawer = MONSTER_DRAWERS[spec.tpl] || MONSTER_DRAWERS.brute;
-    const size = spec.boss ? 40 : 32;
+    const size = spec.boss ? 96 : 80;
     const h = hashStr(id);
 
     return renderAnimatedSprite(
@@ -1116,20 +1358,19 @@
       size,
       (c, f) => {
         drawer(c, f, spec);
-        // Unique Boss Crown / Elite Floating Runes / Monster Sparkle Crest
         const cx = Math.floor(size / 2);
         if (spec.crown) {
-          c.rect(cx - 5, 2 + f, 11, 2, spec.crown);
-          c.rect(cx - 5, 1 + f, 2, 2, spec.crown);
-          c.rect(cx - 1, 0 + f, 3, 3, f ? '#ffffff' : spec.crown);
-          c.rect(cx + 4, 1 + f, 2, 2, spec.crown);
+          c.plate(cx - 12, 4 + f * 2, 25, 5, spec.crown, { metallic: true, round: 1 });
+          c.plate(cx - 12, 1 + f * 2, 5, 5, spec.crown, { metallic: true });
+          c.plate(cx - 3, 0 + f * 2, 7, 6, f ? '#ffffff' : spec.crown, { metallic: true });
+          c.plate(cx + 8, 1 + f * 2, 5, 5, spec.crown, { metallic: true });
         } else if (spec.elite) {
-          c.rect(2, 3 + f, 2, 2, spec.a);
-          c.rect(size - 4, 3 - f, 2, 2, spec.e);
+          c.glow(8, 10 + f * 3, 5, '#ffffff', spec.a);
+          c.glow(size - 9, 10 - f * 3, 5, '#ffffff', spec.e);
         } else {
-          const sx = 2 + (h % 4);
-          const sy = 2 + ((h >> 4) % 5);
-          c.px(f ? size - 1 - sx : sx, sy + f, spec.a);
+          const sx = 6 + (h % 9);
+          const sy = 6 + ((h >> 4) % 10);
+          c.glow(f ? size - 1 - sx : sx, sy + f * 2, 3.2, '#ffffff', spec.a);
         }
       },
       {
@@ -1161,8 +1402,12 @@
     }
   }
 
+  window.HIBIT_ART = { HiBitCanvas, renderAnimatedSprite, drawHiBitHeroBase, hueShade, makeRamp, BAYER4 };
   window.PIXEL_SPRITES = { HERO_SPRITES, MONSTER_SPECS, generateMonsterSprite, applyPixelSprites };
   if (window.GAME_DATA) {
     applyPixelSprites(window.GAME_DATA);
+  }
+  if (window.STORY_ENGINE && typeof window.STORY_ENGINE.rebuildNpcSprites === 'function') {
+    window.STORY_ENGINE.rebuildNpcSprites();
   }
 })();
