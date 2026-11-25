@@ -1116,7 +1116,14 @@
     enemy_attack:  ['mot-enemy-lunge',     'mot-enemy-slam',      'mot-enemy-pounce'],
     enemy_hit:     ['mot-ehit-shake',      'mot-ehit-recoil'],
     enemy_buff:    ['mot-ebuff-roar',      'mot-ebuff-levitate'],
-    victory:       ['mot-win-cheer',       'mot-win-salute']
+    victory:       ['mot-win-cheer',       'mot-win-salute'],
+    // 6 Card-Specific & Rarity-Scaled Skill Motion Pools (Common = simple -> Legendary = spectacular!)
+    card_common_atk:   ['mot-common-jab',    'mot-common-tap'],
+    card_common_skill: ['mot-common-guard',  'mot-common-focus'],
+    card_uncommon_atk: ['mot-atk-flurry',    'mot-atk-bow',        'mot-atk-cast'],
+    card_rare_atk:     ['mot-rare-cleave',   'mot-rare-barrage',   'mot-rare-meteor'],
+    card_rare_skill:   ['mot-rare-aegis',    'mot-rare-awakening'],
+    card_legendary:    ['mot-leg-omnislash', 'mot-leg-cataclysm',  'mot-leg-eclipse', 'mot-leg-divine']
   };
 
   const ALL_MOTION_CLASSES = Object.values(MOTION_POOLS).flat();

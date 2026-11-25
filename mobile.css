@@ -742,3 +742,24 @@ body.mobile-edition .story-emotion-pill {
   font-size: 0.64rem;
   padding: 1px 6px;
 }
+
+body.mobile-edition .vfx-legendary-cutin {
+  top: 22%;
+  height: 74px;
+  gap: 10px;
+  padding: 0 12px;
+}
+
+body.mobile-edition .leg-cutin-sprite,
+body.mobile-edition .leg-cutin-sprite .pixel-sprite {
+  width: 72px;
+  height: 72px;
+}
+
+body.mobile-edition .leg-cutin-tag {
+  font-size: 0.6rem;
+}
+
+body.mobile-edition .leg-cutin-name {
+  font-size: 0.96rem;
+}

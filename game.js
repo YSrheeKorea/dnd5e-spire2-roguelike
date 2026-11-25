@@ -213,6 +213,9 @@ const VfxEngine = {
   bolts: [],
   flashes: [],
   projectiles: [],
+  pillars: [],
+  meteors: [],
+  sigils: [],
   reducedMotion: false,
 
   PALETTES: {
@@ -297,7 +300,10 @@ const VfxEngine = {
         this.rings.length ||
         this.bolts.length ||
         this.flashes.length ||
-        this.projectiles.length
+        this.projectiles.length ||
+        this.pillars.length ||
+        this.meteors.length ||
+        this.sigils.length
       ) {
         this.rafId = requestAnimationFrame(step);
       } else {
@@ -429,83 +435,277 @@ const VfxEngine = {
     this.ensureRunning();
   },
 
-  effectOnTarget(targetType, enemyIdx, kind) {
+  pillar(x, y, color = '#f6c967', width = 44) {
+    if (this.reducedMotion || !this.ctx) return;
+    this.pillars.push({ x, y, color, width, life: 0, maxLife: 24 });
+    this.ensureRunning();
+  },
+
+  meteor(tx, ty, color = '#ff9f43', size = 14) {
+    if (this.reducedMotion || !this.ctx) return;
+    const sx = tx - (140 + Math.random() * 110);
+    const sy = Math.max(0, ty - (210 + Math.random() * 110));
+    this.meteors.push({ sx, sy, tx, ty, color, size, life: 0, maxLife: 14 });
+    this.ensureRunning();
+  },
+
+  sigil(x, y, color = '#f6c967', maxRadius = 74) {
+    if (this.reducedMotion || !this.ctx) return;
+    this.sigils.push({ x, y, color, maxRadius, angle: Math.random() * Math.PI, life: 0, maxLife: 28 });
+    this.ensureRunning();
+  },
+
+  // Subculture Anime Legendary Skill Cut-In Banner (non-blocking 0.92s!)
+  legendaryCutin(tpl, theme = 'gold', charId = 'fighter') {
+    const layer = typeof document !== 'undefined' ? document.getElementById('vfx-layer') : null;
+    if (!layer || this.reducedMotion || !tpl) return;
+    const old = layer.querySelector('.vfx-legendary-cutin');
+    if (old && old.parentNode) old.parentNode.removeChild(old);
+    const _ps = typeof window !== 'undefined' ? window.PIXEL_SPRITES : null;
+    const spriteHtml = _ps && _ps.getHeroEmotionSprite
+      ? _ps.getHeroEmotionSprite(charId, 'smug')
+      : '';
+    const el = document.createElement('div');
+    el.className = `vfx-legendary-cutin theme-${theme}`;
+    el.innerHTML = `
+      <div class="leg-cutin-lines"></div>
+      <div class="leg-cutin-sprite">${spriteHtml}</div>
+      <div class="leg-cutin-copy">
+        <span class="leg-cutin-tag">★ LEGENDARY ULTIMATE ★</span>
+        <strong class="leg-cutin-name">${tpl.name}</strong>
+      </div>
+    `;
+    layer.appendChild(el);
+    setTimeout(() => {
+      if (el.parentNode) el.parentNode.removeChild(el);
+    }, 940);
+  },
+
+  // Card-Matched & Rarity-Scaled Skill Choreography (Common = crisp/simple -> Legendary = epic finale!)
+  playCardSpectacle(profile, targetIndices = [0], charId = 'fighter') {
+    if (!profile || this.reducedMotion) return;
+    const { rarity, theme, style, tpl } = profile;
+    const pal = this.PALETTES[theme] || this.PALETTES.gold;
+    const primary = pal[0] || '#f6c967';
+    const secondary = pal[1] || '#ffffff';
+    const pAnchor = this.getAnchor('player');
+    const eAnchors = targetIndices.map(i => this.getAnchor('enemy', i)).filter(Boolean);
+    const mainTarget = eAnchors[0] || pAnchor;
+
+    // 1. COMMON: Simple, snappy, zero clutter!
+    if (rarity === 'common') {
+      if (style === 'guard' && pAnchor) {
+        this.ring(pAnchor.x, pAnchor.y, '#74b9ff', 44);
+      } else if ((style === 'heal' || style === 'power') && pAnchor) {
+        this.burst(pAnchor.x, pAnchor.y, theme === 'heal' ? 'heal' : 'gold', 7);
+      } else if (style === 'curse' && mainTarget) {
+        this.burst(mainTarget.x, mainTarget.y, theme === 'doom' ? 'doom' : 'poison', 8);
+      }
+      return;
+    }
+
+    // 2. UNCOMMON: Clean card-archetype accent!
+    if (rarity === 'uncommon') {
+      if ((style === 'guard' || style === 'heal' || style === 'power') && pAnchor) {
+        this.ring(pAnchor.x, pAnchor.y, primary, 60);
+        this.burst(pAnchor.x, pAnchor.y, theme, 12);
+      } else if (style === 'ranged' && pAnchor && mainTarget) {
+        this.projectile(pAnchor.x, pAnchor.y - 6, mainTarget.x, mainTarget.y, primary);
+        this.sparkSpray(mainTarget.x, mainTarget.y, 10, secondary, 1);
+      } else if (style === 'curse' && mainTarget) {
+        this.ring(mainTarget.x, mainTarget.y, primary, 56);
+        this.burst(mainTarget.x, mainTarget.y, theme, 14);
+      }
+      return;
+    }
+
+    // 3. RARE: Dynamic 2-layer elemental spectacle + light shake!
+    if (rarity === 'rare') {
+      if (pAnchor) this.sigil(pAnchor.x, pAnchor.y + 8, primary, 58);
+      if (style === 'guard' || style === 'heal' || style === 'power') {
+        if (pAnchor) {
+          this.flash(pAnchor.x, pAnchor.y, 72, secondary);
+          this.ring(pAnchor.x, pAnchor.y, primary, 82);
+          this.ring(pAnchor.x, pAnchor.y, secondary, 56);
+          this.burst(pAnchor.x, pAnchor.y, theme, 20);
+        }
+      } else {
+        eAnchors.forEach((a, idx) => {
+          setTimeout(() => {
+            if (style === 'spell_aoe' || theme === 'fire') {
+              this.meteor(a.x, a.y, primary, 11);
+              this.ring(a.x, a.y, primary, 78);
+            } else if (theme === 'holy' || theme === 'doom') {
+              this.pillar(a.x, a.y, primary, 36);
+              this.ring(a.x, a.y, secondary, 76);
+            } else if (theme === 'lightning' && pAnchor) {
+              this.bolt(pAnchor.x, pAnchor.y, a.x, a.y, primary);
+              this.bolt(pAnchor.x, pAnchor.y - 12, a.x, a.y + 10, secondary);
+            } else if (style === 'ranged' && pAnchor) {
+              this.projectile(pAnchor.x, pAnchor.y - 10, a.x, a.y - 8, primary);
+              this.projectile(pAnchor.x, pAnchor.y + 8, a.x, a.y + 8, secondary);
+            } else {
+              this.slash(a.x, a.y, primary, true);
+              this.ring(a.x, a.y, secondary, 74);
+            }
+            this.burst(a.x, a.y, theme, 18);
+          }, idx * 55);
+        });
+        this.screenShake('light');
+      }
+      return;
+    }
+
+    // 4. LEGENDARY: FULL CINEMATIC ANIME CUT-IN + 3-WAVE CANVAS ULTIMATE FINALE!
+    SfxEngine.play(theme === 'holy' || theme === 'heal' ? 'holy' : 'burst');
+    this.haptic(45);
+    this.legendaryCutin(tpl, theme, charId);
+
+    // Wave 1 (0ms): Rotating magic sigil & aura ignition on Hero!
+    if (pAnchor) {
+      this.sigil(pAnchor.x, pAnchor.y + 6, primary, 92);
+      this.flash(pAnchor.x, pAnchor.y, 95, secondary);
+      this.ring(pAnchor.x, pAnchor.y, primary, 98);
+      this.burst(pAnchor.x, pAnchor.y, theme, 24);
+    }
+
+    // Wave 2 (130ms): Signature Ultimate Phenomenon per Card Style/Theme!
+    setTimeout(() => {
+      const victims = eAnchors.length ? eAnchors : (pAnchor ? [pAnchor] : []);
+      if (style === 'guard' || style === 'heal' || (style === 'power' && !tpl.damage && !tpl.dmg)) {
+        if (pAnchor) {
+          this.pillar(pAnchor.x, pAnchor.y, primary, 66);
+          this.sigil(pAnchor.x, pAnchor.y, secondary, 118);
+          this.ring(pAnchor.x, pAnchor.y, primary, 130);
+          this.burst(pAnchor.x, pAnchor.y, theme, 34);
+          this.sparkSpray(pAnchor.x, pAnchor.y, 24, primary, 1);
+          this.sparkSpray(pAnchor.x, pAnchor.y, 24, secondary, -1);
+        }
+        this.screenShake('light');
+      } else {
+        victims.forEach((a, idx) => {
+          setTimeout(() => {
+            if (theme === 'fire' || style === 'ranged' || /메테오|화살|폭풍|재앙|아포칼립스/.test(tpl.name)) {
+              for (let m = 0; m < 4; m++) {
+                this.meteor(a.x + (m - 1.5) * 28, a.y + (m % 2 ? -10 : 12), m % 2 ? primary : secondary, 16);
+              }
+            } else if (theme === 'holy' || theme === 'doom' || /심판|죽음|강림|지옥|후광|정지/.test(tpl.name)) {
+              this.pillar(a.x, a.y, primary, 64);
+              this.sigil(a.x, a.y, secondary, 96);
+            } else if (theme === 'lightning' && pAnchor) {
+              for (let b = 0; b < 3; b++) {
+                this.bolt(pAnchor.x, pAnchor.y + (b - 1) * 14, a.x + (b - 1) * 18, a.y, b === 1 ? '#ffffff' : primary);
+              }
+            } else {
+              // Omnislash quad cross-cuts!
+              this.slash(a.x, a.y, primary, true);
+              this.slash(a.x + 8, a.y - 6, '#ffffff', true);
+            }
+            this.flash(a.x, a.y, 115, secondary);
+            this.ring(a.x, a.y, primary, 120);
+            this.sparkSpray(a.x, a.y, 26, primary, 1);
+            this.burst(a.x, a.y, theme, 32);
+          }, idx * 70);
+        });
+        this.screenShake('heavy');
+      }
+    }, 130);
+
+    // Wave 3 (280ms): Finishing shockwave detonation!
+    setTimeout(() => {
+      const fin = eAnchors[0] || pAnchor;
+      if (!fin) return;
+      this.ring(fin.x, fin.y, '#ffffff', 142);
+      this.ring(fin.x, fin.y, primary, 112);
+      this.burst(fin.x, fin.y, theme, 26);
+    }, 280);
+  },
+
+  effectOnTarget(targetType, enemyIdx, kind, scale = 1.0) {
     const a = this.getAnchor(targetType, enemyIdx);
     if (!a) return;
     const p = this.getAnchor('player');
     const dirX = targetType === 'enemy' ? 1 : -1;
+    const sc = Math.max(0.45, Math.min(2.0, scale || 1.0));
+    const cnt = n => Math.max(4, Math.round(n * sc));
+    const rad = r => Math.round(r * (0.68 + sc * 0.32));
+
     if (kind === 'slash') {
-      if (p && targetType === 'enemy') this.projectile(p.x, p.y, a.x, a.y, '#ffeaa7');
-      this.flash(a.x, a.y, 52, '#ffffff');
-      this.slash(a.x, a.y, '#ffeaa7', false);
-      this.sparkSpray(a.x, a.y, 11, '#ffeaa7', dirX);
-      this.burst(a.x, a.y, 'blood', 12);
-      this.haptic(14);
+      if (sc >= 0.85 && p && targetType === 'enemy') this.projectile(p.x, p.y, a.x, a.y, '#ffeaa7');
+      this.flash(a.x, a.y, rad(50), '#ffffff');
+      this.slash(a.x, a.y, '#ffeaa7', sc >= 1.35);
+      this.sparkSpray(a.x, a.y, cnt(10), '#ffeaa7', dirX);
+      this.burst(a.x, a.y, 'blood', cnt(10));
+      if (sc >= 1.35) this.ring(a.x, a.y, '#ffeaa7', rad(72));
+      this.haptic(sc < 0.7 ? 8 : 14);
     } else if (kind === 'crit') {
       if (p && targetType === 'enemy') this.projectile(p.x, p.y, a.x, a.y, '#f6c967');
-      this.flash(a.x, a.y, 88, '#fff7cc');
+      this.flash(a.x, a.y, rad(82), '#fff7cc');
       this.slash(a.x, a.y, '#f6c967', true);
-      this.ring(a.x, a.y, '#f6c967', 86);
-      this.sparkSpray(a.x, a.y, 20, '#f6c967', dirX);
-      this.burst(a.x, a.y, 'fire', 22);
-      this.screenShake('heavy');
-      this.haptic(32);
+      this.ring(a.x, a.y, '#f6c967', rad(84));
+      this.sparkSpray(a.x, a.y, cnt(18), '#f6c967', dirX);
+      this.burst(a.x, a.y, 'fire', cnt(20));
+      this.screenShake(sc >= 1.3 ? 'heavy' : 'light');
+      this.haptic(sc >= 1.3 ? 32 : 18);
     } else if (kind === 'fire') {
-      if (p && targetType === 'enemy') this.projectile(p.x, p.y, a.x, a.y, '#ff9f43');
-      this.flash(a.x, a.y, 68, '#ffd27d');
-      this.ring(a.x, a.y, '#ff9f43', 74);
-      this.sparkSpray(a.x, a.y, 14, '#ff9f43', dirX);
-      this.burst(a.x, a.y, 'fire', 20);
-      this.haptic(18);
+      if (sc >= 0.75 && p && targetType === 'enemy') this.projectile(p.x, p.y, a.x, a.y, '#ff9f43');
+      this.flash(a.x, a.y, rad(64), '#ffd27d');
+      if (sc >= 0.8) this.ring(a.x, a.y, '#ff9f43', rad(72));
+      this.sparkSpray(a.x, a.y, cnt(12), '#ff9f43', dirX);
+      this.burst(a.x, a.y, 'fire', cnt(18));
+      this.haptic(sc < 0.7 ? 10 : 18);
     } else if (kind === 'frost') {
-      if (p && targetType === 'enemy') this.projectile(p.x, p.y, a.x, a.y, '#74b9ff');
-      this.flash(a.x, a.y, 58, '#dff9fb');
-      this.ring(a.x, a.y, '#00d2d3', 66);
-      this.sparkSpray(a.x, a.y, 12, '#74b9ff', dirX);
-      this.burst(a.x, a.y, 'frost', 16);
-      this.haptic(14);
+      if (sc >= 0.75 && p && targetType === 'enemy') this.projectile(p.x, p.y, a.x, a.y, '#74b9ff');
+      this.flash(a.x, a.y, rad(56), '#dff9fb');
+      if (sc >= 0.8) this.ring(a.x, a.y, '#00d2d3', rad(64));
+      this.sparkSpray(a.x, a.y, cnt(11), '#74b9ff', dirX);
+      this.burst(a.x, a.y, 'frost', cnt(15));
+      this.haptic(sc < 0.7 ? 8 : 14);
     } else if (kind === 'lightning') {
       if (p) this.bolt(p.x, p.y, a.x, a.y, '#7ed6df');
-      this.flash(a.x, a.y, 66, '#e0f7fa');
-      this.sparkSpray(a.x, a.y, 14, '#f6e58d', dirX);
-      this.burst(a.x, a.y, 'lightning', 16);
-      this.haptic(18);
+      if (sc >= 1.35 && p) this.bolt(p.x, p.y - 10, a.x, a.y + 8, '#f6e58d');
+      this.flash(a.x, a.y, rad(62), '#e0f7fa');
+      this.sparkSpray(a.x, a.y, cnt(13), '#f6e58d', dirX);
+      this.burst(a.x, a.y, 'lightning', cnt(15));
+      this.haptic(sc < 0.7 ? 10 : 18);
     } else if (kind === 'poison') {
-      this.burst(a.x, a.y, 'poison', 16);
+      if (sc >= 1.3) this.ring(a.x, a.y, '#2ed573', rad(66));
+      this.burst(a.x, a.y, 'poison', cnt(15));
     } else if (kind === 'holy') {
       if (p && targetType === 'enemy') this.bolt(p.x, p.y, a.x, a.y, '#f6c967');
-      this.flash(a.x, a.y, 72, '#fff9d6');
-      this.ring(a.x, a.y, '#f6c967', 74);
-      this.sparkSpray(a.x, a.y, 14, '#ffeaa7', dirX);
-      this.burst(a.x, a.y, 'holy', 18);
-      this.haptic(20);
+      this.flash(a.x, a.y, rad(68), '#fff9d6');
+      if (sc >= 0.8) this.ring(a.x, a.y, '#f6c967', rad(72));
+      this.sparkSpray(a.x, a.y, cnt(13), '#ffeaa7', dirX);
+      this.burst(a.x, a.y, 'holy', cnt(17));
+      this.haptic(sc < 0.7 ? 10 : 20);
     } else if (kind === 'doom') {
-      this.flash(a.x, a.y, 96, '#f3a6ff');
-      this.ring(a.x, a.y, '#e056fd', 104);
-      this.sparkSpray(a.x, a.y, 22, '#e056fd', dirX);
-      this.burst(a.x, a.y, 'doom', 28);
-      this.screenShake('heavy');
-      this.haptic(40);
+      this.flash(a.x, a.y, rad(88), '#f3a6ff');
+      if (sc >= 0.8) this.ring(a.x, a.y, '#e056fd', rad(98));
+      this.sparkSpray(a.x, a.y, cnt(20), '#e056fd', dirX);
+      this.burst(a.x, a.y, 'doom', cnt(24));
+      if (sc >= 1.1) this.screenShake('heavy');
+      this.haptic(sc < 0.7 ? 14 : 36);
     } else if (kind === 'block') {
-      this.flash(a.x, a.y, 44, '#c7ecee');
-      this.ring(a.x, a.y, '#74b9ff', 68);
-      this.sparkSpray(a.x, a.y, 10, '#74b9ff', -1);
-      this.burst(a.x, a.y, 'block', 12);
-      this.haptic(10);
+      this.flash(a.x, a.y, rad(42), '#c7ecee');
+      this.ring(a.x, a.y, '#74b9ff', rad(64));
+      this.sparkSpray(a.x, a.y, cnt(9), '#74b9ff', -1);
+      this.burst(a.x, a.y, 'block', cnt(11));
+      this.haptic(8);
     } else if (kind === 'heal') {
-      this.burst(a.x, a.y, 'heal', 16);
+      if (sc >= 1.2) this.ring(a.x, a.y, '#55efc4', rad(74));
+      this.burst(a.x, a.y, 'heal', cnt(15));
     } else if (kind === 'trap') {
-      this.flash(a.x, a.y, 56, '#ffeaa7');
-      this.ring(a.x, a.y, '#ff9f43', 64);
-      this.sparkSpray(a.x, a.y, 14, '#ff9f43', dirX);
-      this.burst(a.x, a.y, 'trap', 16);
-      this.haptic(18);
+      this.flash(a.x, a.y, rad(54), '#ffeaa7');
+      this.ring(a.x, a.y, '#ff9f43', rad(62));
+      this.sparkSpray(a.x, a.y, cnt(12), '#ff9f43', dirX);
+      this.burst(a.x, a.y, 'trap', cnt(14));
+      this.haptic(14);
     } else if (kind === 'blood') {
-      this.flash(a.x, a.y, 54, '#ffcccc');
-      this.slash(a.x, a.y, '#ff4757', false);
-      this.sparkSpray(a.x, a.y, 14, '#ff4757', dirX);
-      this.burst(a.x, a.y, 'blood', 18);
-      this.haptic(20);
+      this.flash(a.x, a.y, rad(52), '#ffcccc');
+      this.slash(a.x, a.y, '#ff4757', sc >= 1.35);
+      this.sparkSpray(a.x, a.y, cnt(13), '#ff4757', dirX);
+      this.burst(a.x, a.y, 'blood', cnt(16));
+      this.haptic(18);
     }
   },
 
@@ -677,6 +877,94 @@ const VfxEngine = {
       ctx.stroke();
       ctx.restore();
       if (sp.life >= sp.maxLife) this.sparks.splice(i, 1);
+    }
+
+    // 3.6. Sky-to-Ground Ultimate Light Pillars (Rare & Legendary!)
+    for (let i = this.pillars.length - 1; i >= 0; i--) {
+      const pl = this.pillars[i];
+      pl.life++;
+      const p = pl.life / pl.maxLife;
+      const curW = pl.width * (p < 0.28 ? p / 0.28 : 1 - (p - 0.28) * 0.88);
+      if (curW > 1) {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, (1 - p) * 0.88);
+        const grad = ctx.createLinearGradient(pl.x - curW, 0, pl.x + curW, 0);
+        grad.addColorStop(0, 'rgba(255,255,255,0)');
+        grad.addColorStop(0.28, pl.color);
+        grad.addColorStop(0.5, '#ffffff');
+        grad.addColorStop(0.72, pl.color);
+        grad.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(pl.x - curW, 0, curW * 2, pl.y + 42);
+        ctx.restore();
+      }
+      if (pl.life >= pl.maxLife) this.pillars.splice(i, 1);
+    }
+
+    // 3.7. Diagonal Falling Meteors / Arrow Storms (Rare & Legendary!)
+    for (let i = this.meteors.length - 1; i >= 0; i--) {
+      const m = this.meteors[i];
+      m.life++;
+      const p = Math.min(1, m.life / m.maxLife);
+      const x = m.sx + (m.tx - m.sx) * p;
+      const y = m.sy + (m.ty - m.sy) * p;
+      const tx = m.sx + (m.tx - m.sx) * Math.max(0, p - 0.36);
+      const ty = m.sy + (m.ty - m.sy) * Math.max(0, p - 0.36);
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, 1 - Math.max(0, p - 0.78) * 4);
+      ctx.strokeStyle = m.color;
+      ctx.shadowColor = m.color;
+      ctx.shadowBlur = 16;
+      ctx.lineWidth = Math.max(3, m.size * 0.65);
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(tx, ty);
+      ctx.lineTo(x, y);
+      ctx.stroke();
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(x, y, m.size * 0.45, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+      if (m.life >= m.maxLife) this.meteors.splice(i, 1);
+    }
+
+    // 3.8. Rotating Arcane / Divine Magic Sigils (Rare & Legendary!)
+    for (let i = this.sigils.length - 1; i >= 0; i--) {
+      const sg = this.sigils[i];
+      sg.life++;
+      const p = sg.life / sg.maxLife;
+      const r = sg.maxRadius * (0.45 + 0.55 * (1 - Math.pow(1 - p, 3)));
+      const rot = sg.angle + p * 1.8;
+      ctx.save();
+      ctx.translate(sg.x, sg.y);
+      ctx.rotate(rot);
+      ctx.globalAlpha = Math.max(0, (1 - p) * 0.85);
+      ctx.strokeStyle = sg.color;
+      ctx.shadowColor = sg.color;
+      ctx.shadowBlur = 12;
+      ctx.lineWidth = Math.max(1.2, 3.2 * (1 - p));
+      ctx.beginPath();
+      ctx.arc(0, 0, r, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 0.74, 0, Math.PI * 2);
+      ctx.stroke();
+      // 6-point hexagram star inside sigil
+      for (let t = 0; t < 2; t++) {
+        ctx.beginPath();
+        for (let k = 0; k < 3; k++) {
+          const ang = (Math.PI * 2 * k) / 3 + (t ? Math.PI : 0);
+          const px = Math.cos(ang) * r * 0.96;
+          const py = Math.sin(ang) * r * 0.96;
+          if (k === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.stroke();
+      }
+      ctx.restore();
+      if (sg.life >= sg.maxLife) this.sigils.splice(i, 1);
     }
 
     // 4. Particles
@@ -4423,6 +4711,121 @@ const Game = {
     return this.getCardBaseCost(cardInst);
   },
 
+  // Resolve exact skill motion, duration, VFX theme & rarity spectacle scale for ALL 359 cards!
+  resolveCardMotionProfile(tpl, stats = {}) {
+    const rarity = tpl.rarity || 'common';
+    const name = tpl.name || '';
+    const dmg = stats.damage || tpl.dmg || tpl.damage || 0;
+    const blk = stats.block || tpl.block || 0;
+    const heal = stats.heal || tpl.heal || 0;
+    const hits = tpl.hits || 1;
+    const isAttack = tpl.type === 'attack' || dmg > 0 || !!tpl.damagePerPoison;
+    const isPower = tpl.type === 'power';
+
+    // 1. Determine Elemental / Skill Visual Theme
+    const theme =
+      tpl.orbType === 'fire' || /화염|파이어|작열|불길|메테오|지옥|폭발|불꽃|아포칼립스/.test(name)
+        ? 'fire'
+        : tpl.orbType === 'frost' || tpl.frostbite || /냉기|빙결|서리|눈보라|시간 정지/.test(name)
+          ? 'frost'
+          : tpl.orbType === 'lightning' || /번개|라이트닝|뇌전|천둥|폭풍|야생 마법/.test(name)
+            ? 'lightning'
+            : tpl.holyBrand || tpl.detonateSeal || tpl.devotionGain || /광휘|성스러운|신성|태양|선버스트|심판|천사|후광|템푸스|티타니아|프리즈매틱/.test(name)
+              ? 'holy'
+              : tpl.doom || tpl.doomAll || /파멸|암흑|저주|죽음|사령|공포|크툴루|심연|유령|헥스|영혼/.test(name)
+                ? 'doom'
+                : (stats.poison || tpl.poison || tpl.doublePoison) > 0 || /독|맹독|암살/.test(name)
+                  ? 'poison'
+                  : tpl.selfDamage || /광전|분노|피|출혈|혈전|야수|대재앙/.test(name)
+                    ? 'blood'
+                    : heal > 0 || /치유|회복|기도|축복/.test(name)
+                      ? 'heal'
+                      : blk > 0 && !isAttack
+                        ? 'block'
+                        : 'slash';
+
+    // 2. Determine Card Archetype Style
+    let style = 'melee';
+    if (isPower) {
+      style = 'power';
+    } else if (!isAttack) {
+      if (heal > 0 || /치유|회복/.test(name)) style = 'heal';
+      else if (blk > 0 || tpl.doubleBlock || /방어|방패|성벽|수호|월/.test(name)) style = 'guard';
+      else if ((stats.poison || tpl.poison || tpl.doom || tpl.doomAll || tpl.placeTrap || stats.vuln || stats.weak) > 0) style = 'curse';
+      else style = 'power';
+    } else {
+      if (hits >= 2 || /연격|난무|단검|비수|소용돌이|일제|군단|총공격|총돌격/.test(name)) style = 'flurry';
+      else if (/화살|사격|저격|활|폭풍|투척|표창|단창|화살비/.test(name)) style = 'ranged';
+      else if (tpl.target === 'all' && ['fire', 'frost', 'lightning', 'holy', 'doom'].includes(theme)) style = 'spell_aoe';
+      else if (['fire', 'frost', 'lightning', 'holy', 'doom'].includes(theme) && /주문|광선|화살|권능|저주|파멸|충격|빛/.test(name)) style = 'spell_beam';
+      else if (dmg >= 14 || /강타|분쇄|도끼|철퇴|대검|격돌|재앙|파괴|심판|일격/.test(name)) style = 'heavy';
+      else style = 'melee';
+    }
+
+    // 3. Pick Exact Motion Class, Duration & VFX Scale by Rarity Tier!
+    let motionCls = 'mot-common-jab';
+    let durationMs = 260;
+    let vfxScale = 0.55;
+    let tier = 1;
+
+    if (rarity === 'common') {
+      tier = 1;
+      vfxScale = 0.52;
+      durationMs = 250;
+      if (!isAttack) {
+        motionCls = style === 'guard' ? 'mot-common-guard' : 'mot-common-focus';
+      } else {
+        motionCls = style === 'flurry' || style === 'ranged' ? 'mot-common-tap' : 'mot-common-jab';
+      }
+    } else if (rarity === 'uncommon') {
+      tier = 2;
+      vfxScale = 1.0;
+      durationMs = 360;
+      if (!isAttack) {
+        motionCls = style === 'guard' ? 'mot-skill-guard' : isPower ? 'mot-power-ascend' : 'mot-skill-chant';
+      } else if (style === 'flurry') {
+        motionCls = 'mot-atk-flurry';
+      } else if (style === 'ranged') {
+        motionCls = 'mot-atk-bow';
+      } else if (style === 'spell_aoe' || style === 'spell_beam') {
+        motionCls = 'mot-atk-cast';
+      } else if (style === 'heavy') {
+        motionCls = 'mot-atk-leap';
+      } else {
+        motionCls = hits > 1 ? 'mot-atk-thrust' : 'mot-atk-slash';
+      }
+    } else if (rarity === 'rare') {
+      tier = 3;
+      vfxScale = 1.45;
+      durationMs = 460;
+      if (!isAttack) {
+        motionCls = style === 'guard' ? 'mot-rare-aegis' : 'mot-rare-awakening';
+      } else if (style === 'flurry' || style === 'ranged') {
+        motionCls = 'mot-rare-barrage';
+      } else if (style === 'spell_aoe' || style === 'spell_beam') {
+        motionCls = 'mot-rare-meteor';
+      } else {
+        motionCls = 'mot-rare-cleave';
+      }
+    } else {
+      // LEGENDARY (Tier 4): Spectacular Signature Ultimate Motion + Cut-In!
+      tier = 4;
+      vfxScale = 1.85;
+      durationMs = 740;
+      if (theme === 'doom' || /시간 정지|권능어|죽음|크툴루|공포|유령|심연/.test(name)) {
+        motionCls = 'mot-leg-eclipse';
+      } else if (style === 'guard' || style === 'heal' || theme === 'holy' || /치유|후광|프리즈매틱|심판|템푸스|티타니아/.test(name)) {
+        motionCls = 'mot-leg-divine';
+      } else if (theme === 'fire' || theme === 'lightning' || style === 'ranged' || style === 'spell_aoe' || /메테오|화살 폭풍|재앙|아포칼립스|지옥|야수신/.test(name)) {
+        motionCls = 'mot-leg-cataclysm';
+      } else {
+        motionCls = 'mot-leg-omnislash';
+      }
+    }
+
+    return { tpl, rarity, tier, theme, style, motionCls, durationMs, vfxScale, isAttack };
+  },
+
   playCardFromHand(handIdx) {
     if (!this.combat || this.combat.ended) return;
     const cardInst = this.combat.hand[handIdx];
@@ -4464,6 +4867,7 @@ const Game = {
     }
 
     const stats = this.computeCardStats(cardInst);
+    const motionProfile = this.resolveCardMotionProfile(tpl, stats);
     if (tpl.type === 'attack' && this.run.relics.includes('pen_nib_relic')) {
       this.run.penNibCounter = (this.run.penNibCounter || 0) + 1;
       if (this.run.penNibCounter >= 7) {
@@ -4481,7 +4885,7 @@ const Game = {
       this.recordAchStat('totalBlockGained', stats.block, 'add');
       this.recordAchStat('maxSingleBlock', this.combat.player.block, 'max');
       SfxEngine.play('block');
-      VfxEngine.effectOnTarget('player', 0, 'block');
+      VfxEngine.effectOnTarget('player', 0, 'block', motionProfile.vfxScale);
       this.spawnFloatingVfx('player', `🛡️+${stats.block}`, 'vfx-block');
       // Cleric Holy Brand triggers radiant damage whenever Cleric gains block!
       if (this.run.charId === 'cleric') {
@@ -4511,15 +4915,17 @@ const Game = {
       }
     }
 
-    // Non-Attack Skill / Power Multi-Motion & Emotion Reaction!
+    // Non-Attack Skill / Power Card-Specific & Rarity-Scaled Motion & Spectacle!
     if (tpl.type !== 'attack') {
       if (!this._hitVisuals) this._hitVisuals = { enemyHits: {}, enemyLunges: {}, enemyBuffs: {}, playerLungeTs: 0, playerHurtTs: 0, playerBlockTs: 0 };
-      const _psSp = typeof window !== 'undefined' ? window.PIXEL_SPRITES : null;
-      const sit = tpl.type === 'power' ? 'player_power' : 'player_skill';
       this._hitVisuals.playerBlockTs = Date.now();
-      this._hitVisuals.playerMotionCls = _psSp && _psSp.pickMotion ? _psSp.pickMotion(sit) : 'mot-skill-guard';
-      this._hitVisuals.playerEmo = tpl.type === 'power' ? 'smug' : stats.heal > 0 ? 'happy' : 'smug';
+      this._hitVisuals.playerMotionCls = motionProfile.motionCls;
+      this._hitVisuals.playerMotionDur = motionProfile.durationMs;
+      this._hitVisuals.playerEmo = motionProfile.rarity === 'legendary' ? 'smug' : stats.heal > 0 ? 'happy' : tpl.type === 'power' ? 'smug' : 'neutral';
       this._hitVisuals.playerEmoTs = Date.now();
+      const nonAtkTargetIdxs = (tpl.target === 'all' ? this.combat.enemies.filter(e => e.hp > 0) : [target])
+        .map(e => this.combat.enemies.indexOf(e)).filter(i => i >= 0);
+      VfxEngine.playCardSpectacle(motionProfile, nonAtkTargetIdxs, cid);
     }
 
     // 2) BARBARIAN: Bloodied (<50% HP) bonus Strength on Rage skills
@@ -4623,25 +5029,16 @@ const Game = {
         this.applyDebuffToEnemy(target, 'poison', 3);
       }
 
-      // Player Attack Multi-Motion (3 distinct attack animations + combat emotion!)
+      // Player Attack Card-Specific & Rarity-Scaled Motion + Spectacle Choreography!
       if (!this._hitVisuals) this._hitVisuals = { enemyHits: {}, enemyLunges: {}, enemyBuffs: {}, playerLungeTs: 0, playerHurtTs: 0, playerBlockTs: 0 };
-      const _psAtk = typeof window !== 'undefined' ? window.PIXEL_SPRITES : null;
       this._hitVisuals.playerLungeTs = Date.now();
-      this._hitVisuals.playerMotionCls = _psAtk && _psAtk.pickMotion ? _psAtk.pickMotion('player_attack') : 'mot-atk-slash';
-      this._hitVisuals.playerEmo = tpl.rarity === 'legendary' ? 'smug' : 'angry';
+      this._hitVisuals.playerMotionCls = motionProfile.motionCls;
+      this._hitVisuals.playerMotionDur = motionProfile.durationMs;
+      this._hitVisuals.playerEmo = motionProfile.rarity === 'legendary' ? 'smug' : motionProfile.rarity === 'common' ? 'neutral' : 'angry';
       this._hitVisuals.playerEmoTs = Date.now();
-      const cardVfxTheme =
-        tpl.orbType === 'fire' || /화염|파이어|작열|불길|메테오/.test(tpl.name)
-          ? 'fire'
-          : tpl.orbType === 'frost' || tpl.frostbite || /냉기|빙결/.test(tpl.name)
-            ? 'frost'
-            : tpl.orbType === 'lightning' || /번개|라이트닝|뇌전/.test(tpl.name)
-              ? 'lightning'
-              : tpl.holyBrand || tpl.detonateSeal || /광휘|성스러운|신성|태양/.test(tpl.name)
-                ? 'holy'
-                : tpl.doom || tpl.doomAll || /파멸|암흑|저주/.test(tpl.name)
-                  ? 'doom'
-                  : 'slash';
+      const atkTargetIdxs = targets.map(e => this.combat.enemies.indexOf(e)).filter(i => i >= 0);
+      VfxEngine.playCardSpectacle(motionProfile, atkTargetIdxs, cid);
+      const cardVfxTheme = motionProfile.theme;
 
       for (let h = 0; h < hits; h++) {
         targets.forEach(en => {
@@ -4659,7 +5056,7 @@ const Game = {
               en.quarry = Math.max(0, en.quarry - 2);
             }
 
-            this.dealDamageToEnemy(en, dmg, false, h, cardVfxTheme);
+            this.dealDamageToEnemy(en, dmg, false, h, cardVfxTheme, motionProfile.vfxScale);
 
             // Barbarian Bleed Burst on hit (20% of Bleed, capped at 4) + Bloodied Lifesteal (<50% HP)!
             if (cid === 'barbarian' && en.hp > 0 && (en.bleed || 0) > 0) {
@@ -4985,7 +5382,7 @@ const Game = {
     this.recordAchStat('totalDebuffsApplied', amount, 'add');
   },
 
-  dealDamageToEnemy(enemy, rawDmg, ignoreWeak = false, hitStep = 0, vfxTheme = null) {
+  dealDamageToEnemy(enemy, rawDmg, ignoreWeak = false, hitStep = 0, vfxTheme = null, vfxScale = 1.0) {
     let dmg = rawDmg;
     if (!ignoreWeak && this.combat.player.weak > 0) dmg = Math.floor(dmg * 0.75);
     if (enemy.vuln > 0) dmg = Math.floor(dmg * 1.5);
@@ -5030,8 +5427,8 @@ const Game = {
           VfxEngine.killBurst(eIdx);
         } else {
           SfxEngine.playHit(isCrit, hitStep);
-          const fx = isCrit ? 'crit' : (vfxTheme || 'slash');
-          VfxEngine.effectOnTarget('enemy', eIdx, fx);
+          const fx = isCrit && vfxScale >= 0.85 ? 'crit' : (vfxTheme || 'slash');
+          VfxEngine.effectOnTarget('enemy', eIdx, fx, vfxScale);
         }
         const label = dmg > 0 ? (isCrit ? `💥-${dmg}!` : `-${dmg}`) : `🛡️막힘`;
         this.spawnFloatingVfx('enemy', label, isCrit ? 'vfx-crit' : 'vfx-dmg', eIdx);
@@ -5494,13 +5891,14 @@ const Game = {
       if (_psCbt && _psCbt.ALL_MOTION_CLASSES) {
         _psCbt.ALL_MOTION_CLASSES.forEach(c => pCardEl.classList.remove(c));
       }
+      const motDur = (this._hitVisuals.playerMotionDur || 380) + 60;
       if (nowTs - (this._hitVisuals.playerHurtTs || 0) < 380) {
         void pCardEl.offsetWidth;
         pCardEl.classList.add('player-hurt-recoil', this._hitVisuals.playerMotionCls || 'mot-hit-knockback');
-      } else if (nowTs - (this._hitVisuals.playerLungeTs || 0) < 360) {
+      } else if (nowTs - (this._hitVisuals.playerLungeTs || 0) < motDur) {
         void pCardEl.offsetWidth;
         pCardEl.classList.add('player-lunge', this._hitVisuals.playerMotionCls || 'mot-atk-slash');
-      } else if (nowTs - (this._hitVisuals.playerBlockTs || 0) < 380) {
+      } else if (nowTs - (this._hitVisuals.playerBlockTs || 0) < motDur) {
         void pCardEl.offsetWidth;
         pCardEl.classList.add('player-block-pulse', this._hitVisuals.playerMotionCls || 'mot-skill-guard');
       }

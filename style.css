@@ -4682,3 +4682,256 @@ html.pixel-bg-off .battlefield-bg-img {
     height: 102px;
   }
 }
+
+/* ==========================================================================
+   V2.4 CARD-SPECIFIC & RARITY-SCALED SKILL MOTIONS (Common -> Legendary!)
+   ========================================================================== */
+
+/* --- TIER 1: COMMON (Simple, crisp, snappy 0.22~0.25s!) --- */
+.mot-common-jab {
+  animation: motCommonJab 0.23s ease-out;
+}
+.mot-common-tap {
+  animation: motCommonTap 0.22s ease-out;
+}
+.mot-common-guard {
+  animation: motCommonGuard 0.24s ease-out;
+}
+.mot-common-focus {
+  animation: motCommonFocus 0.25s ease-out;
+}
+@keyframes motCommonJab {
+  0%, 100% { transform: translateX(0); }
+  45% { transform: translateX(15px) rotate(3deg); }
+}
+@keyframes motCommonTap {
+  0%, 100% { transform: translateX(0); }
+  40% { transform: translateX(11px) translateY(-2px) rotate(4deg); }
+}
+@keyframes motCommonGuard {
+  0%, 100% { transform: scale(1); }
+  45% { transform: translateY(2px) scale(1.04, 0.96); }
+}
+@keyframes motCommonFocus {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px) scale(1.02); }
+}
+
+/* --- TIER 2: UNCOMMON (Card-archetype tailored 0.34~0.38s!) --- */
+.mot-atk-flurry {
+  animation: motAtkFlurry 0.36s ease-out;
+}
+.mot-atk-bow {
+  animation: motAtkBow 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.mot-atk-cast {
+  animation: motAtkCast 0.38s ease-out;
+}
+@keyframes motAtkFlurry {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  22% { transform: translateX(28px) rotate(9deg) scale(1.05); }
+  46% { transform: translateX(10px) rotate(-4deg); }
+  70% { transform: translateX(36px) rotate(11deg) scale(1.07); }
+}
+@keyframes motAtkBow {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  36% { transform: translateX(-14px) rotate(-7deg) scaleX(0.95); }
+  66% { transform: translateX(12px) rotate(3deg) scale(1.05); filter: drop-shadow(0 0 10px rgba(85, 239, 196, 0.7)); }
+}
+@keyframes motAtkCast {
+  0%, 100% { transform: translateY(0) scale(1); }
+  38% { transform: translateY(-10px) translateX(-4px) scale(1.06); filter: drop-shadow(0 0 12px rgba(0, 210, 211, 0.8)); }
+  70% { transform: translateY(-4px) translateX(14px) scale(1.04); }
+}
+
+/* --- TIER 3: RARE (Dynamic 2-stage power motions 0.44~0.48s!) --- */
+.mot-rare-cleave {
+  animation: motRareCleave 0.46s cubic-bezier(0.2, 0.9, 0.25, 1);
+}
+.mot-rare-barrage {
+  animation: motRareBarrage 0.46s ease-out;
+}
+.mot-rare-meteor {
+  animation: motRareMeteor 0.48s ease-in-out;
+}
+.mot-rare-aegis {
+  animation: motRareAegis 0.46s ease-out;
+}
+.mot-rare-awakening {
+  animation: motRareAwakening 0.48s ease-out;
+}
+@keyframes motRareCleave {
+  0%, 100% { transform: translate(0, 0) rotate(0deg) scale(1); }
+  30% { transform: translate(-10px, -26px) rotate(-12deg) scale(1.12); filter: drop-shadow(0 0 16px rgba(246, 201, 103, 0.85)); }
+  62% { transform: translate(48px, 5px) rotate(16deg) scale(1.12, 0.92); filter: brightness(1.25) drop-shadow(0 0 20px rgba(255, 159, 67, 0.9)); }
+}
+@keyframes motRareBarrage {
+  0%, 100% { transform: translateX(0); }
+  18% { transform: translateX(34px) translateY(-6px) rotate(10deg) scale(1.08); opacity: 0.85; }
+  36% { transform: translateX(8px) translateY(2px) rotate(-5deg); }
+  54% { transform: translateX(46px) translateY(-8px) rotate(12deg) scale(1.1); filter: drop-shadow(0 0 16px rgba(46, 213, 115, 0.85)); }
+  74% { transform: translateX(22px) rotate(4deg); }
+}
+@keyframes motRareMeteor {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  38% { transform: translate(-6px, -22px) scale(1.12); filter: brightness(1.3) drop-shadow(0 0 20px rgba(255, 107, 107, 0.92)); }
+  68% { transform: translate(24px, -4px) rotate(8deg) scale(1.09); filter: drop-shadow(0 0 18px rgba(255, 159, 67, 0.85)); }
+}
+@keyframes motRareAegis {
+  0%, 100% { transform: scale(1); box-shadow: none; }
+  30% { transform: translateY(-8px) scale(1.1); filter: drop-shadow(0 0 20px rgba(116, 185, 255, 0.95)); }
+  62% { transform: translateY(3px) scale(1.13, 0.92); box-shadow: 0 0 32px rgba(0, 210, 211, 0.85); }
+}
+@keyframes motRareAwakening {
+  0%, 100% { transform: translateY(0) scale(1); }
+  35% { transform: translateY(-16px) scale(1.14); filter: brightness(1.35) drop-shadow(0 0 24px rgba(224, 86, 253, 0.92)); }
+  65% { transform: translateY(-6px) scale(1.08); }
+}
+
+/* --- TIER 4: LEGENDARY ULTIMATES (Epic 0.70~0.76s Signature Choreography!) --- */
+.mot-leg-omnislash {
+  animation: motLegOmnislash 0.72s cubic-bezier(0.2, 0.95, 0.3, 1);
+}
+.mot-leg-cataclysm {
+  animation: motLegCataclysm 0.74s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.mot-leg-eclipse {
+  animation: motLegEclipse 0.74s ease-in-out;
+}
+.mot-leg-divine {
+  animation: motLegDivine 0.74s ease-out;
+}
+@keyframes motLegOmnislash {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 1; }
+  14% { transform: translate(-18px, 2px) scale(0.92); filter: brightness(1.5) drop-shadow(0 0 26px rgba(246, 201, 103, 1)); }
+  28% { transform: translate(62px, -16px) rotate(14deg) scale(1.18); opacity: 0.78; filter: brightness(1.6) drop-shadow(0 0 30px rgba(255, 255, 255, 1)); }
+  44% { transform: translate(22px, 6px) rotate(-10deg) scale(1.06); opacity: 0.9; }
+  60% { transform: translate(68px, -6px) rotate(16deg) scale(1.22); filter: brightness(1.75) drop-shadow(0 0 34px rgba(246, 201, 103, 1)); }
+  78% { transform: translate(16px, -4px) rotate(4deg) scale(1.06); }
+}
+@keyframes motLegCataclysm {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  26% { transform: translate(-10px, -34px) rotate(-10deg) scale(1.22); filter: brightness(1.55) drop-shadow(0 0 34px rgba(255, 107, 107, 1)); }
+  52% { transform: translate(52px, 8px) rotate(18deg) scale(1.24, 0.88); filter: brightness(1.85) drop-shadow(0 0 38px rgba(255, 211, 42, 1)); }
+  74% { transform: translate(20px, -6px) rotate(6deg) scale(1.08); }
+}
+@keyframes motLegEclipse {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translateY(-24px) scale(1.16); filter: brightness(1.4) hue-rotate(15deg) drop-shadow(0 0 34px rgba(224, 86, 253, 1)); }
+  52% { transform: translate(24px, -28px) scale(1.24) rotate(-6deg); filter: brightness(1.8) drop-shadow(0 0 40px rgba(0, 210, 211, 1)); }
+  76% { transform: translate(8px, -10px) scale(1.08); }
+}
+@keyframes motLegDivine {
+  0%, 100% { transform: translateY(0) scale(1); }
+  30% { transform: translateY(-30px) scale(1.2); filter: brightness(1.65) drop-shadow(0 0 38px rgba(255, 234, 167, 1)); }
+  58% { transform: translateY(-18px) scale(1.24); filter: brightness(1.85) drop-shadow(0 0 44px rgba(246, 201, 103, 1)); }
+  80% { transform: translateY(-4px) scale(1.06); }
+}
+
+/* --- SUBCULTURE ANIME LEGENDARY SKILL CUT-IN BANNER --- */
+.vfx-legendary-cutin {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 26%;
+  height: 92px;
+  z-index: 950;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  overflow: hidden;
+  background: linear-gradient(90deg, rgba(10, 12, 24, 0) 0%, rgba(16, 18, 36, 0.92) 18%, rgba(36, 24, 58, 0.95) 50%, rgba(16, 18, 36, 0.92) 82%, rgba(10, 12, 24, 0) 100%);
+  border-top: 2px solid #f6c967;
+  border-bottom: 2px solid #f6c967;
+  box-shadow: 0 0 34px rgba(246, 201, 103, 0.55);
+  animation: legCutinBar 0.92s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.vfx-legendary-cutin.theme-fire,
+.vfx-legendary-cutin.theme-blood {
+  border-color: #ff6b6b;
+  box-shadow: 0 0 36px rgba(255, 71, 87, 0.65);
+  background: linear-gradient(90deg, rgba(20, 6, 10, 0) 0%, rgba(44, 10, 18, 0.92) 20%, rgba(90, 18, 28, 0.95) 50%, rgba(44, 10, 18, 0.92) 80%, rgba(20, 6, 10, 0) 100%);
+}
+.vfx-legendary-cutin.theme-doom {
+  border-color: #e056fd;
+  box-shadow: 0 0 36px rgba(224, 86, 253, 0.68);
+  background: linear-gradient(90deg, rgba(16, 6, 28, 0) 0%, rgba(32, 10, 56, 0.93) 20%, rgba(62, 16, 98, 0.96) 50%, rgba(32, 10, 56, 0.93) 80%, rgba(16, 6, 28, 0) 100%);
+}
+.vfx-legendary-cutin.theme-frost,
+.vfx-legendary-cutin.theme-lightning {
+  border-color: #00d2d3;
+  box-shadow: 0 0 36px rgba(0, 210, 211, 0.65);
+  background: linear-gradient(90deg, rgba(6, 18, 32, 0) 0%, rgba(10, 34, 58, 0.93) 20%, rgba(18, 56, 92, 0.96) 50%, rgba(10, 34, 58, 0.93) 80%, rgba(6, 18, 32, 0) 100%);
+}
+.vfx-legendary-cutin.theme-holy,
+.vfx-legendary-cutin.theme-heal {
+  border-color: #ffeaa7;
+  box-shadow: 0 0 40px rgba(255, 234, 167, 0.75);
+  background: linear-gradient(90deg, rgba(28, 22, 8, 0) 0%, rgba(62, 46, 14, 0.92) 20%, rgba(112, 82, 22, 0.95) 50%, rgba(62, 46, 14, 0.92) 80%, rgba(28, 22, 8, 0) 100%);
+}
+.leg-cutin-lines {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(-16deg, rgba(255, 255, 255, 0.08) 0 3px, transparent 3px 16px);
+  animation: legCutinSweep 0.9s linear forwards;
+}
+.leg-cutin-sprite {
+  position: relative;
+  z-index: 2;
+  width: 94px;
+  height: 94px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.8));
+  animation: legCutinHeroSlide 0.92s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.leg-cutin-sprite .pixel-sprite {
+  width: 94px;
+  height: 94px;
+}
+.leg-cutin-copy {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  animation: legCutinTextSlide 0.92s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.leg-cutin-tag {
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  color: #ffd32a;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+}
+.leg-cutin-name {
+  font-size: 1.32rem;
+  font-weight: 900;
+  color: #ffffff;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.95), 0 0 16px rgba(246, 201, 103, 0.65);
+}
+@keyframes legCutinBar {
+  0% { opacity: 0; transform: scaleY(0.15); }
+  14% { opacity: 1; transform: scaleY(1.06); }
+  22% { opacity: 1; transform: scaleY(1); }
+  80% { opacity: 1; transform: scaleY(1); }
+  100% { opacity: 0; transform: scaleY(0.2); }
+}
+@keyframes legCutinHeroSlide {
+  0% { transform: translateX(-80px) scale(1.18); opacity: 0; }
+  20% { transform: translateX(0) scale(1.08); opacity: 1; }
+  82% { transform: translateX(12px) scale(1.08); opacity: 1; }
+  100% { transform: translateX(48px) scale(1); opacity: 0; }
+}
+@keyframes legCutinTextSlide {
+  0% { transform: translateX(65px); opacity: 0; }
+  22% { transform: translateX(0); opacity: 1; }
+  82% { transform: translateX(-8px); opacity: 1; }
+  100% { transform: translateX(-40px); opacity: 0; }
+}
+@keyframes legCutinSweep {
+  0% { transform: translateX(-40px); }
+  100% { transform: translateX(40px); }
+}
