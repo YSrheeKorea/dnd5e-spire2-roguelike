@@ -775,7 +775,7 @@
       desc: '부서진 일리시드 함선의 잔해 속에서 황금빛 사이오닉 오라를 뿜는 올챙이 표본 병을 발견했다. 품 안의 아스트랄 프리즘에서 수호자의 목소리가 울린다. "그 힘을 받아들이면 절대자 교단에 맞설 강력한 일리시드 권능을 얻을 수 있어… 대가가 두렵다면 부숴버려도 좋다."',
       choices: [
         { label: '🧠 올챙이의 사이오닉 힘을 흡수한다 (HP -8, 고등급 카드 보상 획득!)', type: 'guaranteed', effect: 'hp_for_rare_draft' },
-        { label: '🔮 [위저드 전용] 사이오닉 파동을 비전으로 역추출한다 (무피해 카드 강화+)', type: 'guaranteed', requireClass: 'wizard', effect: 'free_upgrade_one' },
+        { label: '🔮 [위저드 전용] 사이오닉 파동을 비전으로 역추출한다 (무피해 카드 강화+)', type: 'guaranteed', requiredClass: 'wizard', effect: 'free_upgrade_one' },
         { label: '⚔️ 유혹을 뿌리치고 표본 병을 짓밟아 파괴한다 (마석 +90 & EXP +40)', type: 'guaranteed', effect: 'gain_gems_exp' }
       ]
     },
@@ -786,7 +786,7 @@
       desc: '손가락을 튕기는 경쾌한 소리와 함께 붉은 유황 연기가 피어오른다. 화려한 귀족 복장의 악마 라파엘이 진수성찬과 함께 피로 적힌 계약서를 내민다. "쥐구멍에 갇힌 생쥐처럼 헤매는군. 자, 내가 힘을 빌려주지 — 대가는 아주 사소한 서명 하나뿐이야."',
       choices: [
         { label: '📜 라파엘의 지옥 계약서에 서명한다 (HP -8, 고등급 희귀/전설 카드 선택!)', type: 'guaranteed', effect: 'hp_for_rare_draft' },
-        { label: '🛡️ [팔라딘 전용] 신성한 맹세로 악마의 만찬을 뒤엎는다 (카드 무료 강화+)', type: 'guaranteed', requireClass: 'paladin', effect: 'free_upgrade_one' },
+        { label: '🛡️ [팔라딘 전용] 신성한 맹세로 악마의 만찬을 뒤엎는다 (카드 무료 강화+)', type: 'guaranteed', requiredClass: 'paladin', effect: 'free_upgrade_one' },
         { label: '🎲 라파엘의 허점을 찔러 협상한다 (D20 DC 13: 성공 시 +75 GP & 마석 +80 / 실패 시 HP -10 & 80 GP)', type: 'roll', dc: 13, successEffect: 'gain_gold_gems', failEffect: 'blood_for_gold' }
       ]
     },
@@ -808,8 +808,8 @@
       desc: '전투 사이의 짧은 휴식, 은빛 아스트랄 허공으로 의식이 빨려 들어갔다. 갑주를 두른 수호자가 빛나는 20면체 프리즘을 손에 쥔 채 다가온다. "엘더 브레인의 사념이 강해지고 있어. 네 무기를 벼려주마 — 정신을 단단히 붙잡아라."',
       choices: [
         { label: '✨ 수호자의 아스트랄 축복을 받아들인다 (카드 1장 무료 강화+)', type: 'guaranteed', effect: 'free_upgrade_one' },
-        { label: '🗡️ [로그 전용] 프리즘의 숨겨진 틈새에서 아스트랄 마석을 채취한다 (마석 +90 & EXP +40)', type: 'guaranteed', requireClass: 'rogue', effect: 'gain_gems_exp' },
-        { label: '🎲 수호자의 정체를 꿰뚫어 본다 (D20 통찰 DC 12: 성공 시 고등급 카드 / 실패 시 체력 +6)', type: 'roll', dc: 12, successEffect: 'hp_for_rare_draft', failEffect: 'safe_leave' }
+        { label: '🗡️ [로그 전용] 프리즘의 숨겨진 틈새에서 아스트랄 마석을 채취한다 (마석 +90 & EXP +40)', type: 'guaranteed', requiredClass: 'rogue', effect: 'gain_gems_exp' },
+        { label: '🎲 수호자의 정체를 꿰뚫어 본다 (D20 통찰 DC 12: 성공 시 고등급 카드 / 실패 시 체력 +6)', type: 'roll', dc: 12, successEffect: 'free_rare_draft', failEffect: 'safe_leave' }
       ]
     },
     {
@@ -819,7 +819,7 @@
       desc: '100년 전 발더스 게이트를 뒤흔든 바알스폰 전쟁의 흔적이 남은 피의 제단. 사레복의 갑옷 파편과 이레니쿠스의 마력 잔재가 공명하며 당신의 혈관 속 잠든 투쟁 본능을 깨운다.',
       choices: [
         { label: '⚔️ 바알스폰의 전투 기억을 각성시킨다 (HP -10, SP +1 & 카드 1장 강화+)', type: 'guaranteed', effect: 'spar_for_sp' },
-        { label: '🪓 [바바리안 전용] 사레복의 분노를 포효로 집어삼킨다 (무피해 카드 강화+)', type: 'guaranteed', requireClass: 'barbarian', effect: 'free_upgrade_one' },
+        { label: '🪓 [바바리안 전용] 사레복의 분노를 포효로 집어삼킨다 (무피해 카드 강화+)', type: 'guaranteed', requiredClass: 'barbarian', effect: 'free_upgrade_one' },
         { label: '🕊️ 살인의 신의 속삭임을 거부하고 마음을 가다듬는다 (체력 +6 회복)', type: 'guaranteed', effect: 'safe_leave' }
       ]
     },
@@ -827,10 +827,10 @@
       id: 'bg3_auntie_ethel_teahouse',
       npcId: 'jaheira',
       title: '🫖 [BG3 스토리] 에텔 이모의 안개 늪지 찻집',
-      desc: '음산한 미궁 한복판에 기묘하게 아늑한 오두막이 서 있다. 인자한 미소의 "에텔 이모"가 김이 모락모락 나는 약차를 건네지만, 바닥 그림자에는 그린 해그의 긴 손톱이 비치고 있다!',
+      desc: '음산한 미궁 한복판에 기묘하게 아늑한 오두막이 서 있다. 자헤이라의 하퍼즈 정찰 메모가 떠오른다 — "미궁 속 찻집 노파는 그린 해그다, 절대 속지 마라." 인자한 미소의 "에텔 이모"가 약차를 건네지만, 바닥 그림자엔 긴 발톱이 비치고 있다!',
       choices: [
         { label: '🍵 해그의 기묘한 약차를 마신다 (HP -10, 황금 80 GP 획득)', type: 'guaranteed', effect: 'blood_for_gold' },
-        { label: '🏹 [레인저 전용] 늪지의 환각을 간파하고 숨겨진 보급품을 챙긴다 (마석 +90 & EXP +40)', type: 'guaranteed', requireClass: 'ranger', effect: 'gain_gems_exp' },
+        { label: '🏹 [레인저 전용] 늪지의 환각을 간파하고 숨겨진 보급품을 챙긴다 (마석 +90 & EXP +40)', type: 'guaranteed', requiredClass: 'ranger', effect: 'gain_gems_exp' },
         { label: '🚶 "사양하겠습니다, 이모." 조용히 발걸음을 돌린다 (체력 +6 회복)', type: 'guaranteed', effect: 'safe_leave' }
       ]
     },
@@ -851,7 +851,7 @@
       desc: '고대 드루이드 성소의 중심에서 황금빛 실바누스 우상이 자연의 마력을 뿜고 있다. 티플링 난민들을 위해 기도할지, 성소의 비전을 얻을지 선택의 순간이다.',
       choices: [
         { label: '🙏 성소에 50 GP를 시주하고 난민들과 함께 치유의 기도를 올린다 (체력 30% 회복)', type: 'guaranteed', effect: 'paid_heal_30' },
-        { label: '✝️ [클레릭 전용] 성소의 신성한 빛과 공명한다 (무피해 카드 강화+)', type: 'guaranteed', requireClass: 'cleric', effect: 'free_upgrade_one' },
+        { label: '✝️ [클레릭 전용] 성소의 신성한 빛과 공명한다 (무피해 카드 강화+)', type: 'guaranteed', requiredClass: 'cleric', effect: 'free_upgrade_one' },
         { label: '🌿 자연의 가호를 받으며 마석과 경험을 얻는다 (마석 +90 & EXP +40)', type: 'guaranteed', effect: 'gain_gems_exp' }
       ]
     }

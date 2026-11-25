@@ -1761,6 +1761,10 @@ const Game = {
     } catch (e) { }
     this.run = null;
     this.combat = null;
+    this._storyState = null;
+    this._lobbyEmo = 'neutral';
+    this._lobbyEmoVariant = 0;
+    this._lastPlayerAvatarChar = null;
     this.meta = this.createFreshDefaultMeta();
     this.saveMeta();
     this.updateAchievementBadges();
@@ -6262,12 +6266,32 @@ const Game = {
     choicesBox.innerHTML = '';
 
     // Filter choices: show general choices + choices matching player's class!
-    const visibleChoices = ev.choices.filter(ch => !ch.requiredClass || ch.requiredClass === this.run.charId);
+    const visibleChoices = ev.choices.filter(ch => {
+      const req = ch.requiredClass || ch.requireClass;
+      return !req || req === this.run.charId;
+    });
     visibleChoices.forEach((ch, idx) => {
+      const req = ch.requiredClass || ch.requireClass;
       const btn = document.createElement('button');
-      btn.className = `event-choice-btn ${ch.requiredClass ? 'class-exclusive-choice' : ''}`;
+      btn.className = `event-choice-btn ${req ? 'class-exclusive-choice' : ''}`;
       btn.innerHTML = `<span class="kbd-hint">${idx + 1}</span> ${ch.label}`;
-      btn.onclick = () => this.resolveEventChoice(ch.effect);
+      btn.onclick = () => {
+        if (ch.type === 'roll' && ch.dc) {
+          const roll = Math.floor(Math.random() * 20) + 1;
+          const ok = roll >= ch.dc;
+          const chosenEff = ok ? ch.successEffect : ch.failEffect;
+          this.showD20Modal(
+            roll,
+            ch.dc,
+            `🎲 D20 운명 판정 (DC ${ch.dc})`,
+            ok ? `판정 성공! (주사위 ${roll} ≥ DC ${ch.dc}) 유리한 결과를 획득합니다.` : `판정 실패! (주사위 ${roll} < DC ${ch.dc}) 불리한 결과가 적용됩니다.`,
+            ok,
+            () => this.resolveEventChoice(chosenEff)
+          );
+        } else {
+          this.resolveEventChoice(ch.effect);
+        }
+      };
       choicesBox.appendChild(btn);
     });
   },
@@ -6559,7 +6583,11 @@ const Game = {
     } else if (effect === 'hp_for_rare_draft') {
       this.run.hp = Math.max(1, this.run.hp - 8);
       this.run.pendingCardDrafts = (this.run.pendingCardDrafts || 0) + 1;
-      this.openRewardModal('📚 아스트랄 도서관 비전 필사! 고등급 카드를 1장 선택하세요.', 'midboss');
+      this.openRewardModal('📚 고등급 비전 보상! 카드를 1장 선택하세요.', 'midboss');
+      return;
+    } else if (effect === 'free_rare_draft') {
+      this.run.pendingCardDrafts = (this.run.pendingCardDrafts || 0) + 1;
+      this.openRewardModal('🔮 D20 통찰 성공 보상! 고등급 카드를 1장 선택하세요.', 'midboss');
       return;
     } else if (effect === 'gain_gems_exp') {
       this.meta.gems += 90;

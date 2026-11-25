@@ -685,3 +685,41 @@ body.mobile-edition {
   padding: 10px 11px;
   font-size: 0.8rem;
 }
+
+/* Mobile Emotion Studio & Story Emotion Pill Responsive Containment */
+body.mobile-edition .hub-emotion-studio {
+  padding: 8px;
+  gap: 8px;
+}
+
+body.mobile-edition .hub-emo-preview {
+  width: 58px;
+  height: 58px;
+}
+
+body.mobile-edition .hub-emo-preview .pixel-sprite {
+  width: 52px;
+  height: 52px;
+}
+
+body.mobile-edition .hub-emo-controls {
+  min-width: 0;
+}
+
+body.mobile-edition .hub-emo-btns {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+}
+
+body.mobile-edition .hub-emo-btn {
+  padding: 5px 4px;
+  font-size: 0.68rem;
+  text-align: center;
+  white-space: nowrap;
+}
+
+body.mobile-edition .story-emotion-pill {
+  font-size: 0.64rem;
+  padding: 1px 6px;
+}
