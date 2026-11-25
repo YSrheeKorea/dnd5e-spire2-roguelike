@@ -491,25 +491,132 @@
       }
     }
 
-    // Selective Colored Outline (Sel-Out): naturally darkens & cool-shifts adjacent pixel color!
-    selOut(fallbackHex = '#14111f') {
+    // Clean Cel-Shaded Polygon (triangles, armor plates, snouts, blades, capes, anime jaws!)
+    poly(pts, baseHex, opts = {}) {
+      if (!pts || pts.length < 3) return;
+      const ramp = makeRamp(baseHex);
+      const shaded = opts.shaded !== false;
+      const metallic = !!opts.metallic;
+      const alpha = opts.alpha || 255;
+      let minX = this.w, minY = this.h, maxX = -1, maxY = -1;
+      for (let i = 0; i < pts.length; i++) {
+        if (pts[i][0] < minX) minX = pts[i][0];
+        if (pts[i][0] > maxX) maxX = pts[i][0];
+        if (pts[i][1] < minY) minY = pts[i][1];
+        if (pts[i][1] > maxY) maxY = pts[i][1];
+      }
+      const x0 = Math.max(0, Math.floor(minX)), x1 = Math.min(this.w - 1, Math.ceil(maxX));
+      const y0 = Math.max(0, Math.floor(minY)), y1 = Math.min(this.h - 1, Math.ceil(maxY));
+      const spanX = Math.max(1, maxX - minX);
+      const spanY = Math.max(1, maxY - minY);
+      const n = pts.length;
+      for (let y = y0; y <= y1; y++) {
+        const py = y + 0.5;
+        const nodes = [];
+        for (let i = 0, j = n - 1; i < n; j = i++) {
+          const yi = pts[i][1], yj = pts[j][1];
+          if ((yi < py && yj >= py) || (yj < py && yi >= py)) {
+            nodes.push(pts[i][0] + ((py - yi) / (yj - yi)) * (pts[j][0] - pts[i][0]));
+          }
+        }
+        if (nodes.length < 2) continue;
+        nodes.sort((a, b) => a - b);
+        for (let k = 0; k < nodes.length - 1; k += 2) {
+          const sx = Math.max(x0, Math.ceil(nodes[k] - 0.5));
+          const ex = Math.min(x1, Math.floor(nodes[k + 1] + 0.5));
+          for (let x = sx; x <= ex; x++) {
+            if (!shaded) {
+              this.px(x, y, baseHex, alpha);
+              continue;
+            }
+            const nx = ((x - minX) / spanX) * 2 - 1;
+            const ny = ((y - minY) / spanY) * 2 - 1;
+            let v = -nx * 0.42 - ny * 0.58;
+            if (opts.texture === 'scale') {
+              const sc = ((x >> 1) + ((y >> 1) & 1)) & 1;
+              if (y % 4 === 0 && sc) v -= 0.28;
+            }
+            let col = ramp.base;
+            if (metallic && Math.abs(nx + ny + 0.32) < 0.22) col = ramp.spec;
+            else if (v > (metallic ? 0.52 : 0.62)) col = ramp.spec;
+            else if (v > 0.22) col = ramp.hi;
+            else if (v < -0.44) col = ramp.deep;
+            else if (v < -0.14) col = ramp.lo;
+            if (opts.rim && ny > 0.55 && nx > 0.15) col = opts.rim;
+            this.px(x, y, col, alpha);
+          }
+        }
+      }
+      if (opts.outline) {
+        for (let i = 0; i < n; i++) {
+          const a = pts[i], b = pts[(i + 1) % n];
+          this.line(a[0], a[1], b[0], b[1], opts.outline, 1);
+        }
+      }
+    }
+
+    // Crisp Pixel Line (for anime hair strands, armor seams, wing ribs, weapons!)
+    line(x0, y0, x1, y1, hex, thick = 1, alpha = 255) {
+      const steps = Math.max(1, Math.ceil(Math.hypot(x1 - x0, y1 - y0)));
+      const r = thick <= 1 ? 0 : (thick - 1) * 0.5;
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const x = x0 + (x1 - x0) * t;
+        const y = y0 + (y1 - y0) * t;
+        if (r <= 0.1) {
+          this.px(x, y, hex, alpha);
+        } else {
+          this.oval(x, y, r, r, hex, { shaded: false, alpha });
+        }
+      }
+    }
+
+    // Layer-by-Layer Crisp Anime Ink Contour + Blit (separates overlapping body parts cleanly!)
+    ink(drawSubFn, inkHex = '#171124') {
+      const sub = new HiBitCanvas(this.w, this.h);
+      drawSubFn(sub);
+      sub.inkOutline(inkHex);
+      const sd = sub.data;
+      const td = this.data;
+      for (let i = 0; i < sd.length; i += 4) {
+        const sa = sd[i + 3];
+        if (sa === 0) continue;
+        if (sa >= 250 || td[i + 3] === 0) {
+          td[i] = sd[i];
+          td[i + 1] = sd[i + 1];
+          td[i + 2] = sd[i + 2];
+          td[i + 3] = sa;
+        } else {
+          const a = sa / 255, ia = 1 - a;
+          td[i] = clamp(sd[i] * a + td[i] * ia);
+          td[i + 1] = clamp(sd[i + 1] * a + td[i + 1] * ia);
+          td[i + 2] = clamp(sd[i + 2] * a + td[i + 2] * ia);
+          td[i + 3] = Math.min(255, Math.round(td[i + 3] + sa * ia));
+        }
+      }
+    }
+
+    // Crisp 1px Dark Anime Ink Contour (tinted 25% toward adjacent interior pixel!)
+    inkOutline(baseInkHex = '#171124') {
+      const [ir, ig, ib] = this._rgb(baseInkHex);
       const w = this.w, h = this.h;
       const marks = [];
       for (let y = 0; y < h; y++) {
         for (let x = 0; x < w; x++) {
           const off = (y * w + x) * 4;
-          if (this.data[off + 3] > 20) continue;
+          if (this.data[off + 3] > 28) continue;
           const n =
             this.getRgb(x, y - 1) ||
             this.getRgb(x - 1, y) ||
             this.getRgb(x + 1, y) ||
             this.getRgb(x, y + 1);
           if (!n) continue;
-          // Deep cool-shifted selective outline derived from interior neighbor
-          const or = clamp(n[0] * 0.32);
-          const og = clamp(n[1] * 0.28);
-          const ob = clamp(n[2] * 0.38 + 14);
-          marks.push(off, or, og, ob);
+          marks.push(
+            off,
+            clamp(ir * 0.72 + n[0] * 0.22),
+            clamp(ig * 0.72 + n[1] * 0.20),
+            clamp(ib * 0.72 + n[2] * 0.25)
+          );
         }
       }
       for (let i = 0; i < marks.length; i += 4) {
@@ -517,8 +624,326 @@
         this.data[off] = marks[i + 1];
         this.data[off + 1] = marks[i + 2];
         this.data[off + 2] = marks[i + 3];
-        this.data[off + 3] = 248;
+        this.data[off + 3] = 255;
       }
+    }
+
+    // Jagged Scalloped JRPG Bat/Dragon Wing (replaces ugly oval wings!)
+    batWing(ox, oy, dir, span, height, memHex, boneHex, flap = 0) {
+      const s = dir >= 0 ? 1 : -1;
+      const elbowX = ox + s * span * 0.44;
+      const elbowY = oy - height * 0.72 + flap * 0.45;
+      const tipX = ox + s * span;
+      const tipY = oy - height * 0.38 + flap;
+      const f2X = ox + s * span * 0.78;
+      const f2Y = oy + height * 0.22 + flap * 0.7;
+      const f3X = ox + s * span * 0.48;
+      const f3Y = oy + height * 0.34 + flap * 0.35;
+      const rootX = ox + s * span * 0.14;
+      const rootY = oy + height * 0.24;
+
+      // Concave scalloped membrane arches between finger tips
+      const sc1X = (tipX + f2X) * 0.5 - s * span * 0.08;
+      const sc1Y = (tipY + f2Y) * 0.5 - height * 0.16;
+      const sc2X = (f2X + f3X) * 0.5 - s * span * 0.05;
+      const sc2Y = (f2Y + f3Y) * 0.5 - height * 0.18;
+      const sc3X = (f3X + rootX) * 0.5;
+      const sc3Y = (f3Y + rootY) * 0.5 - height * 0.14;
+
+      this.ink(sub => {
+        sub.poly([
+          [ox, oy],
+          [elbowX, elbowY],
+          [tipX, tipY],
+          [sc1X, sc1Y],
+          [f2X, f2Y],
+          [sc2X, sc2Y],
+          [f3X, f3Y],
+          [sc3X, sc3Y],
+          [rootX, rootY]
+        ], memHex);
+        // Inner translucent warm membrane gleam
+        const memHi = hueShade(memHex, 0.26);
+        sub.poly([
+          [ox + s * span * 0.16, oy + height * 0.02],
+          [elbowX, elbowY + height * 0.16],
+          [f2X - s * span * 0.14, f2Y - height * 0.18],
+          [f3X - s * span * 0.06, f3Y - height * 0.22]
+        ], memHi, { shaded: false, alpha: 145 });
+        // Crisp wing arm & finger ribs
+        sub.capsule(ox, oy, elbowX, elbowY, 2.0, 1.8, boneHex);
+        sub.capsule(elbowX, elbowY, tipX, tipY, 1.8, 0.8, boneHex);
+        sub.line(elbowX, elbowY, f2X, f2Y, hueShade(boneHex, -0.22), 1.4);
+        sub.line(elbowX, elbowY, f3X, f3Y, hueShade(boneHex, -0.22), 1.3);
+        // Wing thumb claw at elbow apex
+        sub.line(elbowX, elbowY, elbowX + s * 2.5, elbowY - 3.5, '#f5f6fa', 1.2);
+      });
+    }
+
+    // Layered Feathered Subculture Anime Angel Wing (replaces oval angel wings!)
+    featherWing(ox, oy, dir, span, height, featherHex, tipHex, flap = 0) {
+      const s = dir >= 0 ? 1 : -1;
+      this.ink(sub => {
+        // 5 long graceful primary feathers fanning down-outward
+        for (let i = 0; i < 5; i++) {
+          const t = i / 4;
+          const fx = ox + s * span * (1.0 - t * 0.34);
+          const fy = oy - height * (0.48 - t * 0.72) + flap * (1.0 - t * 0.4);
+          const bx = ox + s * span * (0.25 + t * 0.12);
+          const by = oy - height * (0.36 - t * 0.36) + flap * 0.35;
+          sub.poly([
+            [bx, by - 2.2],
+            [fx, fy],
+            [fx - s * 3.2, fy + 3.4],
+            [bx - s * 1.2, by + 2.8]
+          ], i === 0 ? tipHex : featherHex);
+        }
+        // Upper shoulder wing coverts (plump layered plume crest)
+        sub.poly([
+          [ox, oy + 2],
+          [ox + s * span * 0.34, oy - height * 0.56 + flap * 0.45],
+          [ox + s * span * 0.72, oy - height * 0.46 + flap * 0.75],
+          [ox + s * span * 0.46, oy - height * 0.08 + flap * 0.35],
+          [ox + s * span * 0.14, oy + height * 0.16]
+        ], hueShade(featherHex, 0.24));
+      });
+    }
+
+    // Sleek Pointed-Chin Subculture Anime Head (V-jawline, luminous eyes, rosy cheeks!)
+    animeHead(cx, cy, sc, skinHex, opts = {}) {
+      const emo = opts.emotion || 'neutral';
+      const facing = opts.facing || 0; // -1 left 3/4, 0 front, +1 right 3/4
+      const fx = facing * 1.8 * sc;
+      const rw = 10.6 * sc;
+      const rh = 10.4 * sc;
+
+      // Sculpted anime face contour (rounded crown -> soft cheeks -> tapered chin!)
+      this.ink(sub => {
+        sub.poly([
+          [cx - rw * 0.86, cy - rh * 0.52],
+          [cx - rw * 0.48, cy - rh * 0.94],
+          [cx + rw * 0.48, cy - rh * 0.94],
+          [cx + rw * 0.86, cy - rh * 0.52],
+          [cx + rw * 0.94, cy + rh * 0.12],
+          [cx + rw * 0.68, cy + rh * 0.62],
+          [cx + fx * 0.4, cy + rh * 0.96],
+          [cx - rw * 0.68, cy + rh * 0.62],
+          [cx - rw * 0.94, cy + rh * 0.12]
+        ], skinHex);
+        // Soft forehead shadow under bangs
+        sub.rect(cx - rw * 0.75, cy - rh * 0.45, rw * 1.5, 2.2 * sc, hueShade(skinHex, -0.14), 120);
+        // Rosy subculture anime blush!
+        const blushCol = emo === 'angry' ? '#ff6b6b' : emo === 'sad' ? '#a29bfe' : '#f48fa0';
+        const blushAlpha = emo === 'happy' ? 210 : emo === 'sad' ? 95 : 150;
+        sub.oval(cx - 5.8 * sc + fx, cy + 3.2 * sc, 2.2 * sc, 1.1 * sc, blushCol, { shaded: false, alpha: blushAlpha });
+        sub.oval(cx + 5.8 * sc + fx, cy + 3.2 * sc, 2.2 * sc, 1.1 * sc, blushCol, { shaded: false, alpha: blushAlpha });
+        // Delicate anime nose dot
+        sub.px(cx + fx * 1.1, cy + 2.4 * sc, hueShade(skinHex, -0.26));
+        // Expressive mouth
+        const mCol = hueShade(skinHex, -0.48);
+        const mx = cx + fx * 0.9, my = cy + 5.6 * sc;
+        if (emo === 'happy') {
+          sub.rect(mx - 2.4 * sc, my, 5 * sc, 1, mCol);
+          sub.rect(mx - 1.6 * sc, my + 1, 3.4 * sc, 1.6 * sc, '#e66767');
+          sub.rect(mx - 1.6 * sc, my + 1, 3.4 * sc, 1, '#ffffff');
+        } else if (emo === 'angry') {
+          sub.rect(mx - 2.4 * sc, my, 5 * sc, 1.8 * sc, '#2d0b14');
+          sub.rect(mx - 1.6 * sc, my, 3.4 * sc, 1, '#ffffff');
+        } else if (emo === 'sad') {
+          sub.rect(mx - 1.8 * sc, my + 0.5, 3.8 * sc, 1, mCol);
+          sub.px(mx - 2.4 * sc, my + 1.5, mCol);
+          sub.px(mx + 2.4 * sc, my + 1.5, mCol);
+        } else if (emo === 'surprised') {
+          sub.oval(mx, my + 0.8 * sc, 1.8 * sc, 1.8 * sc, '#3c1020', { shaded: false });
+          sub.oval(mx, my + 1.2 * sc, 1.1 * sc, 0.9 * sc, '#e66767', { shaded: false });
+        } else if (emo === 'smug') {
+          sub.rect(mx - 2 * sc, my + 0.8, 3 * sc, 1, mCol);
+          sub.rect(mx + 1 * sc, my, 2.2 * sc, 1, mCol);
+        } else if (opts.fangs) {
+          sub.rect(mx - 2.2 * sc, my, 4.6 * sc, 1, mCol);
+          sub.px(mx - 1.8 * sc, my + 1, '#ffffff');
+          sub.px(mx + 1.8 * sc, my + 1, '#ffffff');
+        } else {
+          sub.rect(mx - 1.8 * sc, my, 3.8 * sc, 1, mCol);
+        }
+        // Expressive Luminous Anime Eyes
+        if (!opts.noEyes) {
+          sub.hiBitEye(cx - 7.4 * sc + fx, cy - 2.4 * sc, opts.eye || '#2e86de', { emotion: emo, side: 'left' });
+          sub.hiBitEye(cx + 2.4 * sc + fx, cy - 2.4 * sc, opts.eye || '#2e86de', { emotion: emo, side: 'right' });
+        }
+      });
+    }
+
+    // Layered Pointed Anime Hair (pass layer:'back' BEFORE animeHead, layer:'front' AFTER animeHead!)
+    animeHair(cx, cy, sc, hairHex, opts = {}) {
+      const ramp = makeRamp(hairHex);
+      const backLen = opts.backLen || 0;
+      const sideLen = opts.sideLen || 11;
+      const spiky = !!opts.spiky;
+      const layer = opts.layer || 'both';
+
+      if ((layer === 'back' || layer === 'both') && backLen > 0) {
+        this.ink(sub => {
+          sub.poly([
+            [cx - 11.5 * sc, cy - 5 * sc],
+            [cx + 11.5 * sc, cy - 5 * sc],
+            [cx + 16 * sc, cy + backLen * sc],
+            [cx + 9 * sc, cy + (backLen - 2) * sc],
+            [cx + 4 * sc, cy + (backLen + 3.5) * sc],
+            [cx - 3 * sc, cy + (backLen + 3.5) * sc],
+            [cx - 9 * sc, cy + (backLen - 2) * sc],
+            [cx - 15 * sc, cy + backLen * sc]
+          ], ramp.lo);
+          // Flowing hair strand shadow lines
+          sub.line(cx - 7 * sc, cy + 4 * sc, cx - 9 * sc, cy + (backLen - 1) * sc, ramp.deep, 1);
+          sub.line(cx + 6 * sc, cy + 4 * sc, cx + 8 * sc, cy + (backLen - 1) * sc, ramp.deep, 1);
+        });
+      }
+
+      if (layer === 'front' || layer === 'both') {
+        this.ink(sub => {
+          // Crown hair volume + delicate parted anime bangs falling cleanly OVER forehead!
+          sub.poly([
+            [cx - 11.8 * sc, cy - 1 * sc],
+            [cx - 11.0 * sc, cy - 8.0 * sc],
+            [cx - 4.8 * sc, cy - 12.2 * sc],
+            [cx + 4.8 * sc, cy - 12.2 * sc],
+            [cx + 11.0 * sc, cy - 8.0 * sc],
+            [cx + 11.8 * sc, cy - 1 * sc],
+            [cx + 8.6 * sc, cy - 5.2 * sc],
+            [cx + 5.2 * sc, cy - 1.4 * sc],
+            [cx + 2.8 * sc, cy - 5.8 * sc],
+            [cx - 0.6 * sc, cy - 0.8 * sc],
+            [cx - 3.6 * sc, cy - 5.8 * sc],
+            [cx - 6.8 * sc, cy - 1.6 * sc],
+            [cx - 9.0 * sc, cy - 5.0 * sc]
+          ], hairHex);
+          if (spiky) {
+            sub.poly([[cx - 9 * sc, cy - 8 * sc], [cx - 15 * sc, cy - 13 * sc], [cx - 4 * sc, cy - 11 * sc]], ramp.hi);
+            sub.poly([[cx - 2 * sc, cy - 11 * sc], [cx + 2 * sc, cy - 16 * sc], [cx + 5 * sc, cy - 11 * sc]], ramp.hi);
+            sub.poly([[cx + 6 * sc, cy - 9 * sc], [cx + 15 * sc, cy - 12 * sc], [cx + 11 * sc, cy - 5 * sc]], hairHex);
+          }
+          // Tapered cheek-framing anime side locks
+          sub.poly([
+            [cx - 11.8 * sc, cy - 5 * sc],
+            [cx - 8.6 * sc, cy - 3 * sc],
+            [cx - 9.2 * sc, cy + sideLen * sc],
+            [cx - 12.2 * sc, cy + (sideLen - 3) * sc]
+          ], ramp.lo);
+          sub.poly([
+            [cx + 8.6 * sc, cy - 3 * sc],
+            [cx + 11.8 * sc, cy - 5 * sc],
+            [cx + 12.2 * sc, cy + (sideLen - 3) * sc],
+            [cx + 9.2 * sc, cy + sideLen * sc]
+          ], ramp.lo);
+          // Iconic bright curved anime hair highlight
+          sub.line(cx - 7.4 * sc, cy - 7.6 * sc, cx - 2.4 * sc, cy - 9.0 * sc, ramp.spec, 1.5);
+          sub.line(cx + 1.6 * sc, cy - 9.0 * sc, cx + 6.6 * sc, cy - 7.6 * sc, ramp.spec, 1.4);
+        });
+      }
+    }
+
+    // Sculpted Gothic Anime Skull (rounded cranium, hollow cheeks, dark sockets, nasal cavity & jaw!)
+    animeSkull(cx, cy, sc, boneHex, eyeHex) {
+      this.ink(sub => {
+        // Cranium dome + sculpted cheekbones + jaw
+        sub.oval(cx, cy - 2.2 * sc, 10.6 * sc, 9.2 * sc, boneHex, { dither: false });
+        sub.poly([
+          [cx - 10.2 * sc, cy - 1 * sc], [cx + 10.2 * sc, cy - 1 * sc],
+          [cx + 8.5 * sc, cy + 5.2 * sc], [cx + 5.6 * sc, cy + 9.6 * sc],
+          [cx - 5.6 * sc, cy + 9.6 * sc], [cx - 8.5 * sc, cy + 5.2 * sc]
+        ], boneHex);
+        // Hollowed cheekbone shadows
+        sub.poly([[cx - 9.4 * sc, cy + 3.2 * sc], [cx - 6.2 * sc, cy + 4.4 * sc], [cx - 6.8 * sc, cy + 7.2 * sc]], hueShade(boneHex, -0.35), { shaded: false });
+        sub.poly([[cx + 9.4 * sc, cy + 3.2 * sc], [cx + 6.2 * sc, cy + 4.4 * sc], [cx + 6.8 * sc, cy + 7.2 * sc]], hueShade(boneHex, -0.35), { shaded: false });
+        // Deep dark eye sockets + fierce glowing soul fires
+        sub.oval(cx - 4.8 * sc, cy + 0.2 * sc, 3.4 * sc, 3.3 * sc, '#0d0b18', { shaded: false });
+        sub.oval(cx + 3.8 * sc, cy + 0.2 * sc, 3.4 * sc, 3.3 * sc, '#0d0b18', { shaded: false });
+        sub.glowEye(cx - 4.8 * sc, cy + 0.2 * sc, eyeHex, 1.8 * sc);
+        sub.glowEye(cx + 3.8 * sc, cy + 0.2 * sc, eyeHex, 1.8 * sc);
+        // Dark inverted-V nasal cavity
+        sub.poly([[cx - 0.5 * sc, cy + 2.6 * sc], [cx + 1.0 * sc, cy + 5.4 * sc], [cx - 2.0 * sc, cy + 5.4 * sc]], '#12101e', { shaded: false });
+        // Crisp skull teeth line
+        sub.rect(cx - 4.6 * sc, cy + 6.8 * sc, 8.6 * sc, 1.2 * sc, '#12101e');
+        for (let tx = -3; tx <= 3; tx += 2.2) {
+          sub.line(cx + tx * sc, cy + 6.4 * sc, cx + tx * sc, cy + 9.2 * sc, '#12101e', 1);
+        }
+      });
+    }
+
+    // Fierce 3/4 Anime JRPG Dragon Head (sleek curved horns, tapered snout, glowing eye, sharp fangs!)
+    dragonHead(cx, cy, sc, dir, pHex, dHex, aHex, eHex, f = 0) {
+      const s = dir >= 0 ? 1 : -1;
+      const jawOpen = (f ? 2.4 : 1.0) * sc;
+      // Sleek curved swept-back horns (NO blocky bars!)
+      this.ink(sub => {
+        sub.curve(cx - s * 2 * sc, cy - 5 * sc, cx - s * 10 * sc, cy - 11 * sc, cx - s * 16 * sc, cy - 17 * sc, 2.8 * sc, 0.7 * sc, aHex);
+        sub.curve(cx + s * 1 * sc, cy - 6 * sc, cx - s * 5 * sc, cy - 13 * sc, cx - s * 10 * sc, cy - 19 * sc, 2.6 * sc, 0.7 * sc, hueShade(aHex, 0.16));
+      });
+      // Sculpted angular dragon head + jaw + fangs
+      this.ink(sub => {
+        // Lower jaw
+        sub.poly([
+          [cx - s * 4 * sc, cy + 2.5 * sc],
+          [cx + s * 10 * sc, cy + 2.5 * sc + jawOpen],
+          [cx + s * 12 * sc, cy + 5.5 * sc + jawOpen],
+          [cx - s * 3 * sc, cy + 6.8 * sc]
+        ], dHex);
+        // Dark crimson mouth interior
+        sub.poly([
+          [cx + s * 1 * sc, cy + 1 * sc],
+          [cx + s * 12.5 * sc, cy + 1 * sc],
+          [cx + s * 10.5 * sc, cy + 4.2 * sc + jawOpen],
+          [cx + s * 1 * sc, cy + 3.8 * sc]
+        ], '#340919', { shaded: false });
+        // Tapered upper snout + angular brow ridge
+        sub.poly([
+          [cx - s * 7 * sc, cy - 3.5 * sc],
+          [cx - s * 2 * sc, cy - 8.0 * sc],
+          [cx + s * 6 * sc, cy - 6.2 * sc],
+          [cx + s * 15.5 * sc, cy - 1.4 * sc],
+          [cx + s * 14.5 * sc, cy + 2.2 * sc],
+          [cx + s * 2 * sc, cy + 2.6 * sc],
+          [cx - s * 6 * sc, cy + 3.8 * sc]
+        ], pHex, { texture: 'scale' });
+        // Cheek frill spikes
+        sub.poly([[cx - s * 5 * sc, cy - 0.5 * sc], [cx - s * 12 * sc, cy + 2.2 * sc], [cx - s * 5 * sc, cy + 4.6 * sc]], aHex);
+        // Crisp white fangs
+        sub.line(cx + s * 11.5 * sc, cy + 2.0 * sc, cx + s * 11.0 * sc, cy + 4.6 * sc, '#ffffff', 1.3);
+        sub.line(cx + s * 7.8 * sc, cy + 2.0 * sc, cx + s * 7.5 * sc, cy + 4.0 * sc, '#ffffff', 1.2);
+        sub.line(cx + s * 9.5 * sc, cy + 4.6 * sc + jawOpen, cx + s * 9.8 * sc, cy + 2.6 * sc + jawOpen, '#ffffff', 1.1);
+        // Fierce angular slit glowing eye
+        sub.line(cx + s * 1 * sc, cy - 4.4 * sc, cx + s * 7.2 * sc, cy - 2.2 * sc, '#140f20', 1.5);
+        sub.glowEye(cx + s * 4.2 * sc, cy - 2.0 * sc, eHex, 2.0 * sc);
+        sub.px(cx + s * 13 * sc, cy - 1.0 * sc, '#140f20');
+      });
+    }
+
+    // Ornate 5-Spire Anime Dark-Fantasy Boss Crown (replaces flat blocky rectangle!)
+    bossCrown(cx, y, sc, crownHex, gemHex, f = 0) {
+      this.ink(sub => {
+        sub.poly([
+          [cx - 11 * sc, y + 6 * sc],
+          [cx - 13 * sc, y - 1 * sc],
+          [cx - 7 * sc, y + 2.5 * sc],
+          [cx - 5 * sc, y - 3.5 * sc],
+          [cx - 2 * sc, y + 2 * sc],
+          [cx, y - 5.5 * sc],
+          [cx + 2 * sc, y + 2 * sc],
+          [cx + 5 * sc, y - 3.5 * sc],
+          [cx + 7 * sc, y + 2.5 * sc],
+          [cx + 13 * sc, y - 1 * sc],
+          [cx + 11 * sc, y + 6 * sc]
+        ], crownHex, { metallic: true });
+        sub.oval(cx, y + 3.2 * sc, 2.2 * sc, 2.2 * sc, f ? '#ffffff' : gemHex, { shaded: false });
+        sub.px(cx - 6 * sc, y + 3.4 * sc, gemHex);
+        sub.px(cx + 6 * sc, y + 3.4 * sc, gemHex);
+      });
+    }
+
+    // Selective Colored Outline (Sel-Out): crisp dark anime ink outer silhouette!
+    selOut(fallbackHex = '#151022') {
+      this.inkOutline(fallbackHex);
     }
 
     // Ground contact shadow painted cleanly underneath feet
@@ -592,92 +1017,75 @@
   }
 
   // ==========================================================================
-  // 1. ALL 8 HEROES — 80x80 HI-BIT NATURAL FANTASY RPG PIXEL ART (6.25x FINER!)
+  // 1. SLEEK 4-HEAD ANIME PIXEL BASE (for fallback NPCs: Withers, Raphael, Volo)
   // ==========================================================================
   function drawHiBitHeroBase(c, f, cfg) {
-    const cx = 39;
-    const bob = f ? 2 : 0;
+    const cx = 40;
+    const bob = f ? 1.5 : 0;
     const skin = cfg.skin || '#f6d2b6';
-
-    // Flowing Back Cape with natural folds
-    if (cfg.cape) {
-      c.cape(cx - 1, 41 + bob, 71, 24, 38, cfg.cape, f ? -3.5 : -1.2, cfg.capeTrim || cfg.trim);
-    }
-
-    // Dynamic Striding Boots & Armored Greaves
-    c.plate(cx - 10, 58, 7, 11, cfg.pants || '#2d3442', { round: 1 });
-    c.plate(cx + 4, 58, 7, 11, cfg.pants || '#2d3442', { round: 1 });
-    c.plate(cx - 12, 66, 9, 8, cfg.boots || '#4a3525', { round: 2, metallic: !!cfg.metalBoots, trim: cfg.trim });
-    c.plate(cx + 4, 66, 9, 8, cfg.boots || '#4a3525', { round: 2, metallic: !!cfg.metalBoots, trim: cfg.trim });
-
-    // Layered Fantasy Torso Armor / Robe (22x20)
-    c.plate(cx - 11, 40 + bob, 23, 20, cfg.armor, { round: 3, metallic: !!cfg.metalArmor });
-    if (cfg.tunicSkirt) {
-      c.cape(cx, 54 + bob, 69, 20, 26, cfg.tunicSkirt, f ? 1 : 0, cfg.trim);
-    }
-    // Ornate Leather Belt & Gem/Gold Buckle
-    c.plate(cx - 11, 52 + bob, 23, 5, cfg.belt || '#3f2a1d', { round: 1 });
-    c.plate(cx - 3, 51 + bob, 7, 6, cfg.trim || '#f6c967', { metallic: true, round: 1 });
-    if (cfg.chestAccent) {
-      c.plate(cx - 3, 43 + bob, 7, 7, cfg.chestAccent, { metallic: true, round: 2 });
-    }
-
-    // Layered Shoulder Pauldrons & Arms
-    c.oval(cx - 14, 44 + bob, 6.2, 5.4, cfg.pauldron || cfg.armor, { metallic: !!cfg.metalArmor });
-    c.oval(cx + 14, 44 + bob, 6.2, 5.4, cfg.pauldron || cfg.armor, { metallic: !!cfg.metalArmor });
-    c.capsule(cx - 15, 47 + bob, cx - 18, 55 + bob, 3.2, 2.8, cfg.sleeve || cfg.armor);
-    c.capsule(cx + 15, 47 + bob, cx + 18, 54 + bob - f, 3.2, 2.8, cfg.sleeve || cfg.armor);
-    // Hands / Gauntlets
-    c.oval(cx - 18, 56 + bob, 3.0, 2.8, cfg.glove || skin, { metallic: !!cfg.metalArmor });
-    c.oval(cx + 18, 54 + bob - f, 3.0, 2.8, cfg.glove || skin, { metallic: !!cfg.metalArmor });
-
-    // Neck Shadow + Expressive Hi-Bit Head (28x24)
-    c.plate(cx - 4, 37 + bob, 9, 5, hueShade(skin, -0.22));
-    c.oval(cx, 27 + bob, 14.2, 12.6, skin);
     const emo = cfg.emotion || 'neutral';
-    // Subtle anime nose & chin soft highlight + emotion-reactive rosy blush
-    c.px(cx, 31 + bob, hueShade(skin, -0.18));
-    const blushAlpha = emo === 'happy' ? 205 : emo === 'sad' ? 85 : emo === 'angry' ? 175 : 135;
-    const blushCol = emo === 'angry' ? '#ff6b6b' : emo === 'sad' ? '#a29bfe' : '#f09499';
-    c.oval(cx - 9, 32 + bob, 2.4, 1.4, blushCol, { shaded: false, alpha: blushAlpha });
-    c.oval(cx + 9, 32 + bob, 2.4, 1.4, blushCol, { shaded: false, alpha: blushAlpha });
 
-    // Emotion-reactive mouth (6 distinct expressions!)
-    const mouthDark = hueShade(skin, -0.45);
-    if (emo === 'happy') {
-      c.rect(cx - 3, 34 + bob, 7, 1, mouthDark);
-      c.rect(cx - 2, 35 + bob, 5, 2, '#e66767');
-      c.rect(cx - 2, 35 + bob, 5, 1, '#ffffff');
-      c.px(cx - 4, 33 + bob, mouthDark);
-      c.px(cx + 4, 33 + bob, mouthDark);
-    } else if (emo === 'angry') {
-      c.rect(cx - 3, 34 + bob, 7, 2, '#2d0b14');
-      c.rect(cx - 2, 34 + bob, 5, 1, '#ffffff');
-      c.px(cx - 4, 35 + bob, mouthDark);
-      c.px(cx + 4, 35 + bob, mouthDark);
-    } else if (emo === 'sad') {
-      c.rect(cx - 2, 34 + bob, 5, 1, mouthDark);
-      c.px(cx - 3, 35 + bob, mouthDark);
-      c.px(cx + 3, 35 + bob, mouthDark);
-    } else if (emo === 'surprised') {
-      c.oval(cx, 35 + bob, 2.3, 2.2, '#4a1424', { shaded: false });
-      c.oval(cx, 35.6 + bob, 1.4, 1.1, '#e66767', { shaded: false });
-    } else if (emo === 'smug') {
-      c.rect(cx - 3, 35 + bob, 4, 1, mouthDark);
-      c.rect(cx + 1, 34 + bob, 3, 1, mouthDark);
-      c.px(cx + 4, 33 + bob, mouthDark);
-    } else {
-      c.rect(cx - 2, 34 + bob, 5, 1, mouthDark);
+    // Flowing Back Cape (ink-outlined silhouette!)
+    if (cfg.cape) {
+      c.ink(sub => {
+        sub.cape(cx + 1, 38 + bob, 73, 22, 36, cfg.cape, f ? 3.5 : 1.5, cfg.capeTrim || cfg.trim);
+      });
     }
 
-    // Detailed 6x7 Hi-Bit Fantasy Eyes (with 6-emotion variants!)
-    if (!cfg.noEyes) {
-      c.hiBitEye(cx - 10, 24 + bob, cfg.eye || '#2e86de', { emotion: emo, side: 'left' });
-      c.hiBitEye(cx + 5, 24 + bob, cfg.eye || '#2e86de', { emotion: emo, side: 'right' });
-    }
+    // Sleek 4-Head Anime Boots & Tapered Legs
+    c.ink(sub => {
+      sub.poly([[cx - 9, 53], [cx - 3, 53], [cx - 4, 65], [cx - 10, 65]], cfg.pants || '#25293a');
+      sub.poly([[cx + 3, 53], [cx + 9, 53], [cx + 10, 65], [cx + 4, 65]], cfg.pants || '#25293a');
+      sub.poly([[cx - 11, 63], [cx - 3, 63], [cx - 3, 73], [cx - 13, 73], [cx - 12, 68]], cfg.boots || '#3c2a1e', { metallic: !!cfg.metalBoots });
+      sub.poly([[cx + 3, 63], [cx + 11, 63], [cx + 12, 73], [cx + 2, 73], [cx + 3, 68]], cfg.boots || '#3c2a1e', { metallic: !!cfg.metalBoots });
+    });
 
-    if (cfg.drawHeadgear) cfg.drawHeadgear(c, cx, bob, f, emo);
-    if (cfg.drawGear) cfg.drawGear(c, cx, bob, f, emo);
+    // Tapered Anime Coat / Tunic / Armored Torso
+    c.ink(sub => {
+      if (cfg.tunicSkirt) {
+        sub.poly([
+          [cx - 9, 50 + bob], [cx + 9, 50 + bob],
+          [cx + 14, 68 + bob], [cx - 14, 68 + bob]
+        ], cfg.tunicSkirt);
+        if (cfg.trim) sub.line(cx - 13, 66 + bob, cx + 13, 66 + bob, cfg.trim, 1.5);
+      }
+      sub.poly([
+        [cx - 10, 38 + bob], [cx + 10, 38 + bob],
+        [cx + 8, 53 + bob], [cx - 8, 53 + bob]
+      ], cfg.armor, { metallic: !!cfg.metalArmor });
+      // Crisp Belt & Buckle
+      sub.plate(cx - 9, 49 + bob, 19, 4, cfg.belt || '#362318', { round: 1 });
+      sub.plate(cx - 3, 48 + bob, 6, 5, cfg.trim || '#f6c967', { metallic: true, round: 1 });
+      if (cfg.chestAccent) {
+        sub.poly([[cx, 40 + bob], [cx + 4, 44 + bob], [cx, 48 + bob], [cx - 4, 44 + bob]], cfg.chestAccent, { metallic: true });
+      }
+    });
+
+    // Layered Shoulders & Tapered Arms
+    c.ink(sub => {
+      sub.poly([[cx - 16, 40 + bob], [cx - 9, 37 + bob], [cx - 9, 45 + bob], [cx - 15, 45 + bob]], cfg.pauldron || cfg.armor, { metallic: !!cfg.metalArmor });
+      sub.poly([[cx + 9, 37 + bob], [cx + 16, 40 + bob], [cx + 15, 45 + bob], [cx + 9, 45 + bob]], cfg.pauldron || cfg.armor, { metallic: !!cfg.metalArmor });
+      sub.capsule(cx - 13, 45 + bob, cx - 16, 54 + bob, 2.6, 2.2, cfg.sleeve || cfg.armor);
+      sub.capsule(cx + 13, 45 + bob, cx + 16, 53 + bob - f, 2.6, 2.2, cfg.sleeve || cfg.armor);
+      sub.oval(cx - 16, 55 + bob, 2.5, 2.3, cfg.glove || skin, { metallic: !!cfg.metalArmor });
+      sub.oval(cx + 16, 54 + bob - f, 2.5, 2.3, cfg.glove || skin, { metallic: !!cfg.metalArmor });
+    });
+
+    // Slender Neck + Pointed-Chin Anime Head (matches our 160x160 hero proportions!)
+    c.plate(cx - 3, 34 + bob, 7, 5, hueShade(skin, -0.22));
+    c.animeHead(cx, 25 + bob, 1.0, skin, {
+      emotion: emo,
+      facing: -1,
+      eye: cfg.eye || '#2e86de',
+      noEyes: !!cfg.noEyes
+    });
+
+    if (cfg.drawHeadgear) {
+      c.ink(sub => cfg.drawHeadgear(sub, cx, bob, f, emo));
+    }
+    if (cfg.drawGear) {
+      c.ink(sub => cfg.drawGear(sub, cx, bob, f, emo));
+    }
     c.emotionOverlay(cx, bob, f, emo);
   }
 
@@ -1038,454 +1446,938 @@
   }
 
   // ==========================================================================
-  // 2. HI-BIT 80x80 & 96x96 MONSTER DRAWERS (ALL 82 MONSTERS 100% UNIQUE!)
+  // 2. SUBCULTURE ANIME PIXEL-ART MONSTERS & BOSSES (80x80 / 96x96, ALL 82 UNIQUE!)
+  //    - Layer-by-layer crisp 1px dark ink contours + clean cel-shading
+  //    - 3/4 left-facing JRPG battle stances matching the 160x160 anime heroes!
   // ==========================================================================
   const MONSTER_DRAWERS = {
     beholder(c, f, s) {
-      const cx = c.w / 2, cy = c.h * 0.56, r = c.w * 0.27;
+      const cx = c.w / 2, cy = c.h * 0.56, r = c.w * 0.25, sc = c.w / 80;
       const stalks = [
-        [-r - 8, -r - 8 - f * 3], [-r + 3, -r - 15 + f * 3], [0, -r - 17 - f * 3],
-        [r - 3, -r - 15 + f * 3], [r + 8, -r - 8 - f * 3], [-r - 10, -4 + f * 3], [r + 10, -4 - f * 3]
+        [-25, -24 - f * 3], [-15, -31 + f * 2], [-3, -34 - f * 3],
+        [10, -31 + f * 3], [22, -25 - f * 2], [-27, -7 + f * 3], [26, -8 - f * 3]
       ];
-      stalks.forEach(([dx, dy]) => {
-        c.curve(cx + dx * 0.52, cy + dy * 0.52, cx + dx * 0.8, cy + dy * 0.9 - 4, cx + dx, cy + dy, 3.8, 2.2, s.p);
-        c.oval(cx + dx, cy + dy, 4.4, 4.2, '#f5f6fa');
-        c.glowEye(cx + dx, cy + dy, s.e, 1.9);
+      // Back sinuous armored eyestalks
+      stalks.forEach(([dx, dy], idx) => {
+        c.ink(sub => {
+          sub.curve(cx + dx * 0.45 * sc, cy + dy * 0.45 * sc, cx + dx * 0.8 * sc, cy + (dy * 0.9 - 5) * sc, cx + dx * sc, cy + dy * sc, 3.2 * sc, 1.8 * sc, idx % 2 ? s.p : s.d);
+          sub.oval(cx + dx * sc, cy + dy * sc, 3.8 * sc, 3.6 * sc, '#f5f6fa', { dither: false });
+          sub.glowEye(cx + (dx - 0.8) * sc, cy + dy * sc, s.e, 1.6 * sc);
+        });
       });
-      c.oval(cx, cy, r, r * 0.94, s.p, { texture: 'scale' });
-      const er = r * 0.52;
-      c.oval(cx, cy - 4, er, er * 0.92, '#f7f8fc');
-      c.oval(cx, cy - 4, er * 0.66, er * 0.66, s.a);
-      c.oval(cx, cy - 4, er * 0.34, er * 0.42, '#0e1018', { shaded: false });
-      c.oval(cx - er * 0.3, cy - 4 - er * 0.3, er * 0.22, er * 0.18, '#ffffff', { shaded: false });
-      // Jagged Fanged Maw
-      c.oval(cx, cy + r * 0.52, r * 0.58, r * 0.22, '#210a16', { shaded: false });
-      for (let tx = -r * 0.46; tx <= r * 0.46; tx += 5.5) {
-        c.capsule(cx + tx, cy + r * 0.36, cx + tx, cy + r * 0.52 + (f ? 1.5 : 0), 1.6, 0.5, '#f5f6fa');
-      }
+      // Sculpted chitinous tyrant orb + brow armor plates + sinister grinning maw
+      c.ink(sub => {
+        sub.oval(cx, cy, r, r * 0.93, s.p, { texture: 'scale', dither: false });
+        // Layered chitinous cheek/crown armor ridges
+        sub.poly([
+          [cx - r * 0.88, cy - r * 0.25], [cx - r * 0.42, cy - r * 0.96],
+          [cx + r * 0.45, cy - r * 0.96], [cx + r * 0.9, cy - r * 0.22],
+          [cx + r * 0.48, cy - r * 0.52], [cx - r * 0.52, cy - r * 0.52]
+        ], s.d);
+        // Giant central anime tyrant eye (slightly angled left!)
+        const ex = cx - 2 * sc, ey = cy - 4 * sc, er = r * 0.54;
+        sub.oval(ex, ey, er, er * 0.92, '#140f20', { shaded: false });
+        sub.oval(ex, ey, er * 0.88, er * 0.8, '#f7f8fc', { shaded: false });
+        sub.oval(ex - 1 * sc, ey, er * 0.62, er * 0.62, s.a, { dither: false });
+        sub.oval(ex - 1.5 * sc, ey, er * 0.28, er * 0.44, '#0d0b18', { shaded: false });
+        sub.oval(ex - er * 0.34, ey - er * 0.28, er * 0.22, er * 0.18, '#ffffff', { shaded: false });
+        sub.px(ex + er * 0.24, ey + er * 0.22, '#ffffff');
+        // Angry furrowed chitin brow over main eye
+        sub.poly([
+          [ex - er * 1.15, ey - er * 0.72], [ex + er * 0.1, ey - er * 0.44],
+          [ex + er * 1.15, ey - er * 0.8], [ex + er * 0.95, ey - er * 1.1],
+          [ex - er * 0.95, ey - er * 1.05]
+        ], s.d);
+        // Sinister jagged crescent maw with razor pixel fangs
+        sub.poly([
+          [cx - r * 0.68, cy + r * 0.32], [cx - r * 0.2, cy + r * 0.44],
+          [cx + r * 0.35, cy + r * 0.42], [cx + r * 0.66, cy + r * 0.26],
+          [cx + r * 0.46, cy + r * 0.76], [cx - r * 0.48, cy + r * 0.76]
+        ], '#260817', { shaded: false });
+        for (let tx = -r * 0.52; tx <= r * 0.52; tx += 4.6 * sc) {
+          sub.poly([
+            [cx + tx - 1.5 * sc, cy + r * 0.38],
+            [cx + tx + 1.5 * sc, cy + r * 0.38],
+            [cx + tx, cy + r * 0.58 + (f ? 1.5 * sc : 0)]
+          ], '#ffffff', { shaded: false });
+          sub.poly([
+            [cx + tx - 1.2 * sc, cy + r * 0.74],
+            [cx + tx + 1.2 * sc, cy + r * 0.74],
+            [cx + tx, cy + r * 0.58]
+          ], '#dfe6e9', { shaded: false });
+        }
+      });
     },
 
     dragon(c, f, s) {
-      const cx = c.w / 2, cy = c.h * 0.55, sc = c.w / 80;
-      const wf = (f ? 7 : -6) * sc;
-      // Sweeping Webbed Dragon Wings
-      c.curve(cx - 8 * sc, cy - 3 * sc, cx - 24 * sc, cy - 22 * sc + wf, cx - 34 * sc, cy - 12 * sc + wf, 6 * sc, 2.5 * sc, s.d);
-      c.curve(cx + 8 * sc, cy - 3 * sc, cx + 24 * sc, cy - 22 * sc + wf, cx + 34 * sc, cy - 12 * sc + wf, 6 * sc, 2.5 * sc, s.d);
-      c.oval(cx - 22 * sc, cy - 5 * sc + wf * 0.5, 13 * sc, 9.5 * sc, s.d);
-      c.oval(cx + 22 * sc, cy - 5 * sc + wf * 0.5, 13 * sc, 9.5 * sc, s.d);
-      // Curled Spiked Tail
-      c.curve(cx + 12 * sc, cy + 16 * sc, cx + 26 * sc, cy + 18 * sc, cx + 32 * sc, cy + 6 * sc - f * 3, 4.2 * sc, 1.4 * sc, s.p);
-      // Scaled Body & Segmented Belly
-      c.oval(cx, cy + 9 * sc, 15 * sc, 16 * sc, s.p, { texture: 'scale' });
-      c.oval(cx, cy + 11 * sc, 9.5 * sc, 11.5 * sc, s.a);
-      c.plate(cx - 14 * sc, cy + 18 * sc, 9 * sc, 10 * sc, s.d, { round: 2 });
-      c.plate(cx + 6 * sc, cy + 18 * sc, 9 * sc, 10 * sc, s.d, { round: 2 });
-      // Fierce Dragon Head + Swept Horns + Glowing Breath
-      c.oval(cx, cy - 14 * sc + f * 2, 15.5 * sc, 12.2 * sc, s.p, { texture: 'scale' });
-      c.curve(cx - 10 * sc, cy - 22 * sc + f * 2, cx - 18 * sc, cy - 28 * sc + f * 2, cx - 22 * sc, cy - 34 * sc + f * 2, 4.2 * sc, 1.1 * sc, s.a);
-      c.curve(cx + 10 * sc, cy - 22 * sc + f * 2, cx + 18 * sc, cy - 28 * sc + f * 2, cx + 22 * sc, cy - 34 * sc + f * 2, 4.2 * sc, 1.1 * sc, s.a);
-      c.glowEye(cx - 6.5 * sc, cy - 15 * sc + f * 2, s.e, 2.7 * sc);
-      c.glowEye(cx + 6.5 * sc, cy - 15 * sc + f * 2, s.e, 2.7 * sc);
-      c.glow(cx, cy - 5 * sc + f * 2, 8 * sc, '#ffffff', s.e, s.a);
+      const cx = c.w / 2, cy = c.h * 0.56, sc = c.w / 80;
+      const wf = (f ? 6 : -5) * sc;
+      // Dramatic scalloped bat wings (3/4 spread!)
+      c.batWing(cx - 2 * sc, cy - 4 * sc, -1, 31 * sc, 24 * sc, s.d, s.p, wf * 0.8);
+      c.batWing(cx + 6 * sc, cy - 5 * sc, 1, 32 * sc, 26 * sc, s.d, s.p, wf);
+      // Whip-like spiked tail sweeping behind
+      c.ink(sub => {
+        sub.curve(cx + 10 * sc, cy + 16 * sc, cx + 26 * sc, cy + 19 * sc, cx + 34 * sc, cy + 4 * sc - f * 3 * sc, 4.2 * sc, 1.3 * sc, s.p);
+        sub.poly([
+          [cx + 31 * sc, cy + 4 * sc - f * 3 * sc],
+          [cx + 38 * sc, cy - 1 * sc - f * 3 * sc],
+          [cx + 34 * sc, cy + 8 * sc - f * 3 * sc]
+        ], s.a);
+      });
+      // Muscular armored body, segmented belly & clawed hind legs
+      c.ink(sub => {
+        // Rear & front clawed dragon legs
+        sub.poly([[cx - 13 * sc, cy + 14 * sc], [cx - 4 * sc, cy + 14 * sc], [cx - 7 * sc, cy + 27 * sc], [cx - 17 * sc, cy + 27 * sc]], s.d);
+        sub.poly([[cx + 4 * sc, cy + 14 * sc], [cx + 14 * sc, cy + 14 * sc], [cx + 15 * sc, cy + 27 * sc], [cx + 5 * sc, cy + 27 * sc]], s.d);
+        // White claws
+        sub.line(cx - 17 * sc, cy + 27 * sc, cx - 20 * sc, cy + 28 * sc, '#f5f6fa', 1.4);
+        sub.line(cx + 5 * sc, cy + 27 * sc, cx + 2 * sc, cy + 28 * sc, '#f5f6fa', 1.4);
+        // Chest & neck S-curve
+        sub.poly([
+          [cx - 12 * sc, cy + 2 * sc], [cx + 6 * sc, cy - 2 * sc],
+          [cx + 16 * sc, cy + 12 * sc], [cx + 10 * sc, cy + 22 * sc],
+          [cx - 10 * sc, cy + 22 * sc], [cx - 15 * sc, cy + 12 * sc]
+        ], s.p, { texture: 'scale' });
+        // Segmented gold/pale armored chest plates
+        for (let py = 0; py < 4; py++) {
+          sub.poly([
+            [cx - 9 * sc, cy + (4 + py * 4.2) * sc],
+            [cx + 5 * sc, cy + (4 + py * 4.2) * sc],
+            [cx + 3 * sc, cy + (7.6 + py * 4.2) * sc],
+            [cx - 7 * sc, cy + (7.6 + py * 4.2) * sc]
+          ], s.a);
+        }
+        // Sinuous arched neck
+        sub.curve(cx - 2 * sc, cy + 2 * sc, cx + 3 * sc, cy - 10 * sc, cx - 7 * sc, cy - 17 * sc + f * 1.5 * sc, 7.2 * sc, 5.2 * sc, s.p);
+      });
+      // Fierce 3/4 left-facing dragon head + breath ember!
+      c.dragonHead(cx - 9 * sc, cy - 18 * sc + f * 1.5 * sc, 1.05 * sc, -1, s.p, s.d, s.a, s.e, f);
+      c.glow(cx - 26 * sc, cy - 15 * sc + f * 1.5 * sc, 7.5 * sc, '#ffffff', s.e, s.a);
     },
 
     tiamat(c, f, s) {
-      const cx = c.w / 2, cy = c.h * 0.63, sc = c.w / 96;
-      const wf = (f ? 8 : -7) * sc;
-      // Colossal Abyssal Wings
-      c.oval(cx - 28 * sc, cy - 8 * sc + wf, 18 * sc, 13 * sc, '#3d1530');
-      c.oval(cx + 28 * sc, cy - 8 * sc + wf, 18 * sc, 13 * sc, '#3d1530');
-      // Armored Dragon Queen Body
-      c.oval(cx, cy + 6 * sc, 20 * sc, 18 * sc, '#4a1936', { texture: 'scale' });
-      c.oval(cx, cy + 8 * sc, 12 * sc, 13 * sc, '#f6c967', { metallic: true });
-      c.plate(cx - 16 * sc, cy + 20 * sc, 11 * sc, 11 * sc, '#2d1022', { round: 2 });
-      c.plate(cx + 6 * sc, cy + 20 * sc, 11 * sc, 11 * sc, '#2d1022', { round: 2 });
-      // ALL 5 CHROMATIC DRAGON HEADS (Red, Blue, Green, Black, White)!
+      const cx = c.w / 2, cy = c.h * 0.65, sc = c.w / 96;
+      const wf = (f ? 7 : -6) * sc;
+      // Colossal twin jagged abyssal dragon wings
+      c.batWing(cx - 8 * sc, cy - 8 * sc, -1, 38 * sc, 30 * sc, '#4b1335', '#2a0b22', wf);
+      c.batWing(cx + 8 * sc, cy - 8 * sc, 1, 38 * sc, 30 * sc, '#4b1335', '#2a0b22', wf);
+      // Armored Queen body + golden breastplate
+      c.ink(sub => {
+        sub.poly([[cx - 18 * sc, cy + 16 * sc], [cx - 6 * sc, cy + 16 * sc], [cx - 9 * sc, cy + 28 * sc], [cx - 22 * sc, cy + 28 * sc]], '#2b0d24');
+        sub.poly([[cx + 6 * sc, cy + 16 * sc], [cx + 18 * sc, cy + 16 * sc], [cx + 22 * sc, cy + 28 * sc], [cx + 9 * sc, cy + 28 * sc]], '#2b0d24');
+        sub.poly([
+          [cx - 18 * sc, cy - 4 * sc], [cx + 18 * sc, cy - 4 * sc],
+          [cx + 21 * sc, cy + 14 * sc], [cx + 13 * sc, cy + 23 * sc],
+          [cx - 13 * sc, cy + 23 * sc], [cx - 21 * sc, cy + 14 * sc]
+        ], '#52183a', { texture: 'scale' });
+        sub.poly([
+          [cx - 11 * sc, cy + 1 * sc], [cx + 11 * sc, cy + 1 * sc],
+          [cx + 8 * sc, cy + 19 * sc], [cx - 8 * sc, cy + 19 * sc]
+        ], '#f6c967', { metallic: true });
+      });
+      // ALL 5 SCULPTED CHROMATIC DRAGON HEADS (Red, Blue, Green, Black, White)!
       const heads = [
-        { dx: -29, dy: -22 + f * 3, col: '#ff4757', eye: '#fff200' },
-        { dx: -16, dy: -34 - f * 3, col: '#2e86de', eye: '#00d2d3' },
-        { dx: 0,   dy: -39 + f * 3, col: '#2ed573', eye: '#ffeaa7' },
-        { dx: 16,  dy: -34 - f * 3, col: '#2f3542', eye: '#ff4757' },
-        { dx: 29,  dy: -22 + f * 3, col: '#ecf0f1', eye: '#74b9ff' }
+        { dx: -30, dy: -22 + f * 3, dir: -1, p: '#eb3b5a', d: '#8b152c', a: '#ffdd59', e: '#fff200' },
+        { dx: -16, dy: -36 - f * 2, dir: -1, p: '#2e86de', d: '#193b78', a: '#74b9ff', e: '#00d2d3' },
+        { dx: 0,   dy: -42 + f * 2, dir: -1, p: '#26de81', d: '#10663d', a: '#b8e994', e: '#ffeaa7' },
+        { dx: 16,  dy: -36 - f * 2, dir: 1,  p: '#3b4252', d: '#181c26', a: '#a4b0be', e: '#ff4757' },
+        { dx: 30,  dy: -22 + f * 3, dir: 1,  p: '#eef2f7', d: '#95a5a6', a: '#dff9fb', e: '#74b9ff' }
       ];
       heads.forEach(hd => {
-        c.curve(cx + hd.dx * 0.3 * sc, cy - 6 * sc, cx + hd.dx * 0.72 * sc, cy + hd.dy * 0.55 * sc, cx + hd.dx * sc, cy + hd.dy * sc, 6.2 * sc, 4.2 * sc, hd.col, { texture: 'scale' });
-        c.oval(cx + hd.dx * sc, cy + hd.dy * sc, 7.6 * sc, 6.4 * sc, hd.col, { texture: 'scale' });
-        c.glowEye(cx + (hd.dx - 2.6) * sc, cy + hd.dy * sc, hd.eye, 1.8 * sc);
-        c.glowEye(cx + (hd.dx + 2.6) * sc, cy + hd.dy * sc, hd.eye, 1.8 * sc);
+        c.ink(sub => {
+          sub.curve(cx + hd.dx * 0.28 * sc, cy - 4 * sc, cx + hd.dx * 0.72 * sc, cy + hd.dy * 0.55 * sc, cx + hd.dx * sc, cy + hd.dy * sc, 5.2 * sc, 3.6 * sc, hd.p);
+        });
+        c.dragonHead(cx + hd.dx * sc, cy + hd.dy * sc, 0.58 * sc, hd.dir, hd.p, hd.d, hd.a, hd.e, f);
       });
     },
 
     mindflayer(c, f, s) {
       const cx = c.w / 2, sc = c.w / 80, b = f * 2 * sc;
-      c.cape(cx, 34 * sc + b, 73 * sc, 24 * sc, 36 * sc, s.d, f ? -2 : 2, s.a);
-      c.plate(cx - 17 * sc, 34 * sc + b, 35 * sc, 9 * sc, s.a, { round: 2, metallic: true });
-      c.oval(cx, 24 * sc + b, 15.5 * sc, 13.5 * sc, s.p);
-      c.glowEye(cx - 6.5 * sc, 23 * sc + b, s.e, 2.8 * sc);
-      c.glowEye(cx + 6.5 * sc, 23 * sc + b, s.e, 2.8 * sc);
-      for (let i = -3; i <= 3; i += 2) {
-        const sway = (i < 0 ? -1 : 1) * (f ? 4 : -1) * sc;
-        c.curve(cx + i * 2.5 * sc, 32 * sc + b, cx + i * 3 * sc + sway, 40 * sc + b, cx + i * 2.2 * sc + sway, 47 * sc + b, 3.0 * sc, 1.2 * sc, s.p);
-      }
-      c.glow(cx + 24 * sc, 36 * sc - f * 4 * sc, 11 * sc, '#ffffff', s.a, s.p);
-      c.oval(cx + 24 * sc, 36 * sc - f * 4 * sc, 6 * sc, 6 * sc, s.a, { metallic: true });
+      // High jagged gothic illithid mantle & sweeping robes
+      c.ink(sub => {
+        sub.poly([
+          [cx - 22 * sc, 28 * sc + b], [cx - 12 * sc, 36 * sc + b],
+          [cx + 14 * sc, 36 * sc + b], [cx + 24 * sc, 26 * sc + b],
+          [cx + 18 * sc, 45 * sc + b], [cx - 16 * sc, 45 * sc + b]
+        ], s.a, { metallic: true });
+        sub.cape(cx + 2 * sc, 35 * sc + b, 74 * sc, 20 * sc, 36 * sc, s.d, f ? 4 : 2, s.a);
+        sub.poly([
+          [cx - 8 * sc, 38 * sc + b], [cx + 8 * sc, 38 * sc + b],
+          [cx + 11 * sc, 72 * sc], [cx - 11 * sc, 72 * sc]
+        ], hueShade(s.d, 0.14));
+        sub.poly([[cx - 2 * sc, 40 * sc + b], [cx + 2 * sc, 40 * sc + b], [cx + 4 * sc, 68 * sc], [cx - 4 * sc, 68 * sc]], s.a, { metallic: true });
+      });
+      // Sculpted bulbous illithid head + writhing anime tentacles
+      c.ink(sub => {
+        sub.poly([
+          [cx - 11 * sc, 24 * sc + b], [cx - 13 * sc, 15 * sc + b],
+          [cx - 5 * sc, 9 * sc + b], [cx + 8 * sc, 10 * sc + b],
+          [cx + 14 * sc, 17 * sc + b], [cx + 10 * sc, 28 * sc + b],
+          [cx - 8 * sc, 30 * sc + b]
+        ], s.p);
+        sub.line(cx - 10 * sc, 21 * sc + b, cx - 3 * sc, 22.5 * sc + b, '#140f20', 1.4);
+        sub.line(cx + 1 * sc, 22.5 * sc + b, cx + 8 * sc, 21 * sc + b, '#140f20', 1.4);
+        sub.glowEye(cx - 6.5 * sc, 23 * sc + b, s.e, 2.3 * sc);
+        sub.glowEye(cx + 3.5 * sc, 23 * sc + b, s.e, 2.3 * sc);
+        for (let i = -3; i <= 3; i += 2) {
+          const sway = (i < 0 ? -1 : 1) * (f ? 4.5 : -1.5) * sc;
+          sub.curve(cx + (i * 2.2 - 1) * sc, 29 * sc + b, cx + (i * 2.8 - 1) * sc + sway, 38 * sc + b, cx + (i * 2 - 2) * sc + sway, 46 * sc + b, 2.6 * sc, 0.9 * sc, s.p);
+        }
+      });
+      // Floating psionic crystal orb in front left hand
+      c.glow(cx - 23 * sc, 37 * sc - f * 3 * sc, 11 * sc, '#ffffff', s.a, s.p);
+      c.ink(sub => {
+        sub.poly([
+          [cx - 23 * sc, 30 * sc - f * 3 * sc], [cx - 17 * sc, 37 * sc - f * 3 * sc],
+          [cx - 23 * sc, 44 * sc - f * 3 * sc], [cx - 29 * sc, 37 * sc - f * 3 * sc]
+        ], s.a, { metallic: true });
+      });
     },
 
     brain(c, f, s) {
-      const cx = c.w / 2, cy = c.h * 0.45 + f * 2, rx = c.w * 0.34, ry = c.h * 0.25;
-      for (let lx = -rx + 6; lx <= rx - 6; lx += 9) {
-        c.curve(cx + lx, cy + ry - 3, cx + lx + (f ? 4 : -4), cy + ry + 10, cx + lx - (f ? 2 : -2), cy + ry + 18, 3.2, 1.2, s.d);
-      }
-      c.oval(cx, cy, rx, ry, s.p);
-      c.oval(cx - rx * 0.38, cy - 4, rx * 0.46, ry * 0.56, hueShade(s.p, 0.22));
-      c.oval(cx + rx * 0.38, cy - 4, rx * 0.46, ry * 0.56, hueShade(s.p, 0.22));
-      c.curve(cx, cy - ry + 4, cx, cy, cx, cy + ry - 4, 1.8, 1.8, s.d);
-      c.curve(cx - rx + 6, cy - 2, cx - rx * 0.4, cy + 4, cx - 4, cy - 4, 1.5, 1.5, s.d);
-      c.curve(cx + 4, cy + 2, cx + rx * 0.4, cy - 4, cx + rx - 6, cy + 2, 1.5, 1.5, s.d);
-      c.glowEye(cx - 9, cy + 2, s.e, 3.2);
-      c.glowEye(cx + 9, cy + 2, s.e, 3.2);
+      const cx = c.w / 2, cy = c.h * 0.45 + f * 2, sc = c.w / 80;
+      // Psionic halo ring behind Elder Brain / Devourer
+      c.glow(cx, cy, 29 * sc, '#ffffff', s.a, s.p);
+      // Coiling psionic tendrils underneath
+      c.ink(sub => {
+        for (let i = -2; i <= 2; i++) {
+          const lx = cx + i * 9.5 * sc;
+          sub.curve(lx, cy + 12 * sc, lx + (f ? 5 : -5) * sc, cy + 22 * sc, lx - (f ? 3 : -3) * sc, cy + 30 * sc, 3.0 * sc, 1.0 * sc, s.d);
+        }
+      });
+      // Sculpted twin-lobe pulsing cerebral dome with crisp neural sulci
+      c.ink(sub => {
+        sub.oval(cx - 9 * sc, cy, 17 * sc, 16 * sc, s.p, { dither: false });
+        sub.oval(cx + 9 * sc, cy, 17 * sc, 16 * sc, s.p, { dither: false });
+        sub.oval(cx, cy - 3 * sc, 21 * sc, 14 * sc, hueShade(s.p, 0.14), { dither: false });
+        // Crisp dark cerebral folds
+        sub.curve(cx, cy - 16 * sc, cx, cy, cx, cy + 14 * sc, 1.4 * sc, 1.4 * sc, s.d);
+        sub.curve(cx - 20 * sc, cy - 3 * sc, cx - 10 * sc, cy + 4 * sc, cx - 4 * sc, cy - 5 * sc, 1.4 * sc, 1.4 * sc, s.d);
+        sub.curve(cx + 4 * sc, cy + 2 * sc, cx + 11 * sc, cy - 6 * sc, cx + 20 * sc, cy + 2 * sc, 1.4 * sc, 1.4 * sc, s.d);
+        sub.curve(cx - 15 * sc, cy + 8 * sc, cx - 6 * sc, cy + 11 * sc, cx - 2 * sc, cy + 6 * sc, 1.2 * sc, 1.2 * sc, s.d);
+        // Glowing psychic eyes
+        sub.glowEye(cx - 9 * sc, cy + 2 * sc, s.e, 2.8 * sc);
+        sub.glowEye(cx + 7 * sc, cy + 2 * sc, s.e, 2.8 * sc);
+      });
     },
 
     spider(c, f, s) {
       const cx = c.w / 2, cy = c.h * 0.56, sc = c.w / 80;
-      for (let i = 0; i < 4; i++) {
-        const yOff = (-9 + i * 7) * sc;
-        const step = (i % 2 === f ? -5 : 5) * sc;
-        c.curve(cx - 11 * sc, cy + yOff, cx - 26 * sc, cy + yOff - 10 * sc + step, cx - 33 * sc, cy + yOff + 10 * sc + step, 3.2 * sc, 1.3 * sc, s.d);
-        c.curve(cx + 11 * sc, cy + yOff, cx + 26 * sc, cy + yOff - 10 * sc - step, cx + 33 * sc, cy + yOff + 10 * sc - step, 3.2 * sc, 1.3 * sc, s.d);
-      }
-      c.oval(cx, cy - 9 * sc + f * 2, 17 * sc, 14.5 * sc, s.p, { texture: 'fur' });
-      c.plate(cx - 5 * sc, cy - 14 * sc + f * 2, 11 * sc, 4 * sc, s.a, { round: 1 });
-      c.plate(cx - 3 * sc, cy - 9 * sc + f * 2, 7 * sc, 4 * sc, s.a, { round: 1 });
-      c.oval(cx, cy + 10 * sc, 12.5 * sc, 10 * sc, s.d);
-      [-7, -2.5, 2.5, 7].forEach((dx, idx) => c.glowEye(cx + dx * sc, cy + (idx === 1 || idx === 2 ? 7 : 9) * sc, s.e, 1.8 * sc));
-      c.capsule(cx - 5 * sc, cy + 16 * sc, cx - 3 * sc, cy + 22 * sc, 2 * sc, 0.6 * sc, '#f5f6fa');
-      c.capsule(cx + 5 * sc, cy + 16 * sc, cx + 3 * sc, cy + 22 * sc, 2 * sc, 0.6 * sc, '#f5f6fa');
+      // 8 sharp articulated anime arachnid legs (angled knee joints!)
+      c.ink(sub => {
+        for (let i = 0; i < 4; i++) {
+          const yOff = (-8 + i * 6.5) * sc;
+          const step = (i % 2 === f ? -4.5 : 4.5) * sc;
+          const kxL = cx - (22 + i * 1.5) * sc, kyL = cy + yOff - 12 * sc + step;
+          const fxL = cx - (32 + (i === 1 ? 3 : 0)) * sc, fyL = cy + yOff + 11 * sc + step;
+          sub.capsule(cx - 9 * sc, cy + yOff, kxL, kyL, 2.5 * sc, 1.7 * sc, s.d);
+          sub.capsule(kxL, kyL, fxL, fyL, 1.8 * sc, 0.8 * sc, s.p);
+
+          const kxR = cx + (22 + i * 1.5) * sc, kyR = cy + yOff - 12 * sc - step;
+          const fxR = cx + (32 + (i === 1 ? 3 : 0)) * sc, fyR = cy + yOff + 11 * sc - step;
+          sub.capsule(cx + 9 * sc, cy + yOff, kxR, kyR, 2.5 * sc, 1.7 * sc, s.d);
+          sub.capsule(kxR, kyR, fxR, fyR, 1.8 * sc, 0.8 * sc, s.p);
+        }
+      });
+      // Sculpted armored spider abdomen with hourglass emblem
+      c.ink(sub => {
+        sub.poly([
+          [cx - 15 * sc, cy - 8 * sc + f * 1.5], [cx - 8 * sc, cy - 22 * sc + f * 1.5],
+          [cx + 8 * sc, cy - 22 * sc + f * 1.5], [cx + 15 * sc, cy - 8 * sc + f * 1.5],
+          [cx + 9 * sc, cy + 4 * sc + f * 1.5], [cx - 9 * sc, cy + 4 * sc + f * 1.5]
+        ], s.p);
+        sub.poly([[cx, cy - 18 * sc + f * 1.5], [cx + 6 * sc, cy - 11 * sc + f * 1.5], [cx, cy - 4 * sc + f * 1.5], [cx - 6 * sc, cy - 11 * sc + f * 1.5]], s.a);
+      });
+      // Head carapace + 6 glowing eyes + razor mandibles
+      c.ink(sub => {
+        sub.poly([
+          [cx - 11 * sc, cy + 4 * sc], [cx + 11 * sc, cy + 4 * sc],
+          [cx + 12 * sc, cy + 15 * sc], [cx, cy + 20 * sc], [cx - 12 * sc, cy + 15 * sc]
+        ], s.d);
+        [-7, -2.6, 2.6, 7].forEach((dx, idx) => sub.glowEye(cx + dx * sc, cy + (idx === 1 || idx === 2 ? 9 : 11) * sc, s.e, 1.7 * sc));
+        sub.poly([[cx - 7 * sc, cy + 16 * sc], [cx - 3 * sc, cy + 16 * sc], [cx - 4 * sc, cy + 24 * sc]], '#f5f6fa');
+        sub.poly([[cx + 3 * sc, cy + 16 * sc], [cx + 7 * sc, cy + 16 * sc], [cx + 4 * sc, cy + 24 * sc]], '#f5f6fa');
+      });
     },
 
     slime(c, f, s) {
       const cx = c.w / 2, cy = c.h * 0.56, sc = c.w / 80;
-      const sw = (f ? 4 : 0) * sc, sh = (f ? -4 : 0) * sc;
-      c.plate(cx - 22 * sc - sw, cy - 20 * sc - sh, 45 * sc + sw * 2, 41 * sc + sh, s.p, { round: 6, metallic: true });
-      c.oval(cx - 11 * sc - sw, cy - 11 * sc - sh, 7 * sc, 3.2 * sc, '#ffffff', { shaded: false, alpha: 210 });
-      // Floating Skull & Rusty Sword inside translucent cube!
-      c.oval(cx + 4 * sc, cy - 3 * sc - f * 2, 8 * sc, 7 * sc, '#f5f6fa');
-      c.oval(cx + 1 * sc, cy - 3 * sc - f * 2, 2.2 * sc, 2.4 * sc, '#14141f', { shaded: false });
-      c.oval(cx + 7 * sc, cy - 3 * sc - f * 2, 2.2 * sc, 2.4 * sc, '#14141f', { shaded: false });
-      c.capsule(cx - 13 * sc, cy + 10 * sc, cx + 12 * sc, cy + 5 * sc, 2 * sc, 1 * sc, '#dfe6e9', { metallic: true });
+      const sw = (f ? 3.5 : 0) * sc, sh = (f ? -3 : 0) * sc;
+      // Anime translucent crystal-gelatinous slime / cube with crisp specular shine & trapped adventurer gear!
+      c.ink(sub => {
+        sub.poly([
+          [cx - 22 * sc - sw, cy - 16 * sc - sh],
+          [cx - 15 * sc - sw, cy - 23 * sc - sh],
+          [cx + 15 * sc + sw, cy - 23 * sc - sh],
+          [cx + 22 * sc + sw, cy - 16 * sc - sh],
+          [cx + 25 * sc + sw, cy + 16 * sc],
+          [cx + 18 * sc + sw, cy + 21 * sc],
+          [cx - 18 * sc - sw, cy + 21 * sc],
+          [cx - 25 * sc - sw, cy + 16 * sc]
+        ], s.p, { metallic: true });
+        // Trapped skull & floating sword inside gel
+        sub.ink(inner => {
+          inner.oval(cx + 5 * sc, cy - 3 * sc - f * 2 * sc, 7.2 * sc, 6.4 * sc, '#f5f6fa', { dither: false });
+          inner.rect(cx + 2 * sc, cy - 4 * sc - f * 2 * sc, 2.2 * sc, 2.6 * sc, '#14111f');
+          inner.rect(cx + 7 * sc, cy - 4 * sc - f * 2 * sc, 2.2 * sc, 2.6 * sc, '#14111f');
+          inner.sword(cx - 10 * sc, cy - 11 * sc, cy + 10 * sc, 2.0 * sc, '#dfe6e9', '#f6c967', '#5d4037');
+        });
+        // Glossy anime water-drop highlights
+        sub.poly([
+          [cx - 18 * sc - sw, cy - 16 * sc - sh], [cx - 6 * sc - sw, cy - 18 * sc - sh],
+          [cx - 8 * sc - sw, cy - 13 * sc - sh], [cx - 18 * sc - sw, cy - 10 * sc - sh]
+        ], '#ffffff', { shaded: false, alpha: 215 });
+        sub.oval(cx + 13 * sc + sw, cy - 14 * sc - sh, 3.2 * sc, 2.0 * sc, '#ffffff', { shaded: false, alpha: 195 });
+        // Cute/menacing gleaming slime bubbles
+        sub.oval(cx - 14 * sc, cy + 11 * sc - f * 2, 2.6 * sc, 2.6 * sc, s.a, { shaded: false });
+        sub.oval(cx + 15 * sc, cy + 9 * sc + f * 2, 2.2 * sc, 2.2 * sc, s.a, { shaded: false });
+      });
     },
 
     mimic(c, f, s) {
       const cx = c.w / 2, cy = c.h * 0.59, sc = c.w / 80;
-      c.plate(cx - 24 * sc, cy, 49 * sc, 21 * sc, s.p, { round: 3, texture: true });
-      c.plate(cx - 24 * sc, cy, 49 * sc, 5 * sc, s.a, { metallic: true });
-      c.plate(cx - 5 * sc, cy - 1 * sc, 11 * sc, 9 * sc, s.a, { metallic: true, round: 2 });
+      // Ornate wooden RPG treasure chest with iron/gold banding
+      c.ink(sub => {
+        sub.poly([
+          [cx - 24 * sc, cy - 1 * sc], [cx + 24 * sc, cy - 1 * sc],
+          [cx + 22 * sc, cy + 20 * sc], [cx - 22 * sc, cy + 20 * sc]
+        ], s.p);
+        sub.plate(cx - 24 * sc, cy - 1 * sc, 48 * sc, 4.5 * sc, s.a, { metallic: true });
+        sub.plate(cx - 18 * sc, cy, 4 * sc, 20 * sc, s.a, { metallic: true });
+        sub.plate(cx + 14 * sc, cy, 4 * sc, 20 * sc, s.a, { metallic: true });
+        sub.plate(cx - 5 * sc, cy - 2 * sc, 10 * sc, 9 * sc, s.a, { metallic: true, round: 2 });
+        sub.rect(cx - 1.5 * sc, cy + 1 * sc, 3 * sc, 4 * sc, '#140f20');
+      });
       if (f === 0) {
-        c.plate(cx - 24 * sc, cy - 17 * sc, 49 * sc, 17 * sc, hueShade(s.p, 0.12), { round: 4 });
-        c.rect(cx - 24 * sc, cy - 3 * sc, 49 * sc, 4 * sc, '#140812');
-        c.glowEye(cx - 10 * sc, cy - 2 * sc, s.e, 2.5 * sc);
-        c.glowEye(cx + 10 * sc, cy - 2 * sc, s.e, 2.5 * sc);
+        c.ink(sub => {
+          sub.poly([
+            [cx - 25 * sc, cy - 1 * sc], [cx - 21 * sc, cy - 18 * sc],
+            [cx + 21 * sc, cy - 18 * sc], [cx + 25 * sc, cy - 1 * sc]
+          ], hueShade(s.p, 0.12));
+          sub.rect(cx - 24 * sc, cy - 4 * sc, 48 * sc, 4 * sc, '#140812');
+          sub.glowEye(cx - 10 * sc, cy - 2.5 * sc, s.e, 2.4 * sc);
+          sub.glowEye(cx + 10 * sc, cy - 2.5 * sc, s.e, 2.4 * sc);
+        });
       } else {
-        c.plate(cx - 26 * sc, cy - 29 * sc, 53 * sc, 14 * sc, hueShade(s.p, 0.16), { round: 4 });
-        c.plate(cx - 22 * sc, cy - 15 * sc, 45 * sc, 16 * sc, '#4a0e24');
-        for (let tx = -18; tx <= 18; tx += 7) {
-          c.capsule(cx + tx * sc, cy - 15 * sc, cx + tx * sc, cy - 10 * sc, 2.2 * sc, 0.6 * sc, '#ffffff');
-          c.capsule(cx + tx * sc, cy - 1 * sc, cx + tx * sc, cy - 6 * sc, 2.2 * sc, 0.6 * sc, '#ffffff');
-        }
-        c.curve(cx, cy - 5 * sc, cx + 10 * sc, cy - 10 * sc, cx + 20 * sc, cy + 4 * sc, 5.2 * sc, 2.4 * sc, s.e);
-        c.glowEye(cx - 12 * sc, cy - 23 * sc, '#ffdd59', 2.4 * sc);
-        c.glowEye(cx + 12 * sc, cy - 23 * sc, '#ffdd59', 2.4 * sc);
+        c.ink(sub => {
+          // Snapping jaws & lashing tongue!
+          sub.poly([
+            [cx - 26 * sc, cy - 14 * sc], [cx - 22 * sc, cy - 30 * sc],
+            [cx + 22 * sc, cy - 30 * sc], [cx + 26 * sc, cy - 14 * sc]
+          ], hueShade(s.p, 0.16));
+          sub.poly([
+            [cx - 22 * sc, cy - 14 * sc], [cx + 22 * sc, cy - 14 * sc],
+            [cx + 21 * sc, cy + 1 * sc], [cx - 21 * sc, cy + 1 * sc]
+          ], '#3b091c', { shaded: false });
+          for (let tx = -18; tx <= 18; tx += 6) {
+            sub.poly([[cx + (tx - 2) * sc, cy - 14 * sc], [cx + (tx + 2) * sc, cy - 14 * sc], [cx + tx * sc, cy - 8 * sc]], '#ffffff', { shaded: false });
+            sub.poly([[cx + (tx - 2) * sc, cy + 1 * sc], [cx + (tx + 2) * sc, cy + 1 * sc], [cx + tx * sc, cy - 5 * sc]], '#dfe6e9', { shaded: false });
+          }
+          sub.curve(cx - 2 * sc, cy - 5 * sc, cx - 14 * sc, cy - 12 * sc, cx - 26 * sc, cy + 3 * sc, 4.8 * sc, 2.0 * sc, s.e);
+          sub.glowEye(cx - 11 * sc, cy - 22 * sc, '#ffdd59', 2.4 * sc);
+          sub.glowEye(cx + 11 * sc, cy - 22 * sc, '#ffdd59', 2.4 * sc);
+        });
       }
     },
 
     goblin(c, f, s) {
       const cx = c.w / 2, sc = c.w / 80, b = f * 2 * sc;
-      c.plate(cx - 10 * sc, 58 * sc, 7 * sc, 13 * sc, s.d, { round: 2 });
-      c.plate(cx + 4 * sc, 58 * sc, 7 * sc, 13 * sc, s.d, { round: 2 });
-      c.plate(cx - 12 * sc, 42 * sc + b, 25 * sc, 17 * sc, s.d, { round: 3 });
-      c.plate(cx - 12 * sc, 52 * sc + b, 25 * sc, 4 * sc, s.a, { metallic: true });
-      // Huge Pointed Goblin Ears!
-      c.curve(cx - 12 * sc, 28 * sc + b, cx - 24 * sc, 22 * sc + b - f * 3, cx - 32 * sc, 18 * sc + b - f * 3, 5.2 * sc, 1.4 * sc, s.p);
-      c.curve(cx + 12 * sc, 28 * sc + b, cx + 24 * sc, 22 * sc + b - f * 3, cx + 32 * sc, 18 * sc + b - f * 3, 5.2 * sc, 1.4 * sc, s.p);
-      c.oval(cx, 28 * sc + b, 15 * sc, 13 * sc, s.p);
-      c.hiBitEye(cx - 10 * sc, 24 * sc + b, s.e);
-      c.hiBitEye(cx + 5 * sc, 24 * sc + b, s.e);
-      c.rect(cx - 5 * sc, 35 * sc + b, 11 * sc, 2 * sc, '#ffffff');
-      c.capsule(cx + 20 * sc, 55 * sc + b, cx + 27 * sc, 18 * sc + b - f * 4, 2.2 * sc, 1.8 * sc, '#8d5524');
-      c.sword(cx + 27 * sc, 10 * sc + b - f * 4, 22 * sc + b - f * 4, 2.5 * sc, '#dfe6e9', s.a, '#6d4c41');
+      // Agile crouched 3/4-left anime goblin / kobold skirmisher with arms gripping spear & buckler!
+      c.ink(sub => {
+        sub.poly([[cx - 9 * sc, 54 * sc], [cx - 3 * sc, 54 * sc], [cx - 7 * sc, 72 * sc], [cx - 13 * sc, 72 * sc]], s.d);
+        sub.poly([[cx + 3 * sc, 54 * sc], [cx + 9 * sc, 54 * sc], [cx + 12 * sc, 72 * sc], [cx + 6 * sc, 72 * sc]], s.d);
+        sub.poly([
+          [cx - 10 * sc, 39 * sc + b], [cx + 10 * sc, 39 * sc + b],
+          [cx + 12 * sc, 56 * sc + b], [cx - 12 * sc, 56 * sc + b]
+        ], s.d);
+        sub.plate(cx - 11 * sc, 49 * sc + b, 22 * sc, 4 * sc, s.a, { metallic: true });
+        // Arms reaching out to hold spear & ragged wooden buckler!
+        sub.capsule(cx - 9 * sc, 43 * sc + b, cx - 18 * sc, 47 * sc + b - f * 2 * sc, 2.6 * sc, 2.1 * sc, s.p);
+        sub.capsule(cx + 9 * sc, 43 * sc + b, cx + 15 * sc, 50 * sc + b, 2.6 * sc, 2.1 * sc, s.p);
+        sub.oval(cx + 16 * sc, 51 * sc + b, 5.5 * sc, 7.5 * sc, '#784212', { dither: false });
+        sub.oval(cx + 16 * sc, 51 * sc + b, 2.2 * sc, 2.2 * sc, s.a, { metallic: true });
+      });
+      // Huge sharp pointed ears + sly grinning anime goblin head
+      c.ink(sub => {
+        sub.poly([[cx - 10 * sc, 26 * sc + b], [cx - 31 * sc, 17 * sc + b - f * 2 * sc], [cx - 11 * sc, 32 * sc + b]], s.p);
+        sub.poly([[cx + 10 * sc, 26 * sc + b], [cx + 31 * sc, 17 * sc + b - f * 2 * sc], [cx + 11 * sc, 32 * sc + b]], s.p);
+        sub.poly([
+          [cx - 11 * sc, 20 * sc + b], [cx - 5 * sc, 14 * sc + b],
+          [cx + 6 * sc, 14 * sc + b], [cx + 11 * sc, 21 * sc + b],
+          [cx + 8 * sc, 34 * sc + b], [cx - 2 * sc, 38 * sc + b], [cx - 11 * sc, 33 * sc + b]
+        ], s.p);
+        // Pointed mischievous nose + angled anime eyes + toothy grin
+        sub.poly([[cx - 3 * sc, 27 * sc + b], [cx - 8 * sc, 30 * sc + b], [cx - 2 * sc, 31 * sc + b]], hueShade(s.p, -0.18));
+        sub.hiBitEye(cx - 9.5 * sc, 22 * sc + b, s.e, { emotion: 'angry', side: 'left' });
+        sub.hiBitEye(cx + 2 * sc, 22 * sc + b, s.e, { emotion: 'angry', side: 'right' });
+        sub.poly([[cx - 6 * sc, 33 * sc + b], [cx + 4 * sc, 32 * sc + b], [cx + 2 * sc, 35 * sc + b], [cx - 5 * sc, 35 * sc + b]], '#ffffff', { shaded: false });
+      });
+      // Jagged goblin spear gripped cleanly in left hand!
+      c.ink(sub => {
+        sub.capsule(cx - 15 * sc, 56 * sc + b, cx - 25 * sc, 16 * sc + b - f * 3 * sc, 1.9 * sc, 1.5 * sc, '#8d5524');
+        sub.poly([
+          [cx - 27 * sc, 20 * sc + b - f * 3 * sc], [cx - 22 * sc, 18 * sc + b - f * 3 * sc],
+          [cx - 27 * sc, 6 * sc + b - f * 3 * sc]
+        ], '#dfe6e9', { metallic: true });
+        sub.oval(cx - 18 * sc, 47 * sc + b - f * 2 * sc, 2.8 * sc, 2.6 * sc, s.p, { dither: false });
+      });
     },
 
     brute(c, f, s) {
       const cx = c.w / 2, sc = c.w / 80, b = f * 2 * sc;
-      c.plate(cx - 15 * sc, 57 * sc, 11 * sc, 16 * sc, s.d, { round: 2 });
-      c.plate(cx + 5 * sc, 57 * sc, 11 * sc, 16 * sc, s.d, { round: 2 });
-      c.oval(cx, 44 * sc + b, 22 * sc, 17 * sc, s.p, { texture: 'fur' });
-      c.plate(cx - 18 * sc, 50 * sc + b, 37 * sc, 6 * sc, s.d, { round: 2 });
-      c.plate(cx - 5 * sc, 49 * sc + b, 11 * sc, 8 * sc, s.a, { metallic: true, round: 2 });
-      c.oval(cx, 24 * sc + b, 16 * sc, 13 * sc, s.p);
-      c.hiBitEye(cx - 10 * sc, 21 * sc + b, s.e);
-      c.hiBitEye(cx + 5 * sc, 21 * sc + b, s.e);
-      c.capsule(cx - 8 * sc, 34 * sc + b, cx - 9 * sc, 29 * sc + b, 2.2 * sc, 0.8 * sc, '#ffffff');
-      c.capsule(cx + 8 * sc, 34 * sc + b, cx + 9 * sc, 29 * sc + b, 2.2 * sc, 0.8 * sc, '#ffffff');
-      c.capsule(cx + 22 * sc, 52 * sc + b, cx + 30 * sc, 18 * sc - f * 4, 3.6 * sc, 4.4 * sc, '#6d4c41');
-      c.oval(cx + 30 * sc, 17 * sc - f * 4, 8.5 * sc, 9.5 * sc, s.a, { metallic: true });
+      // Hunched muscular anime orc/troll warlord with real gripping arms, diagonal chest harness & tusks!
+      c.ink(sub => {
+        sub.poly([[cx - 15 * sc, 55 * sc], [cx - 4 * sc, 55 * sc], [cx - 8 * sc, 73 * sc], [cx - 19 * sc, 73 * sc]], s.d);
+        sub.poly([[cx + 4 * sc, 55 * sc], [cx + 15 * sc, 55 * sc], [cx + 19 * sc, 73 * sc], [cx + 8 * sc, 73 * sc]], s.d);
+        // Sculpted muscular V-taper torso + fur-trimmed loincloth
+        sub.poly([
+          [cx - 18 * sc, 32 * sc + b], [cx + 18 * sc, 32 * sc + b],
+          [cx + 13 * sc, 57 * sc + b], [cx - 13 * sc, 57 * sc + b]
+        ], s.p);
+        sub.poly([[cx - 12 * sc, 52 * sc + b], [cx + 12 * sc, 52 * sc + b], [cx + 15 * sc, 63 * sc + b], [cx - 15 * sc, 63 * sc + b]], '#4a2e1d');
+        // Diagonal leather chest strap & spiked shoulder pauldrons
+        sub.line(cx - 13 * sc, 34 * sc + b, cx + 11 * sc, 51 * sc + b, '#3c2419', 3.4 * sc);
+        sub.plate(cx - 14 * sc, 49 * sc + b, 28 * sc, 5 * sc, '#3c2419', { round: 1 });
+        sub.plate(cx - 4 * sc, 48 * sc + b, 9 * sc, 7 * sc, s.a, { metallic: true, round: 2 });
+        // Muscular arms (left reaching to grip greataxe, right clenched fist!)
+        sub.capsule(cx - 16 * sc, 37 * sc + b, cx - 23 * sc, 48 * sc + b - f * 2 * sc, 4.4 * sc, 3.6 * sc, s.p);
+        sub.capsule(cx + 16 * sc, 37 * sc + b, cx + 22 * sc, 51 * sc + b, 4.4 * sc, 3.8 * sc, s.p);
+        sub.poly([[cx - 24 * sc, 34 * sc + b], [cx - 13 * sc, 28 * sc + b], [cx - 10 * sc, 40 * sc + b], [cx - 21 * sc, 42 * sc + b]], s.d, { metallic: true });
+        sub.poly([[cx + 13 * sc, 28 * sc + b], [cx + 24 * sc, 34 * sc + b], [cx + 21 * sc, 42 * sc + b], [cx + 10 * sc, 40 * sc + b]], s.d, { metallic: true });
+      });
+      // Sculpted fierce orc/troll head with spiky war mane, angular brow & sharp tusks
+      c.ink(sub => {
+        sub.poly([
+          [cx - 12 * sc, 19 * sc + b], [cx - 7 * sc, 14 * sc + b], [cx + 7 * sc, 14 * sc + b],
+          [cx + 12 * sc, 20 * sc + b], [cx + 11 * sc, 32 * sc + b], [cx + 3 * sc, 37 * sc + b],
+          [cx - 9 * sc, 37 * sc + b], [cx - 13 * sc, 30 * sc + b]
+        ], s.p);
+        // Spiky war hair crest
+        sub.poly([
+          [cx - 13 * sc, 20 * sc + b], [cx - 10 * sc, 10 * sc + b], [cx - 3 * sc, 14 * sc + b],
+          [cx + 2 * sc, 8 * sc + b], [cx + 8 * sc, 14 * sc + b], [cx + 14 * sc, 11 * sc + b], [cx + 13 * sc, 21 * sc + b]
+        ], '#1f1b2b');
+        sub.hiBitEye(cx - 10 * sc, 22 * sc + b, s.e, { emotion: 'angry', side: 'left' });
+        sub.hiBitEye(cx + 1.5 * sc, 22 * sc + b, s.e, { emotion: 'angry', side: 'right' });
+        sub.rect(cx - 8 * sc, 32 * sc + b, 14 * sc, 3 * sc, '#2b0b14');
+        sub.poly([[cx - 9 * sc, 35 * sc + b], [cx - 6 * sc, 35 * sc + b], [cx - 8 * sc, 28 * sc + b]], '#ffffff', { shaded: false });
+        sub.poly([[cx + 3 * sc, 35 * sc + b], [cx + 6 * sc, 35 * sc + b], [cx + 5 * sc, 28 * sc + b]], '#ffffff', { shaded: false });
+      });
+      // Colossal double-notched war-axe gripped in left fist!
+      c.ink(sub => {
+        sub.capsule(cx - 21 * sc, 56 * sc + b, cx - 28 * sc, 12 * sc - f * 4 * sc, 2.5 * sc, 2.3 * sc, '#6d4c41');
+        sub.poly([
+          [cx - 26 * sc, 9 * sc - f * 4 * sc], [cx - 39 * sc, 15 * sc - f * 4 * sc],
+          [cx - 37 * sc, 30 * sc - f * 4 * sc], [cx - 24 * sc, 26 * sc - f * 4 * sc]
+        ], s.a, { metallic: true });
+        sub.oval(cx - 23 * sc, 48 * sc + b - f * 2 * sc, 4.0 * sc, 3.6 * sc, s.p, { dither: false });
+      });
     },
 
     ettin(c, f, s) {
       const cx = c.w / 2, sc = c.w / 96, b = f * 2 * sc;
-      c.plate(cx - 18 * sc, 68 * sc, 14 * sc, 18 * sc, s.d, { round: 3 });
-      c.plate(cx + 5 * sc, 68 * sc, 14 * sc, 18 * sc, s.d, { round: 3 });
-      c.oval(cx, 54 * sc + b, 25 * sc, 20 * sc, s.p);
-      c.plate(cx - 21 * sc, 60 * sc + b, 43 * sc, 7 * sc, s.a, { metallic: true });
-      c.oval(cx - 14 * sc, 27 * sc + b, 12.5 * sc, 11.5 * sc, s.p);
-      c.oval(cx + 14 * sc, 27 * sc - b, 12.5 * sc, 11.5 * sc, s.p);
-      c.glowEye(cx - 18 * sc, 25 * sc + b, s.e, 2.4 * sc);
-      c.glowEye(cx - 10 * sc, 25 * sc + b, s.e, 2.4 * sc);
-      c.glowEye(cx + 10 * sc, 25 * sc - b, s.e, 2.4 * sc);
-      c.glowEye(cx + 18 * sc, 25 * sc - b, s.e, 2.4 * sc);
-      c.capsule(cx - 30 * sc, 56 * sc, cx - 36 * sc, 24 * sc + f * 5, 4.2 * sc, 5.2 * sc, '#784212');
-      c.capsule(cx + 30 * sc, 56 * sc, cx + 36 * sc, 24 * sc - f * 5, 4.2 * sc, 5.2 * sc, '#784212');
+      c.ink(sub => {
+        sub.poly([[cx - 19 * sc, 65 * sc], [cx - 6 * sc, 65 * sc], [cx - 8 * sc, 86 * sc], [cx - 22 * sc, 86 * sc]], s.d);
+        sub.poly([[cx + 6 * sc, 65 * sc], [cx + 19 * sc, 65 * sc], [cx + 22 * sc, 86 * sc], [cx + 8 * sc, 86 * sc]], s.d);
+        sub.poly([
+          [cx - 25 * sc, 38 * sc + b], [cx + 25 * sc, 38 * sc + b],
+          [cx + 22 * sc, 68 * sc + b], [cx - 22 * sc, 68 * sc + b]
+        ], s.p);
+        sub.plate(cx - 22 * sc, 58 * sc + b, 44 * sc, 7 * sc, s.a, { metallic: true });
+      });
+      // Twin angry giant heads
+      [[-14, b], [14, -b]].forEach(([dx, hb]) => {
+        c.ink(sub => {
+          sub.poly([
+            [cx + (dx - 11) * sc, 19 * sc + hb], [cx + (dx + 11) * sc, 19 * sc + hb],
+            [cx + (dx + 10) * sc, 37 * sc + hb], [cx + (dx - 10) * sc, 37 * sc + hb]
+          ], s.p);
+          sub.glowEye(cx + (dx - 4.5) * sc, 26 * sc + hb, s.e, 2.2 * sc);
+          sub.glowEye(cx + (dx + 4.5) * sc, 26 * sc + hb, s.e, 2.2 * sc);
+          sub.poly([[cx + (dx - 5) * sc, 35 * sc + hb], [cx + (dx - 3) * sc, 35 * sc + hb], [cx + (dx - 4) * sc, 30 * sc + hb]], '#ffffff', { shaded: false });
+          sub.poly([[cx + (dx + 3) * sc, 35 * sc + hb], [cx + (dx + 5) * sc, 35 * sc + hb], [cx + (dx + 4) * sc, 30 * sc + hb]], '#ffffff', { shaded: false });
+        });
+      });
+      // Twin spiked morningstar clubs
+      c.ink(sub => {
+        sub.capsule(cx - 28 * sc, 56 * sc, cx - 37 * sc, 20 * sc + f * 5 * sc, 3.6 * sc, 4.6 * sc, '#784212');
+        sub.capsule(cx + 28 * sc, 56 * sc, cx + 37 * sc, 20 * sc - f * 5 * sc, 3.6 * sc, 4.6 * sc, '#784212');
+      });
     },
 
     skeleton(c, f, s) {
       const cx = c.w / 2, sc = c.w / 80, b = f * 2 * sc;
-      c.plate(cx - 8 * sc, 56 * sc, 5 * sc, 16 * sc, '#e8e8e8', { round: 1 });
-      c.plate(cx + 4 * sc, 56 * sc, 5 * sc, 16 * sc, '#e8e8e8', { round: 1 });
-      c.plate(cx - 10 * sc, 42 * sc + b, 21 * sc, 15 * sc, s.p, { round: 2, metallic: true });
-      for (let ry = 44; ry <= 52; ry += 4) c.rect(cx - 7 * sc, ry * sc + b, 15 * sc, 2 * sc, '#f5f6fa');
-      c.oval(cx, 25 * sc + b, 14.5 * sc, 12.5 * sc, '#f5f6fa');
-      c.plate(cx - 7 * sc, 34 * sc + b, 15 * sc, 6 * sc, '#dcdde1', { round: 2 });
-      c.oval(cx - 6 * sc, 25 * sc + b, 4.0 * sc, 4.2 * sc, '#10101a', { shaded: false });
-      c.oval(cx + 6 * sc, 25 * sc + b, 4.0 * sc, 4.2 * sc, '#10101a', { shaded: false });
-      c.glowEye(cx - 6 * sc, 25 * sc + b, s.e, 1.8 * sc);
-      c.glowEye(cx + 6 * sc, 25 * sc + b, s.e, 1.8 * sc);
-      c.plate(cx - 25 * sc, 42 * sc + b, 12 * sc, 18 * sc, s.d, { metallic: true, round: 3 });
-      c.sword(cx + 22 * sc, 14 * sc + b - f * 4, 48 * sc + b - f * 4, 2.8 * sc, '#ecf0f1', s.a, '#576574');
+      // Crisp dark-fantasy anime skeletal knight (3/4 left stance!)
+      c.ink(sub => {
+        sub.cape(cx + 4 * sc, 38 * sc + b, 71 * sc, 18 * sc, 30 * sc, s.d, f ? 4 : 2);
+      });
+      c.ink(sub => {
+        sub.poly([[cx - 9 * sc, 54 * sc], [cx - 4 * sc, 54 * sc], [cx - 6 * sc, 72 * sc], [cx - 11 * sc, 72 * sc]], '#e8e8e8');
+        sub.poly([[cx + 4 * sc, 54 * sc], [cx + 9 * sc, 54 * sc], [cx + 11 * sc, 72 * sc], [cx + 6 * sc, 72 * sc]], '#e8e8e8');
+        sub.poly([
+          [cx - 11 * sc, 39 * sc + b], [cx + 11 * sc, 39 * sc + b],
+          [cx + 9 * sc, 56 * sc + b], [cx - 9 * sc, 56 * sc + b]
+        ], s.p, { metallic: true });
+        for (let ry = 43; ry <= 51; ry += 4) sub.rect(cx - 7 * sc, ry * sc + b, 14 * sc, 2 * sc, '#f5f6fa');
+      });
+      // Sculpted Gothic Anime Skull + real bony arms gripping shield & gleaming sword!
+      c.ink(sub => {
+        sub.capsule(cx - 9 * sc, 43 * sc + b, cx - 20 * sc, 48 * sc + b - f * 2 * sc, 2.0 * sc, 1.8 * sc, '#e8e8e8');
+        sub.capsule(cx + 9 * sc, 43 * sc + b, cx + 16 * sc, 50 * sc + b, 2.0 * sc, 1.8 * sc, '#e8e8e8');
+      });
+      c.animeSkull(cx - 0.5 * sc, 25 * sc + b, 1.0 * sc, '#f5f6fa', s.e);
+      c.ink(sub => {
+        sub.poly([[cx + 12 * sc, 40 * sc + b], [cx + 25 * sc, 42 * sc + b], [cx + 23 * sc, 58 * sc + b], [cx + 16 * sc, 62 * sc + b], [cx + 10 * sc, 56 * sc + b]], s.d, { metallic: true });
+        sub.sword(cx - 21 * sc, 12 * sc + b - f * 4 * sc, 48 * sc + b - f * 4 * sc, 2.6 * sc, '#ecf0f1', s.a, '#576574');
+        sub.oval(cx - 21 * sc, 48 * sc + b - f * 2 * sc, 2.5 * sc, 2.5 * sc, '#f5f6fa', { dither: false });
+      });
     },
 
     wraith(c, f, s) {
       const cx = c.w / 2, sc = c.w / 80, b = f * 2 * sc;
-      c.cape(cx, 30 * sc + b, 72 * sc, 26 * sc, 40 * sc, s.p, f ? -4 : 4);
-      c.oval(cx, 24 * sc + b, 16 * sc, 13.5 * sc, s.d);
-      c.oval(cx, 26 * sc + b, 10.5 * sc, 8.8 * sc, '#090910', { shaded: false });
-      c.glowEye(cx - 5.5 * sc, 25 * sc + b, s.e, 2.5 * sc);
-      c.glowEye(cx + 5.5 * sc, 25 * sc + b, s.e, 2.5 * sc);
-      c.curve(cx - 16 * sc, 40 * sc + b, cx - 26 * sc, 36 * sc + b, cx - 31 * sc, 32 * sc - f * 4, 3.6 * sc, 1.2 * sc, s.a);
-      c.curve(cx + 16 * sc, 40 * sc + b, cx + 26 * sc, 36 * sc + b, cx + 31 * sc, 32 * sc + f * 4, 3.6 * sc, 1.2 * sc, s.a);
+      // Swirling spectral anime reaper cloak with tattered wisps & glowing scythe-claws
+      c.glow(cx, 38 * sc + b, 24 * sc, '#ffffff', s.a, s.p);
+      c.ink(sub => {
+        sub.poly([
+          [cx - 12 * sc, 32 * sc + b], [cx + 14 * sc, 32 * sc + b],
+          [cx + 24 * sc + (f ? 4 : -2) * sc, 72 * sc], [cx + 12 * sc, 64 * sc],
+          [cx + 3 * sc, 74 * sc], [cx - 6 * sc, 65 * sc],
+          [cx - 19 * sc + (f ? 3 : -2) * sc, 72 * sc]
+        ], s.p);
+        // Pointed gothic hood & shadowed abyss face
+        sub.poly([
+          [cx - 14 * sc, 26 * sc + b], [cx - 11 * sc, 13 * sc + b],
+          [cx + 2 * sc, 8 * sc + b], [cx + 14 * sc, 15 * sc + b],
+          [cx + 15 * sc, 29 * sc + b], [cx, 35 * sc + b]
+        ], s.d);
+        sub.oval(cx - 1 * sc, 24 * sc + b, 9 * sc, 8 * sc, '#090910', { shaded: false });
+        sub.glowEye(cx - 5.5 * sc, 23 * sc + b, s.e, 2.3 * sc);
+        sub.glowEye(cx + 3.5 * sc, 23 * sc + b, s.e, 2.3 * sc);
+        // Spectral outstretched claws
+        sub.curve(cx - 13 * sc, 40 * sc + b, cx - 25 * sc, 36 * sc + b, cx - 32 * sc, 30 * sc - f * 4 * sc, 3.2 * sc, 1.0 * sc, s.a);
+        sub.curve(cx + 14 * sc, 40 * sc + b, cx + 25 * sc, 36 * sc + b, cx + 31 * sc, 31 * sc + f * 4 * sc, 3.2 * sc, 1.0 * sc, s.a);
+      });
     },
 
     lich(c, f, s) {
       const cx = c.w / 2, sc = c.w / 96, b = f * 2 * sc;
-      c.cape(cx, 38 * sc + b, 88 * sc, 30 * sc, 48 * sc, s.p, f ? -3 : 3, s.a);
-      c.plate(cx - 6 * sc, 44 * sc + b, 13 * sc, 34 * sc, s.a, { metallic: true, round: 2 });
-      c.oval(cx, 29 * sc + b, 15.5 * sc, 13.5 * sc, '#ecf0f1');
-      c.oval(cx - 6 * sc, 29 * sc + b, 4.2 * sc, 4.4 * sc, '#10101a', { shaded: false });
-      c.oval(cx + 6 * sc, 29 * sc + b, 4.2 * sc, 4.4 * sc, '#10101a', { shaded: false });
-      c.glowEye(cx - 6 * sc, 29 * sc + b, s.e, 2.2 * sc);
-      c.glowEye(cx + 6 * sc, 29 * sc + b, s.e, 2.2 * sc);
-      const sx = cx + 28 * sc;
-      c.capsule(sx, 28 * sc + b, sx, 84 * sc, 2.6 * sc, 2.2 * sc, '#4a235a');
-      c.glow(sx, 20 * sc - f * 4 * sc, 13 * sc, '#ffffff', s.e, s.a);
-      c.oval(sx, 20 * sc - f * 4 * sc, 7.5 * sc, 7.5 * sc, s.e, { metallic: true });
+      // Sovereign Archlich in high-collared necromantic mantle + real skeletal arms + sculpted skull!
+      c.ink(sub => {
+        sub.cape(cx + 4 * sc, 38 * sc + b, 89 * sc, 24 * sc, 48 * sc, s.d, f ? 4 : 2, s.a);
+        sub.poly([
+          [cx - 23 * sc, 29 * sc + b], [cx - 11 * sc, 39 * sc + b],
+          [cx + 11 * sc, 39 * sc + b], [cx + 23 * sc, 29 * sc + b],
+          [cx + 18 * sc, 47 * sc + b], [cx - 18 * sc, 47 * sc + b]
+        ], s.p, { metallic: true });
+        sub.poly([[cx - 11 * sc, 42 * sc + b], [cx + 11 * sc, 42 * sc + b], [cx + 17 * sc, 86 * sc], [cx - 17 * sc, 86 * sc]], s.p);
+        sub.poly([[cx - 4 * sc, 43 * sc + b], [cx + 4 * sc, 43 * sc + b], [cx + 6 * sc, 81 * sc], [cx - 6 * sc, 81 * sc]], s.a, { metallic: true });
+        // Flowing wizard sleeves & bony hands reaching out to grip staff!
+        sub.poly([[cx - 12 * sc, 44 * sc + b], [cx - 28 * sc, 53 * sc + b], [cx - 24 * sc, 62 * sc + b], [cx - 11 * sc, 54 * sc + b]], s.d);
+        sub.poly([[cx + 12 * sc, 44 * sc + b], [cx + 24 * sc, 55 * sc + b], [cx + 19 * sc, 62 * sc + b], [cx + 11 * sc, 54 * sc + b]], s.d);
+        sub.oval(cx + 21 * sc, 57 * sc + b, 3.0 * sc, 2.8 * sc, '#ecf0f1', { dither: false });
+      });
+      // Dark hood framing sculpted Gothic Anime Skull!
+      c.ink(sub => {
+        sub.oval(cx, 25 * sc + b, 15.5 * sc, 13.5 * sc, s.d, { dither: false });
+      });
+      c.animeSkull(cx - 0.5 * sc, 27 * sc + b, 1.05 * sc, '#ecf0f1', s.e);
+      // Necromantic Soul Staff gripped cleanly in left hand!
+      const sx = cx - 28 * sc;
+      c.glow(sx, 20 * sc - f * 4 * sc, 14 * sc, '#ffffff', s.e, s.a);
+      c.ink(sub => {
+        sub.capsule(sx, 26 * sc + b, sx, 86 * sc, 2.4 * sc, 2.0 * sc, '#4a235a');
+        sub.poly([
+          [sx, 10 * sc - f * 4 * sc], [sx + 7 * sc, 20 * sc - f * 4 * sc],
+          [sx, 30 * sc - f * 4 * sc], [sx - 7 * sc, 20 * sc - f * 4 * sc]
+        ], s.e, { metallic: true });
+        sub.oval(sx + 1 * sc, 55 * sc + b, 3.2 * sc, 3.0 * sc, '#ecf0f1', { dither: false });
+      });
     },
 
     vampire(c, f, s) {
-      const cx = c.w / 2, sc = c.w / 80, b = f * 2 * sc;
-      c.cape(cx, 30 * sc + b, 73 * sc, 30 * sc, 48 * sc, s.p, f ? -4 : 4, s.a);
-      c.curve(cx - 12 * sc, 34 * sc + b, cx - 22 * sc, 24 * sc + b, cx - 20 * sc, 16 * sc + b, 4.2 * sc, 1.8 * sc, s.p);
-      c.curve(cx + 12 * sc, 34 * sc + b, cx + 22 * sc, 24 * sc + b, cx + 20 * sc, 16 * sc + b, 4.2 * sc, 1.8 * sc, s.p);
-      c.plate(cx - 12 * sc, 37 * sc + b, 25 * sc, 28 * sc, s.d, { round: 3 });
-      c.plate(cx - 3 * sc, 39 * sc + b, 7 * sc, 12 * sc, s.a, { metallic: true, round: 1 });
-      c.oval(cx, 24 * sc + b, 14.5 * sc, 12.5 * sc, '#f2e8eb');
-      c.hairCap(cx, 17 * sc + b, 15.2 * sc, 7.8 * sc, '#1b1b26');
-      c.hiBitEye(cx - 10 * sc, 22 * sc + b, s.e);
-      c.hiBitEye(cx + 5 * sc, 22 * sc + b, s.e);
-      c.px(cx - 3 * sc, 31 * sc + b, '#ffffff');
-      c.px(cx + 3 * sc, 31 * sc + b, '#ffffff');
+      const cx = c.w / 2, sc = c.w / 80, b = f * 1.5 * sc;
+      // Sleek Castlevania/Alucard Anime Vampire Lord (back hair behind shoulders -> coat -> face -> front bangs!)
+      c.ink(sub => {
+        sub.cape(cx + 6 * sc, 31 * sc + b, 74 * sc, 22 * sc, 44 * sc, s.p, f ? 4 : 2, s.a);
+        sub.poly([
+          [cx - 17 * sc, 18 * sc + b], [cx - 8 * sc, 33 * sc + b],
+          [cx + 10 * sc, 33 * sc + b], [cx + 19 * sc, 18 * sc + b],
+          [cx + 15 * sc, 38 * sc + b], [cx - 15 * sc, 38 * sc + b]
+        ], s.p);
+      });
+      c.animeHair(cx - 1 * sc, 24 * sc + b, 0.96 * sc, '#1c1829', { layer: 'back', backLen: 15 });
+      // Slender 4-head anime coat, boots, white ruffled cravat & arms!
+      c.ink(sub => {
+        sub.poly([[cx - 8 * sc, 53 * sc], [cx - 2.5 * sc, 53 * sc], [cx - 5 * sc, 73 * sc], [cx - 11 * sc, 73 * sc]], '#161421');
+        sub.poly([[cx + 2.5 * sc, 53 * sc], [cx + 8 * sc, 53 * sc], [cx + 11 * sc, 73 * sc], [cx + 5 * sc, 73 * sc]], '#161421');
+        sub.poly([[cx - 9 * sc, 47 * sc + b], [cx + 9 * sc, 47 * sc + b], [cx + 14 * sc, 65 * sc + b], [cx - 14 * sc, 65 * sc + b]], s.d);
+        sub.poly([[cx - 10 * sc, 35 * sc + b], [cx + 10 * sc, 35 * sc + b], [cx + 8 * sc, 51 * sc + b], [cx - 8 * sc, 51 * sc + b]], s.d);
+        sub.poly([[cx - 3.2 * sc, 36 * sc + b], [cx + 3.2 * sc, 36 * sc + b], [cx + 1.8 * sc, 46 * sc + b], [cx - 1.8 * sc, 46 * sc + b]], '#f5f6fa');
+        sub.oval(cx, 39 * sc + b, 1.8 * sc, 2.0 * sc, s.e, { shaded: false });
+        sub.plate(cx - 9 * sc, 48 * sc + b, 18 * sc, 3 * sc, s.a, { metallic: true });
+        sub.capsule(cx - 9 * sc, 39 * sc + b, cx - 20 * sc, 48 * sc + b - f * 2 * sc, 2.8 * sc, 2.2 * sc, s.d);
+        sub.capsule(cx + 9 * sc, 39 * sc + b, cx + 15 * sc, 51 * sc + b, 2.8 * sc, 2.2 * sc, s.d);
+        sub.oval(cx + 15 * sc, 52 * sc + b, 2.4 * sc, 2.2 * sc, '#f4eaee', { dither: false });
+      });
+      c.animeHead(cx - 1 * sc, 24 * sc + b, 0.94 * sc, '#f4eaee', { facing: -1, eye: s.e, fangs: true });
+      c.animeHair(cx - 1 * sc, 24 * sc + b, 0.96 * sc, '#1c1829', { layer: 'front', sideLen: 10, spiky: true });
+      c.ink(sub => {
+        sub.sword(cx - 21 * sc, 15 * sc + b - f * 3 * sc, 50 * sc + b - f * 3 * sc, 2.0 * sc, '#f5f6fa', s.a, '#3d0b1a', s.e);
+        sub.oval(cx - 21 * sc, 50 * sc + b - f * 2 * sc, 2.8 * sc, 2.6 * sc, '#f4eaee', { dither: false });
+      });
     },
 
     demon(c, f, s) {
       const cx = c.w / 2, sc = c.w / 80, b = f * 2 * sc;
       const wf = (f ? 6 : -5) * sc;
-      c.oval(cx - 24 * sc, 35 * sc + wf, 14 * sc, 11.5 * sc, s.d);
-      c.oval(cx + 24 * sc, 35 * sc + wf, 14 * sc, 11.5 * sc, s.d);
-      c.plate(cx - 14 * sc, 57 * sc, 10 * sc, 16 * sc, s.d, { round: 2 });
-      c.plate(cx + 5 * sc, 57 * sc, 10 * sc, 16 * sc, s.d, { round: 2 });
-      c.oval(cx, 44 * sc + b, 19 * sc, 16 * sc, s.p);
-      c.plate(cx - 14 * sc, 50 * sc + b, 29 * sc, 5 * sc, s.a, { metallic: true });
-      c.oval(cx, 25 * sc + b, 15 * sc, 12.5 * sc, s.p);
-      c.curve(cx - 10 * sc, 17 * sc + b, cx - 20 * sc, 12 * sc + b, cx - 24 * sc, 6 * sc + b, 4.2 * sc, 1.1 * sc, s.a);
-      c.curve(cx + 10 * sc, 17 * sc + b, cx + 20 * sc, 12 * sc + b, cx + 24 * sc, 6 * sc + b, 4.2 * sc, 1.1 * sc, s.a);
-      c.glowEye(cx - 6.5 * sc, 24 * sc + b, s.e, 2.7 * sc);
-      c.glowEye(cx + 6.5 * sc, 24 * sc + b, s.e, 2.7 * sc);
-      c.sword(cx + 25 * sc, 14 * sc + b - f * 4, 48 * sc + b - f * 4, 3.0 * sc, s.a, '#2f3640', '#1e1e2c', '#ffffff');
+      // Sweeping scalloped hellfire bat wings
+      c.batWing(cx - 5 * sc, 33 * sc + b, -1, 32 * sc, 26 * sc, s.d, '#240b14', wf);
+      c.batWing(cx + 5 * sc, 33 * sc + b, 1, 32 * sc, 26 * sc, s.d, '#240b14', wf);
+      // Muscular abyssal lord body, dark armor tassets, real clawed arms & hooves!
+      c.ink(sub => {
+        sub.poly([[cx - 13 * sc, 54 * sc], [cx - 4 * sc, 54 * sc], [cx - 7 * sc, 73 * sc], [cx - 16 * sc, 73 * sc]], s.d);
+        sub.poly([[cx + 4 * sc, 54 * sc], [cx + 13 * sc, 54 * sc], [cx + 16 * sc, 73 * sc], [cx + 7 * sc, 73 * sc]], s.d);
+        sub.poly([
+          [cx - 16 * sc, 33 * sc + b], [cx + 16 * sc, 33 * sc + b],
+          [cx + 11 * sc, 55 * sc + b], [cx - 11 * sc, 55 * sc + b]
+        ], s.p);
+        // Dark obsidian chest armor plates + flaming belt
+        sub.poly([[cx - 14 * sc, 35 * sc + b], [cx - 2 * sc, 38 * sc + b], [cx - 3 * sc, 47 * sc + b], [cx - 12 * sc, 45 * sc + b]], s.d, { metallic: true });
+        sub.poly([[cx + 14 * sc, 35 * sc + b], [cx + 2 * sc, 38 * sc + b], [cx + 3 * sc, 47 * sc + b], [cx + 12 * sc, 45 * sc + b]], s.d, { metallic: true });
+        sub.plate(cx - 12 * sc, 49 * sc + b, 24 * sc, 5 * sc, s.a, { metallic: true });
+        // Muscular clawed demon arms reaching for hellblade!
+        sub.capsule(cx - 15 * sc, 37 * sc + b, cx - 23 * sc, 48 * sc + b - f * 2 * sc, 3.8 * sc, 3.1 * sc, s.p);
+        sub.capsule(cx + 15 * sc, 37 * sc + b, cx + 22 * sc, 51 * sc + b, 3.8 * sc, 3.1 * sc, s.p);
+        sub.poly([[cx - 21 * sc, 34 * sc + b], [cx - 11 * sc, 29 * sc + b], [cx - 9 * sc, 39 * sc + b], [cx - 19 * sc, 41 * sc + b]], '#240b14', { metallic: true });
+        sub.poly([[cx + 11 * sc, 29 * sc + b], [cx + 21 * sc, 34 * sc + b], [cx + 19 * sc, 41 * sc + b], [cx + 9 * sc, 39 * sc + b]], '#240b14', { metallic: true });
+      });
+      // Swept curved obsidian/gold demon horns + sculpted fierce demon head with fangs!
+      c.ink(sub => {
+        sub.curve(cx - 8 * sc, 17 * sc + b, cx - 18 * sc, 11 * sc + b, cx - 24 * sc, 4 * sc + b, 3.2 * sc, 0.9 * sc, s.a);
+        sub.curve(cx + 8 * sc, 17 * sc + b, cx + 18 * sc, 11 * sc + b, cx + 24 * sc, 4 * sc + b, 3.2 * sc, 0.9 * sc, s.a);
+        sub.poly([
+          [cx - 10 * sc, 17 * sc + b], [cx + 10 * sc, 17 * sc + b],
+          [cx + 10 * sc, 28 * sc + b], [cx, 35 * sc + b], [cx - 10 * sc, 28 * sc + b]
+        ], s.p);
+        sub.line(cx - 9 * sc, 21 * sc + b, cx - 2 * sc, 23 * sc + b, '#140f20', 1.6);
+        sub.line(cx + 2 * sc, 23 * sc + b, cx + 9 * sc, 21 * sc + b, '#140f20', 1.6);
+        sub.glowEye(cx - 5.2 * sc, 24 * sc + b, s.e, 2.2 * sc);
+        sub.glowEye(cx + 4.4 * sc, 24 * sc + b, s.e, 2.2 * sc);
+        sub.rect(cx - 5 * sc, 29.5 * sc + b, 10 * sc, 2.4 * sc, '#240811');
+        sub.px(cx - 4 * sc, 30 * sc + b, '#ffffff');
+        sub.px(cx + 4 * sc, 30 * sc + b, '#ffffff');
+      });
+      // Blazing hellblade gripped cleanly in left fist!
+      c.glow(cx - 24 * sc, 22 * sc + b - f * 3 * sc, 10 * sc, '#ffffff', s.e, s.a);
+      c.ink(sub => {
+        sub.sword(cx - 24 * sc, 10 * sc + b - f * 4 * sc, 47 * sc + b - f * 4 * sc, 2.8 * sc, s.a, '#2f3640', '#1e1e2c', '#ffffff');
+        sub.oval(cx - 24 * sc, 48 * sc + b - f * 2 * sc, 3.4 * sc, 3.0 * sc, s.p, { dither: false });
+      });
     },
 
     demogorgon(c, f, s) {
       const cx = c.w / 2, sc = c.w / 96, b = f * 2 * sc;
-      c.curve(cx - 18 * sc, 50 * sc, cx - 32 * sc, 42 * sc + f * 6, cx - 40 * sc, 34 * sc + f * 6, 5.2 * sc, 2.0 * sc, s.a);
-      c.curve(cx + 18 * sc, 50 * sc, cx + 32 * sc, 42 * sc - f * 6, cx + 40 * sc, 34 * sc - f * 6, 5.2 * sc, 2.0 * sc, s.a);
-      c.oval(cx, 56 * sc + b, 22 * sc, 20 * sc, s.p, { texture: 'scale' });
-      c.plate(cx - 16 * sc, 70 * sc, 12 * sc, 16 * sc, s.d, { round: 2 });
-      c.plate(cx + 5 * sc, 70 * sc, 12 * sc, 16 * sc, s.d, { round: 2 });
-      c.oval(cx - 14 * sc, 27 * sc + b, 12 * sc, 11 * sc, s.p);
-      c.oval(cx + 14 * sc, 27 * sc - b, 12 * sc, 11 * sc, s.p);
-      c.glowEye(cx - 18 * sc, 25 * sc + b, s.e, 2.4 * sc);
-      c.glowEye(cx + 18 * sc, 25 * sc - b, s.e, 2.4 * sc);
+      // Twin lashing abyssal tentacle-arms + scaly Prince of Demons body + dual snarling baboon heads
+      c.ink(sub => {
+        sub.curve(cx - 18 * sc, 48 * sc, cx - 34 * sc, 38 * sc + f * 6 * sc, cx - 42 * sc, 28 * sc + f * 6 * sc, 5.0 * sc, 1.8 * sc, s.a);
+        sub.curve(cx + 18 * sc, 48 * sc, cx + 34 * sc, 38 * sc - f * 6 * sc, cx + 42 * sc, 28 * sc - f * 6 * sc, 5.0 * sc, 1.8 * sc, s.a);
+        sub.poly([[cx - 17 * sc, 66 * sc], [cx - 6 * sc, 66 * sc], [cx - 9 * sc, 86 * sc], [cx - 21 * sc, 86 * sc]], s.d);
+        sub.poly([[cx + 6 * sc, 66 * sc], [cx + 17 * sc, 66 * sc], [cx + 21 * sc, 86 * sc], [cx + 9 * sc, 86 * sc]], s.d);
+        sub.poly([
+          [cx - 22 * sc, 38 * sc + b], [cx + 22 * sc, 38 * sc + b],
+          [cx + 19 * sc, 68 * sc + b], [cx - 19 * sc, 68 * sc + b]
+        ], s.p, { texture: 'scale' });
+      });
+      [[-15, -1, b], [15, 1, -b]].forEach(([dx, dir, hb]) => {
+        c.dragonHead(cx + dx * sc, 26 * sc + hb, 0.72 * sc, dir, s.p, s.d, s.a, s.e, f);
+      });
     },
 
     knight(c, f, s) {
-      const cx = c.w / 2, sc = c.w / 80, b = f * 2 * sc;
-      c.cape(cx - 1, 36 * sc + b, 72 * sc, 26 * sc, 40 * sc, s.d, f ? -3 : 3, s.a);
-      c.plate(cx - 12 * sc, 58 * sc, 9 * sc, 15 * sc, s.d, { metallic: true, round: 2 });
-      c.plate(cx + 4 * sc, 58 * sc, 9 * sc, 15 * sc, s.d, { metallic: true, round: 2 });
-      c.plate(cx - 14 * sc, 37 * sc + b, 29 * sc, 22 * sc, s.p, { metallic: true, round: 3 });
-      c.plate(cx - 3 * sc, 40 * sc + b, 7 * sc, 14 * sc, s.a, { metallic: true, round: 1 });
-      c.oval(cx, 24 * sc + b, 15 * sc, 13 * sc, s.p, { metallic: true });
-      c.plate(cx - 12 * sc, 23 * sc + b, 25 * sc, 6 * sc, '#0c0d14', { round: 1 });
-      c.glowEye(cx - 6 * sc, 25 * sc + b, s.e, 2.3 * sc);
-      c.glowEye(cx + 6 * sc, 25 * sc + b, s.e, 2.3 * sc);
-      c.curve(cx - 11 * sc, 16 * sc + b, cx - 20 * sc, 11 * sc + b, cx - 22 * sc, 5 * sc + b, 3.6 * sc, 1.0 * sc, s.a);
-      c.curve(cx + 11 * sc, 16 * sc + b, cx + 20 * sc, 11 * sc + b, cx + 22 * sc, 5 * sc + b, 3.6 * sc, 1.0 * sc, s.a);
-      c.sword(cx + 24 * sc, 12 * sc + b - f * 4, 48 * sc + b - f * 4, 3.2 * sc, s.a, s.p, '#1e1e2c', '#ffffff');
+      const cx = c.w / 2, sc = c.w / 80, b = f * 1.5 * sc;
+      // Sleek 4-head Anime Dark Knight / Drow Assassin / Githyanki Commander with gauntleted arms!
+      c.ink(sub => {
+        sub.cape(cx + 6 * sc, 34 * sc + b, 73 * sc, 20 * sc, 38 * sc, s.d, f ? 5 : 2.5, s.a);
+      });
+      c.ink(sub => {
+        sub.poly([[cx - 9 * sc, 53 * sc], [cx - 3 * sc, 53 * sc], [cx - 6 * sc, 73 * sc], [cx - 12 * sc, 73 * sc]], s.d, { metallic: true });
+        sub.poly([[cx + 3 * sc, 53 * sc], [cx + 9 * sc, 53 * sc], [cx + 12 * sc, 73 * sc], [cx + 6 * sc, 73 * sc]], s.d, { metallic: true });
+        sub.poly([[cx - 11 * sc, 36 * sc + b], [cx + 11 * sc, 36 * sc + b], [cx + 8 * sc, 54 * sc + b], [cx - 8 * sc, 54 * sc + b]], s.p, { metallic: true });
+        // Gauntleted arms gripping greatsword!
+        sub.capsule(cx - 11 * sc, 40 * sc + b, cx - 22 * sc, 48 * sc + b - f * 2 * sc, 3.0 * sc, 2.5 * sc, s.d, { metallic: true });
+        sub.capsule(cx + 11 * sc, 40 * sc + b, cx + 17 * sc, 51 * sc + b, 3.0 * sc, 2.5 * sc, s.d, { metallic: true });
+        sub.poly([[cx - 19 * sc, 37 * sc + b], [cx - 10 * sc, 33 * sc + b], [cx - 9 * sc, 44 * sc + b], [cx - 17 * sc, 44 * sc + b]], s.p, { metallic: true });
+        sub.poly([[cx + 10 * sc, 33 * sc + b], [cx + 19 * sc, 37 * sc + b], [cx + 17 * sc, 44 * sc + b], [cx + 9 * sc, 44 * sc + b]], s.p, { metallic: true });
+        sub.poly([[cx - 2.5 * sc, 38 * sc + b], [cx + 2.5 * sc, 38 * sc + b], [cx + 4 * sc, 52 * sc + b], [cx - 4 * sc, 52 * sc + b]], s.a, { metallic: true });
+      });
+      // Angular horned knight greathelm with glowing visor slit
+      c.ink(sub => {
+        sub.curve(cx - 9 * sc, 17 * sc + b, cx - 17 * sc, 12 * sc + b, cx - 22 * sc, 5 * sc + b, 2.8 * sc, 0.8 * sc, s.a);
+        sub.curve(cx + 9 * sc, 17 * sc + b, cx + 17 * sc, 12 * sc + b, cx + 22 * sc, 5 * sc + b, 2.8 * sc, 0.8 * sc, s.a);
+        sub.poly([
+          [cx - 11 * sc, 18 * sc + b], [cx - 6 * sc, 12 * sc + b],
+          [cx + 6 * sc, 12 * sc + b], [cx + 11 * sc, 18 * sc + b],
+          [cx + 10 * sc, 32 * sc + b], [cx - 1 * sc, 36 * sc + b], [cx - 11 * sc, 31 * sc + b]
+        ], s.p, { metallic: true });
+        sub.poly([[cx - 10 * sc, 22 * sc + b], [cx + 8 * sc, 22 * sc + b], [cx + 7 * sc, 28 * sc + b], [cx - 9 * sc, 28 * sc + b]], '#0c0d16', { shaded: false });
+        sub.glowEye(cx - 5.5 * sc, 25 * sc + b, s.e, 2.0 * sc);
+        sub.glowEye(cx + 3 * sc, 25 * sc + b, s.e, 2.0 * sc);
+      });
+      // Glowing runeblade gripped cleanly in left gauntlet!
+      c.ink(sub => {
+        sub.sword(cx - 23 * sc, 10 * sc + b - f * 4 * sc, 48 * sc + b - f * 4 * sc, 2.9 * sc, s.a, s.p, '#1e1e2c', '#ffffff');
+        sub.oval(cx - 23 * sc, 49 * sc + b - f * 2 * sc, 3.2 * sc, 2.8 * sc, s.p, { metallic: true });
+      });
     },
 
     golem(c, f, s) {
-      const cx = c.w / 2, sc = c.w / 80, b = f * 2 * sc;
-      c.plate(cx - 17 * sc, 57 * sc, 12 * sc, 17 * sc, s.d, { metallic: true, round: 2 });
-      c.plate(cx + 6 * sc, 57 * sc, 12 * sc, 17 * sc, s.d, { metallic: true, round: 2 });
-      c.plate(cx - 24 * sc, 34 * sc + b, 49 * sc, 26 * sc, s.p, { metallic: true, round: 4, texture: true });
-      c.plate(cx - 32 * sc, 37 * sc + b, 10 * sc, 22 * sc, s.d, { metallic: true, round: 3 });
-      c.plate(cx + 23 * sc, 37 * sc + b, 10 * sc, 22 * sc, s.d, { metallic: true, round: 3 });
-      c.glow(cx, 45 * sc + b, 12 * sc, '#ffffff', f ? s.e : s.a, s.d);
-      c.oval(cx, 45 * sc + b, 7 * sc, 7 * sc, f ? s.e : s.a);
-      c.plate(cx - 14 * sc, 18 * sc + b, 29 * sc, 16 * sc, s.p, { metallic: true, round: 3 });
-      c.glowEye(cx - 6.5 * sc, 25 * sc + b, s.e, 2.6 * sc);
-      c.glowEye(cx + 6.5 * sc, 25 * sc + b, s.e, 2.6 * sc);
+      const cx = c.w / 2, sc = c.w / 80, b = f * 1.5 * sc;
+      // Sculpted Fantasy Anime Titan / Iron Sentinel (layered shoulder crests, rune core, heavy fists!)
+      c.ink(sub => {
+        sub.poly([[cx - 17 * sc, 55 * sc], [cx - 5 * sc, 55 * sc], [cx - 6 * sc, 74 * sc], [cx - 20 * sc, 74 * sc]], s.d, { metallic: true });
+        sub.poly([[cx + 5 * sc, 55 * sc], [cx + 17 * sc, 55 * sc], [cx + 20 * sc, 74 * sc], [cx + 6 * sc, 74 * sc]], s.d, { metallic: true });
+        // Hexagonal armored titan chest
+        sub.poly([
+          [cx - 21 * sc, 31 * sc + b], [cx + 21 * sc, 31 * sc + b],
+          [cx + 24 * sc, 44 * sc + b], [cx + 16 * sc, 58 * sc + b],
+          [cx - 16 * sc, 58 * sc + b], [cx - 24 * sc, 44 * sc + b]
+        ], s.p, { metallic: true });
+        // Angled heavy pauldrons & colossal rune gauntlets
+        sub.poly([[cx - 31 * sc, 34 * sc + b], [cx - 19 * sc, 26 * sc + b], [cx - 16 * sc, 40 * sc + b], [cx - 32 * sc, 43 * sc + b]], s.d, { metallic: true });
+        sub.poly([[cx + 19 * sc, 26 * sc + b], [cx + 31 * sc, 34 * sc + b], [cx + 32 * sc, 43 * sc + b], [cx + 16 * sc, 40 * sc + b]], s.d, { metallic: true });
+        sub.poly([[cx - 33 * sc, 43 * sc + b], [cx - 21 * sc, 42 * sc + b], [cx - 20 * sc, 60 * sc + b], [cx - 34 * sc, 58 * sc + b]], s.p, { metallic: true });
+        sub.poly([[cx + 21 * sc, 42 * sc + b], [cx + 33 * sc, 43 * sc + b], [cx + 34 * sc, 58 * sc + b], [cx + 20 * sc, 60 * sc + b]], s.p, { metallic: true });
+        // Glowing diamond furnace core
+        sub.poly([[cx, 37 * sc + b], [cx + 7 * sc, 45 * sc + b], [cx, 53 * sc + b], [cx - 7 * sc, 45 * sc + b]], f ? s.e : s.a, { metallic: true });
+      });
+      c.glow(cx, 45 * sc + b, 11 * sc, '#ffffff', f ? s.e : s.a, s.d);
+      // Crested sentinel helm (NOT a flat box!)
+      c.ink(sub => {
+        sub.poly([
+          [cx - 10 * sc, 19 * sc + b], [cx, 12 * sc + b], [cx + 10 * sc, 19 * sc + b],
+          [cx + 11 * sc, 31 * sc + b], [cx, 34 * sc + b], [cx - 11 * sc, 31 * sc + b]
+        ], s.p, { metallic: true });
+        sub.poly([[cx - 9 * sc, 22 * sc + b], [cx + 9 * sc, 22 * sc + b], [cx + 7 * sc, 27 * sc + b], [cx - 7 * sc, 27 * sc + b]], '#10101c', { shaded: false });
+        sub.glowEye(cx - 4.5 * sc, 24.5 * sc + b, s.e, 2.0 * sc);
+        sub.glowEye(cx + 4.5 * sc, 24.5 * sc + b, s.e, 2.0 * sc);
+      });
     },
 
     beast(c, f, s) {
       const cx = c.w / 2, sc = c.w / 80, b = f * 2 * sc;
-      c.oval(cx + 5 * sc, 48 * sc + b, 20 * sc, 14 * sc, s.p, { texture: 'fur' });
-      c.oval(cx + 5 * sc, 50 * sc + b, 13 * sc, 9 * sc, s.a);
-      c.plate(cx - 12 * sc, 56 * sc - f * 2, 7 * sc, 14 * sc, s.d, { round: 2 });
-      c.plate(cx + 16 * sc, 56 * sc + f * 2, 7 * sc, 14 * sc, s.d, { round: 2 });
-      c.curve(cx + 22 * sc, 42 * sc + b, cx + 30 * sc, 34 * sc, cx + 34 * sc, 26 * sc - f * 4, 3.6 * sc, 1.4 * sc, s.a);
-      c.oval(cx - 11 * sc, 33 * sc + b, 14.5 * sc, 13 * sc, s.p, { texture: 'fur' });
-      c.capsule(cx - 21 * sc, 23 * sc + b, cx - 24 * sc, 12 * sc + b, 3.6 * sc, 1.2 * sc, s.d);
-      c.capsule(cx - 3 * sc, 23 * sc + b, cx - 1 * sc, 12 * sc + b, 3.6 * sc, 1.2 * sc, s.d);
-      c.hiBitEye(cx - 21 * sc, 29 * sc + b, s.e);
-      c.hiBitEye(cx - 9 * sc, 29 * sc + b, s.e);
-      c.oval(cx - 13 * sc, 38 * sc + b, 4.5 * sc, 3.2 * sc, s.a);
+      // Agile prowling anime fantasy beast (Owlbear / Gnoll / Displacer Beast) facing LEFT!
+      c.ink(sub => {
+        // Whipping tail
+        sub.curve(cx + 20 * sc, 42 * sc + b, cx + 31 * sc, 33 * sc, cx + 35 * sc, 22 * sc - f * 4 * sc, 3.6 * sc, 1.3 * sc, s.a);
+        // Striding legs & claws
+        sub.poly([[cx - 16 * sc, 52 * sc - f * 2 * sc], [cx - 8 * sc, 52 * sc - f * 2 * sc], [cx - 11 * sc, 70 * sc], [cx - 19 * sc, 70 * sc]], s.d);
+        sub.poly([[cx + 11 * sc, 52 * sc + f * 2 * sc], [cx + 19 * sc, 52 * sc + f * 2 * sc], [cx + 22 * sc, 70 * sc], [cx + 14 * sc, 70 * sc]], s.d);
+        // Muscular crouched body + bright mane/chest fur
+        sub.poly([
+          [cx - 14 * sc, 36 * sc + b], [cx + 18 * sc, 38 * sc + b],
+          [cx + 24 * sc, 50 * sc + b], [cx + 14 * sc, 59 * sc + b],
+          [cx - 12 * sc, 58 * sc + b], [cx - 18 * sc, 46 * sc + b]
+        ], s.p);
+        sub.poly([[cx - 14 * sc, 40 * sc + b], [cx + 4 * sc, 42 * sc + b], [cx - 4 * sc, 56 * sc + b], [cx - 15 * sc, 50 * sc + b]], s.a);
+      });
+      // Fierce angular beast head with tufted ears + glowing eyes
+      c.ink(sub => {
+        sub.poly([[cx - 19 * sc, 24 * sc + b], [cx - 24 * sc, 11 * sc + b], [cx - 12 * sc, 20 * sc + b]], s.d);
+        sub.poly([[cx - 6 * sc, 22 * sc + b], [cx - 2 * sc, 11 * sc + b], [cx - 1 * sc, 23 * sc + b]], s.d);
+        sub.poly([
+          [cx - 23 * sc, 25 * sc + b], [cx - 14 * sc, 19 * sc + b],
+          [cx - 1 * sc, 22 * sc + b], [cx + 1 * sc, 34 * sc + b],
+          [cx - 14 * sc, 42 * sc + b], [cx - 27 * sc, 36 * sc + b]
+        ], s.p);
+        sub.glowEye(cx - 18 * sc, 28 * sc + b, s.e, 2.3 * sc);
+        sub.glowEye(cx - 8 * sc, 28 * sc + b, s.e, 2.3 * sc);
+        sub.poly([[cx - 23 * sc, 35 * sc + b], [cx - 15 * sc, 35 * sc + b], [cx - 19 * sc, 41 * sc + b]], s.a);
+      });
     },
 
     worm(c, f, s) {
       const cx = c.w / 2, sc = c.w / 80, b = f * 2 * sc;
-      c.oval(cx + 12 * sc, 58 * sc, 17 * sc, 12 * sc, s.d, { texture: 'scale' });
-      c.oval(cx + 3 * sc, 49 * sc + b, 18.5 * sc, 13 * sc, s.p, { texture: 'scale' });
-      c.oval(cx - 5 * sc, 38 * sc + b, 18.5 * sc, 14 * sc, s.p, { texture: 'scale' });
-      c.oval(cx - 7 * sc, 25 * sc + b, 17.5 * sc, 15 * sc, s.p, { texture: 'scale' });
-      c.oval(cx - 7 * sc, 25 * sc + b, 11 * sc, 9.5 * sc, '#2b0916', { shaded: false });
-      for (let ang = 0; ang < 10; ang++) {
-        const a = (Math.PI * 2 * ang) / 10 + (f ? 0.2 : 0);
-        c.capsule(cx - 7 * sc + Math.cos(a) * 11 * sc, 25 * sc + b + Math.sin(a) * 9.5 * sc, cx - 7 * sc + Math.cos(a) * 6 * sc, 25 * sc + b + Math.sin(a) * 5 * sc, 1.8 * sc, 0.5 * sc, '#ffffff');
-      }
+      // Armored segmented sandworm / purple worm titan rearing up toward left!
+      [
+        [cx + 14 * sc, 58 * sc, 16 * sc, 11 * sc, s.d],
+        [cx + 5 * sc, 49 * sc + b, 17 * sc, 12 * sc, s.p],
+        [cx - 4 * sc, 38 * sc + b, 17 * sc, 13 * sc, s.p]
+      ].forEach(([x, y, rx, ry, col]) => {
+        c.ink(sub => {
+          sub.oval(x, y, rx, ry, col, { texture: 'scale', dither: false });
+          sub.poly([[x + rx * 0.5, y - ry * 0.8], [x + rx * 1.1, y - ry * 1.15], [x + rx * 0.8, y - ry * 0.2]], s.a);
+        });
+      });
+      // Giant toothed circular maw angled left!
+      c.ink(sub => {
+        sub.oval(cx - 8 * sc, 24 * sc + b, 16.5 * sc, 14.5 * sc, s.p, { texture: 'scale', dither: false });
+        sub.oval(cx - 10 * sc, 24 * sc + b, 10.5 * sc, 9.2 * sc, '#260715', { shaded: false });
+        for (let ang = 0; ang < 10; ang++) {
+          const a = (Math.PI * 2 * ang) / 10 + (f ? 0.22 : 0);
+          sub.poly([
+            [cx - 10 * sc + Math.cos(a - 0.16) * 10.5 * sc, 24 * sc + b + Math.sin(a - 0.16) * 9.2 * sc],
+            [cx - 10 * sc + Math.cos(a + 0.16) * 10.5 * sc, 24 * sc + b + Math.sin(a + 0.16) * 9.2 * sc],
+            [cx - 10 * sc + Math.cos(a) * 5.2 * sc, 24 * sc + b + Math.sin(a) * 4.5 * sc]
+          ], '#ffffff', { shaded: false });
+        }
+      });
     },
 
     mushroom(c, f, s) {
       const cx = c.w / 2, sc = c.w / 80, b = f * 2 * sc;
-      c.oval(cx, 53 * sc + b, 13 * sc, 16 * sc, s.d);
-      c.hiBitEye(cx - 9 * sc, 47 * sc + b, s.e);
-      c.hiBitEye(cx + 4 * sc, 47 * sc + b, s.e);
-      c.oval(cx, 30 * sc + b, (26 + f * 2) * sc, 14.5 * sc, s.p);
-      c.oval(cx - 12 * sc, 27 * sc + b, 5.2 * sc, 4.4 * sc, s.a);
-      c.oval(cx + 10 * sc, 25 * sc + b, 5.8 * sc, 4.6 * sc, s.a);
-      c.oval(cx, 32 * sc + b, 4.4 * sc, 3.6 * sc, s.a);
-      c.glow(cx - 24 * sc, 18 * sc - f * 3, 5 * sc, '#ffffff', s.a);
-      c.glow(cx + 24 * sc, 20 * sc + f * 3, 5 * sc, '#ffffff', s.e);
+      // Cute/mystic anime fantasy Myconid Sovereign with luminous spotted cap & floating spores!
+      c.ink(sub => {
+        sub.poly([
+          [cx - 11 * sc, 40 * sc + b], [cx + 11 * sc, 40 * sc + b],
+          [cx + 15 * sc, 69 * sc], [cx + 4 * sc, 69 * sc],
+          [cx, 62 * sc], [cx - 4 * sc, 69 * sc], [cx - 15 * sc, 69 * sc]
+        ], s.d);
+        sub.hiBitEye(cx - 8.5 * sc, 46 * sc + b, s.e, { side: 'left' });
+        sub.hiBitEye(cx + 3.5 * sc, 46 * sc + b, s.e, { side: 'right' });
+      });
+      c.ink(sub => {
+        sub.poly([
+          [cx - (28 + f * 2) * sc, 36 * sc + b],
+          [cx - 21 * sc, 20 * sc + b],
+          [cx, 13 * sc + b],
+          [cx + 21 * sc, 20 * sc + b],
+          [cx + (28 + f * 2) * sc, 36 * sc + b],
+          [cx, 42 * sc + b]
+        ], s.p);
+        sub.oval(cx - 12 * sc, 27 * sc + b, 4.8 * sc, 3.8 * sc, s.a, { shaded: false });
+        sub.oval(cx + 11 * sc, 25 * sc + b, 5.2 * sc, 4.0 * sc, s.a, { shaded: false });
+        sub.oval(cx, 33 * sc + b, 4.0 * sc, 3.0 * sc, s.a, { shaded: false });
+      });
+      c.glow(cx - 25 * sc, 17 * sc - f * 3 * sc, 5.5 * sc, '#ffffff', s.a);
+      c.glow(cx + 25 * sc, 19 * sc + f * 3 * sc, 5.5 * sc, '#ffffff', s.e);
     },
 
     serpent(c, f, s) {
       const cx = c.w / 2, sc = c.w / 80, b = f * 2 * sc;
-      c.oval(cx, 59 * sc, 25 * sc, 10.5 * sc, s.d, { texture: 'scale' });
-      c.oval(cx + (f ? 3 : -3) * sc, 48 * sc, 20 * sc, 9.5 * sc, s.p, { texture: 'scale' });
-      c.curve(cx + 5 * sc, 45 * sc, cx + 10 * sc, 34 * sc, cx - 2 * sc, 26 * sc + b, 8.5 * sc, 6.5 * sc, s.p, { texture: 'scale' });
-      c.oval(cx - 2 * sc, 24 * sc + b, 15.5 * sc, 12 * sc, s.p, { texture: 'scale' });
-      c.glowEye(cx - 8.5 * sc, 23 * sc + b, s.e, 2.5 * sc);
-      c.glowEye(cx + 4.5 * sc, 23 * sc + b, s.e, 2.5 * sc);
+      // Coiled anime basilisk / aboleth / bone naga with dorsal fin & sculpted viper head!
+      c.ink(sub => {
+        sub.oval(cx + 2 * sc, 60 * sc, 24 * sc, 9.5 * sc, s.d, { texture: 'scale', dither: false });
+        sub.oval(cx + (f ? 4 : -2) * sc, 49 * sc, 19 * sc, 8.8 * sc, s.p, { texture: 'scale', dither: false });
+        sub.curve(cx + 6 * sc, 46 * sc, cx + 13 * sc, 33 * sc, cx - 2 * sc, 24 * sc + b, 8.0 * sc, 6.0 * sc, s.p);
+      });
+      c.dragonHead(cx - 5 * sc, 23 * sc + b, 0.96 * sc, -1, s.p, s.d, s.a, s.e, f);
       if (f) {
-        c.capsule(cx - 2 * sc, 34 * sc, cx - 5 * sc, 42 * sc, 1.1 * sc, 0.5 * sc, '#ff4757');
-        c.capsule(cx - 2 * sc, 34 * sc, cx + 1 * sc, 42 * sc, 1.1 * sc, 0.5 * sc, '#ff4757');
+        c.line(cx - 19 * sc, 26 * sc + b, cx - 27 * sc, 29 * sc + b, '#ff4757', 1.4);
+        c.line(cx - 25 * sc, 28 * sc + b, cx - 30 * sc, 25 * sc + b, '#ff4757', 1.1);
       }
     },
 
     insect(c, f, s) {
       const cx = c.w / 2, sc = c.w / 80, b = f * 2 * sc;
-      c.curve(cx - 12 * sc, 27 * sc + b, cx - 20 * sc, 18 * sc + b, cx - 26 * sc, 12 * sc + b - f * 3, 3.2 * sc, 1.0 * sc, s.a);
-      c.curve(cx + 12 * sc, 27 * sc + b, cx + 20 * sc, 18 * sc + b, cx + 26 * sc, 12 * sc + b + f * 3, 3.2 * sc, 1.0 * sc, s.a);
-      for (let i = -1; i <= 1; i++) {
-        c.curve(cx - 14 * sc, (48 + i * 8) * sc, cx - 24 * sc, (46 + i * 8) * sc, cx - 30 * sc, (56 + i * 8 + (i % 2 === f ? -3 : 3)) * sc, 2.8 * sc, 1.2 * sc, s.d);
-        c.curve(cx + 14 * sc, (48 + i * 8) * sc, cx + 24 * sc, (46 + i * 8) * sc, cx + 30 * sc, (56 + i * 8 - (i % 2 === f ? -3 : 3)) * sc, 2.8 * sc, 1.2 * sc, s.d);
-      }
-      c.oval(cx, 48 * sc + b, 18 * sc, 15.5 * sc, s.p, { texture: 'scale', metallic: true });
-      c.oval(cx, 30 * sc + b, 13 * sc, 10.5 * sc, s.d, { metallic: true });
-      c.glowEye(cx - 6 * sc, 28 * sc + b, s.e, 2.3 * sc);
-      c.glowEye(cx + 6 * sc, 28 * sc + b, s.e, 2.3 * sc);
+      // Armored chitinous anime insectoid (Rust Monster / Hook Horror / Chuul) with giant pincers!
+      c.ink(sub => {
+        for (let i = -1; i <= 1; i++) {
+          const st = (i % 2 === f ? -3 : 3) * sc;
+          sub.capsule(cx - 13 * sc, (48 + i * 7) * sc, cx - 28 * sc, (56 + i * 7) * sc + st, 2.5 * sc, 1.1 * sc, s.d);
+          sub.capsule(cx + 13 * sc, (48 + i * 7) * sc, cx + 28 * sc, (56 + i * 7) * sc - st, 2.5 * sc, 1.1 * sc, s.d);
+        }
+        // Twin massive scythe pincers
+        sub.poly([[cx - 10 * sc, 29 * sc + b], [cx - 27 * sc, 12 * sc + b - f * 3 * sc], [cx - 31 * sc, 21 * sc + b - f * 2 * sc], [cx - 15 * sc, 33 * sc + b]], s.a, { metallic: true });
+        sub.poly([[cx + 10 * sc, 29 * sc + b], [cx + 27 * sc, 12 * sc + b + f * 3 * sc], [cx + 31 * sc, 21 * sc + b + f * 2 * sc], [cx + 15 * sc, 33 * sc + b]], s.a, { metallic: true });
+        // Layered chitinous thorax & head
+        sub.poly([[cx - 17 * sc, 38 * sc + b], [cx + 17 * sc, 38 * sc + b], [cx + 19 * sc, 58 * sc + b], [cx, 66 * sc + b], [cx - 19 * sc, 58 * sc + b]], s.p, { metallic: true });
+        sub.poly([[cx - 12 * sc, 23 * sc + b], [cx + 12 * sc, 23 * sc + b], [cx + 10 * sc, 39 * sc + b], [cx - 10 * sc, 39 * sc + b]], s.d, { metallic: true });
+        sub.glowEye(cx - 6 * sc, 29 * sc + b, s.e, 2.3 * sc);
+        sub.glowEye(cx + 6 * sc, 29 * sc + b, s.e, 2.3 * sc);
+      });
     },
 
     mage(c, f, s) {
-      const cx = c.w / 2, sc = c.w / 96, b = f * 2 * sc;
-      c.cape(cx, 42 * sc + b, 88 * sc, 28 * sc, 46 * sc, s.p, f ? -3 : 3, s.a);
-      c.plate(cx - 6 * sc, 46 * sc + b, 13 * sc, 30 * sc, s.a, { metallic: true, round: 2 });
-      c.oval(cx, 32 * sc + b, 14.5 * sc, 12.5 * sc, '#f0d8c8');
-      c.oval(cx, 22 * sc + b, 23 * sc, 5.2 * sc, s.d);
-      c.curve(cx - 12 * sc, 21 * sc + b, cx, 10 * sc + b, cx + 6 * sc, 5 * sc + b, 9.5 * sc, 1.8 * sc, s.p);
-      c.hiBitEye(cx - 10 * sc, 29 * sc + b, s.e);
-      c.hiBitEye(cx + 5 * sc, 29 * sc + b, s.e);
-      const sx = cx + 27 * sc;
-      c.capsule(sx, 29 * sc + b, sx, 84 * sc, 2.6 * sc, 2.2 * sc, s.d);
-      c.glow(sx, 22 * sc - f * 4 * sc, 12 * sc, '#ffffff', s.a, s.p);
-      c.oval(sx, 22 * sc - f * 4 * sc, 6.8 * sc, 6.8 * sc, s.a, { metallic: true });
+      const cx = c.w / 2, sc = c.w / 96, b = f * 1.5 * sc;
+      const hairCol = hueShade(s.a, 0.28);
+      // Back cloak + flowing back hair BEHIND robes -> Robes & sleeves -> Anime face -> Front bangs -> Hat!
+      c.ink(sub => {
+        sub.cape(cx + 5 * sc, 42 * sc + b, 89 * sc, 24 * sc, 46 * sc, s.d, f ? 4 : 2, s.a);
+      });
+      c.animeHair(cx - 1 * sc, 31 * sc + b, 1.02 * sc, hairCol, { layer: 'back', backLen: 22 });
+      c.ink(sub => {
+        sub.poly([[cx - 11 * sc, 44 * sc + b], [cx + 11 * sc, 44 * sc + b], [cx + 18 * sc, 87 * sc], [cx - 18 * sc, 87 * sc]], s.p);
+        sub.poly([[cx - 4 * sc, 45 * sc + b], [cx + 4 * sc, 45 * sc + b], [cx + 6 * sc, 82 * sc], [cx - 6 * sc, 82 * sc]], s.a, { metallic: true });
+        sub.poly([[cx - 10 * sc, 46 * sc + b], [cx - 28 * sc, 54 * sc + b], [cx - 24 * sc, 64 * sc + b], [cx - 10 * sc, 56 * sc + b]], s.p);
+        sub.poly([[cx + 10 * sc, 46 * sc + b], [cx + 22 * sc, 56 * sc + b], [cx + 17 * sc, 63 * sc + b], [cx + 9 * sc, 56 * sc + b]], s.p);
+      });
+      c.animeHead(cx - 1 * sc, 32 * sc + b, 1.0 * sc, '#f5e2d8', { facing: -1, eye: s.e });
+      c.animeHair(cx - 1 * sc, 31 * sc + b, 1.02 * sc, hairCol, { layer: 'front', sideLen: 14 });
+      c.ink(sub => {
+        sub.poly([
+          [cx - 26 * sc, 24 * sc + b], [cx - 12 * sc, 18 * sc + b],
+          [cx + 6 * sc, 5 * sc + b], [cx + 14 * sc, 18 * sc + b],
+          [cx + 25 * sc, 24 * sc + b], [cx, 27 * sc + b]
+        ], s.p);
+        sub.line(cx - 14 * sc, 21 * sc + b, cx + 14 * sc, 21 * sc + b, s.a, 2.4);
+      });
+      const sx = cx - 28 * sc;
+      c.glow(sx, 22 * sc - f * 4 * sc, 13 * sc, '#ffffff', s.a, s.p);
+      c.ink(sub => {
+        sub.capsule(sx, 28 * sc + b, sx, 85 * sc, 2.3 * sc, 2.0 * sc, s.d);
+        sub.poly([
+          [sx, 12 * sc - f * 4 * sc], [sx + 7 * sc, 22 * sc - f * 4 * sc],
+          [sx, 31 * sc - f * 4 * sc], [sx - 7 * sc, 22 * sc - f * 4 * sc]
+        ], s.a, { metallic: true });
+        sub.oval(sx + 1 * sc, 56 * sc + b, 3.0 * sc, 2.8 * sc, '#f5e2d8', { dither: false });
+      });
     },
 
     frog(c, f, s) {
-      const cx = c.w / 2, sc = c.w / 80, b = f * 4 * sc;
-      c.plate(cx - 19 * sc, 57 * sc, 12 * sc, 13 * sc, s.d, { round: 3 });
-      c.plate(cx + 8 * sc, 57 * sc, 12 * sc, 13 * sc, s.d, { round: 3 });
-      c.oval(cx, 48 * sc - b, 23 * sc, 17 * sc, s.p, { texture: 'scale' });
-      c.oval(cx, 50 * sc - b, 14.5 * sc, 11 * sc, s.a);
-      c.oval(cx - 12 * sc, 28 * sc - b, 7.6 * sc, 7.6 * sc, s.p);
-      c.oval(cx + 12 * sc, 28 * sc - b, 7.6 * sc, 7.6 * sc, s.p);
-      c.glowEye(cx - 12 * sc, 27 * sc - b, s.e, 2.6 * sc);
-      c.glowEye(cx + 12 * sc, 27 * sc - b, s.e, 2.6 * sc);
-      c.plate(cx - 12 * sc, 40 * sc - b, 25 * sc, 4 * sc, '#ffffff', { round: 1 });
+      const cx = c.w / 2, sc = c.w / 80, b = f * 3.5 * sc;
+      c.ink(sub => {
+        sub.poly([[cx - 20 * sc, 56 * sc], [cx - 9 * sc, 56 * sc], [cx - 12 * sc, 72 * sc], [cx - 23 * sc, 72 * sc]], s.d);
+        sub.poly([[cx + 9 * sc, 56 * sc], [cx + 20 * sc, 56 * sc], [cx + 23 * sc, 72 * sc], [cx + 12 * sc, 72 * sc]], s.d);
+        sub.poly([
+          [cx - 22 * sc, 34 * sc - b], [cx + 22 * sc, 34 * sc - b],
+          [cx + 20 * sc, 60 * sc - b], [cx - 20 * sc, 60 * sc - b]
+        ], s.p, { texture: 'scale' });
+        sub.poly([[cx - 12 * sc, 42 * sc - b], [cx + 12 * sc, 42 * sc - b], [cx + 10 * sc, 58 * sc - b], [cx - 10 * sc, 58 * sc - b]], s.a);
+        sub.oval(cx - 12 * sc, 28 * sc - b, 7.2 * sc, 7.0 * sc, s.p, { dither: false });
+        sub.oval(cx + 12 * sc, 28 * sc - b, 7.2 * sc, 7.0 * sc, s.p, { dither: false });
+        sub.glowEye(cx - 12 * sc, 27 * sc - b, s.e, 2.5 * sc);
+        sub.glowEye(cx + 12 * sc, 27 * sc - b, s.e, 2.5 * sc);
+        sub.poly([[cx - 13 * sc, 39 * sc - b], [cx + 13 * sc, 39 * sc - b], [cx + 10 * sc, 43 * sc - b], [cx - 10 * sc, 43 * sc - b]], '#ffffff', { shaded: false });
+      });
     },
 
     angel(c, f, s) {
       const cx = c.w / 2, sc = c.w / 96, b = f * 2 * sc;
-      const wf = (f ? 8 : -6) * sc;
-      // Blazing Feathered Angel Wings
-      c.oval(cx - 28 * sc, 40 * sc + wf, 18 * sc, 14 * sc, s.p);
-      c.oval(cx + 28 * sc, 40 * sc + wf, 18 * sc, 14 * sc, s.p);
-      c.cape(cx, 46 * sc + b, 86 * sc, 22 * sc, 32 * sc, s.p, f ? -2 : 2, s.a);
-      c.plate(cx - 12 * sc, 46 * sc + b, 25 * sc, 24 * sc, s.d, { metallic: true, round: 3 });
-      c.plate(cx - 3 * sc, 48 * sc + b, 7 * sc, 28 * sc, s.a, { metallic: true });
-      c.glow(cx, 12 * sc + b, 13 * sc, '#ffffff', s.a, s.p);
-      c.oval(cx, 12 * sc + b, 12 * sc, 2.8 * sc, s.a, { metallic: true });
-      c.oval(cx, 28 * sc + b, 14 * sc, 12 * sc, '#f5e1d3');
-      c.hiBitEye(cx - 10 * sc, 26 * sc + b, s.e);
-      c.hiBitEye(cx + 5 * sc, 26 * sc + b, s.e);
-      c.sword(cx + 26 * sc, 14 * sc + b - f * 4, 62 * sc + b - f * 4, 3.6 * sc, s.a, '#f6c967', '#3b151e', '#ffffff');
+      const wf = (f ? 7 : -6) * sc;
+      // Layered Feathered Wings -> Back silver-white hair BEHIND armor -> Valkyrie armor & arms -> Face -> Front bangs -> Halo!
+      c.featherWing(cx - 6 * sc, 42 * sc + b, -1, 38 * sc, 29 * sc, s.p, s.a, wf);
+      c.featherWing(cx + 6 * sc, 42 * sc + b, 1, 38 * sc, 29 * sc, s.p, s.a, wf);
+      c.animeHair(cx - 1 * sc, 29 * sc + b, 1.02 * sc, '#eef2f7', { layer: 'back', backLen: 22 });
+      c.ink(sub => {
+        sub.poly([[cx - 10 * sc, 65 * sc], [cx - 3 * sc, 65 * sc], [cx - 5 * sc, 87 * sc], [cx - 12 * sc, 87 * sc]], s.d, { metallic: true });
+        sub.poly([[cx + 3 * sc, 65 * sc], [cx + 10 * sc, 65 * sc], [cx + 12 * sc, 87 * sc], [cx + 5 * sc, 87 * sc]], s.d, { metallic: true });
+        sub.cape(cx + 3 * sc, 44 * sc + b, 84 * sc, 16 * sc, 36 * sc, s.d, f ? 3 : 1, s.a);
+        sub.poly([[cx - 11 * sc, 44 * sc + b], [cx + 11 * sc, 44 * sc + b], [cx + 9 * sc, 64 * sc + b], [cx - 9 * sc, 64 * sc + b]], s.d, { metallic: true });
+        sub.poly([[cx - 3 * sc, 45 * sc + b], [cx + 3 * sc, 45 * sc + b], [cx + 4 * sc, 72 * sc + b], [cx - 4 * sc, 72 * sc + b]], s.a, { metallic: true });
+        sub.capsule(cx - 11 * sc, 47 * sc + b, cx - 26 * sc, 59 * sc + b - f * 2 * sc, 3.0 * sc, 2.4 * sc, s.d, { metallic: true });
+        sub.capsule(cx + 11 * sc, 47 * sc + b, cx + 19 * sc, 61 * sc + b, 3.0 * sc, 2.4 * sc, s.d, { metallic: true });
+        sub.poly([[cx - 17 * sc, 44 * sc + b], [cx - 9 * sc, 41 * sc + b], [cx - 8 * sc, 49 * sc + b], [cx - 16 * sc, 50 * sc + b]], s.a, { metallic: true });
+        sub.poly([[cx + 9 * sc, 41 * sc + b], [cx + 17 * sc, 44 * sc + b], [cx + 16 * sc, 50 * sc + b], [cx + 8 * sc, 49 * sc + b]], s.a, { metallic: true });
+      });
+      c.animeHead(cx - 1 * sc, 30 * sc + b, 1.0 * sc, '#f6e1d5', { facing: -1, eye: s.e, emotion: 'angry' });
+      c.animeHair(cx - 1 * sc, 29 * sc + b, 1.02 * sc, '#eef2f7', { layer: 'front', sideLen: 14 });
+      c.glow(cx, 13 * sc + b, 12 * sc, '#ffffff', s.a, s.p);
+      c.ink(sub => { sub.oval(cx, 13 * sc + b, 10 * sc, 2.4 * sc, s.a, { metallic: true }); });
+      c.glow(cx - 27 * sc, 25 * sc + b - f * 4 * sc, 13 * sc, '#ffffff', s.a, s.p);
+      c.ink(sub => {
+        sub.sword(cx - 27 * sc, 13 * sc + b - f * 4 * sc, 60 * sc + b - f * 4 * sc, 3.2 * sc, s.a, '#f6c967', '#3b151e', '#ffffff');
+        sub.oval(cx - 27 * sc, 60 * sc + b - f * 2 * sc, 3.2 * sc, 2.8 * sc, s.a, { metallic: true });
+      });
     },
 
     skull_lord(c, f, s) {
       const cx = c.w / 2, sc = c.w / 80, b = f * 2 * sc;
-      c.cape(cx, 36 * sc + b, 72 * sc, 26 * sc, 42 * sc, s.d, f ? -3 : 3, s.a);
-      c.plate(cx - 5 * sc, 40 * sc + b, 11 * sc, 25 * sc, s.a, { metallic: true });
-      [[-17, 25 + f * 2], [0, 19 - f * 2], [17, 25 + f * 2]].forEach(([dx, sy]) => {
-        c.oval(cx + dx * sc, sy * sc, 9.2 * sc, 8.2 * sc, '#ecf0f1');
-        c.glowEye(cx + (dx - 3) * sc, sy * sc, s.e, 1.8 * sc);
-        c.glowEye(cx + (dx + 3) * sc, sy * sc, s.e, 1.8 * sc);
+      c.ink(sub => {
+        sub.cape(cx + 2 * sc, 36 * sc + b, 73 * sc, 24 * sc, 42 * sc, s.d, f ? 4 : 2, s.a);
+        sub.poly([[cx - 4 * sc, 39 * sc + b], [cx + 4 * sc, 39 * sc + b], [cx + 6 * sc, 66 * sc + b], [cx - 6 * sc, 66 * sc + b]], s.a, { metallic: true });
+      });
+      [[-17, 25 + f * 2], [0, 18 - f * 2], [17, 25 + f * 2]].forEach(([dx, sy]) => {
+        c.animeSkull(cx + dx * sc, sy * sc, 0.72 * sc, '#ecf0f1', s.e);
       });
     }
   };
@@ -1612,10 +2504,7 @@
         drawer(c, f, spec);
         const cx = Math.floor(size / 2);
         if (spec.crown) {
-          c.plate(cx - 12, 4 + f * 2, 25, 5, spec.crown, { metallic: true, round: 1 });
-          c.plate(cx - 12, 1 + f * 2, 5, 5, spec.crown, { metallic: true });
-          c.plate(cx - 3, 0 + f * 2, 7, 6, f ? '#ffffff' : spec.crown, { metallic: true });
-          c.plate(cx + 8, 1 + f * 2, 5, 5, spec.crown, { metallic: true });
+          c.bossCrown(cx, 6 + f * 1.5, size / 96, spec.crown, spec.e, f);
         } else if (spec.elite) {
           c.glow(8, 10 + f * 3, 5, '#ffffff', spec.a);
           c.glow(size - 9, 10 - f * 3, 5, '#ffffff', spec.e);

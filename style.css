@@ -2439,13 +2439,13 @@ body {
 }
 
 .unit-avatar .pixel-sprite {
-  width: 96px;
-  height: 96px;
+  width: 108px;
+  height: 108px;
 }
 
 .unit-avatar .pixel-sprite.px-boss {
-  width: 120px;
-  height: 120px;
+  width: 134px;
+  height: 134px;
   filter: drop-shadow(0 0 12px rgba(246, 201, 103, 0.55)) drop-shadow(0 6px 8px rgba(0, 0, 0, 0.85));
 }
 

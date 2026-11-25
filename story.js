@@ -76,21 +76,20 @@
         skin: '#d1ccc0', armor: '#3d312a', pauldron: '#b7791f', cape: '#1e1918',
         trim: '#f6c967', boots: '#1e1918', noEyes: true, tunicSkirt: '#2e241f',
         drawHeadgear: (c, cx, b, f, emo) => {
-          c.oval(cx, 22 + b, 17.6, 14, '#b7791f', { metallic: true });
-          c.oval(cx, 27 + b, 12.6, 10.6, '#d1ccc0');
-          c.oval(cx - 5.5, 26 + b, 3.6, 3.2, '#10101a', { shaded: false });
-          c.oval(cx + 5.5, 26 + b, 3.6, 3.2, '#10101a', { shaded: false });
           const ec = emo === 'angry' ? '#ff4757' : emo === 'happy' ? '#ffd32a' : emo === 'sad' ? '#74b9ff' : emo === 'surprised' ? '#ffffff' : emo === 'smug' ? '#e056fd' : '#7ed6df';
-          const er = emo === 'surprised' ? 2.6 : 1.8;
-          c.glowEye(cx - 5.5, 26 + b, ec, er);
-          c.glowEye(cx + 5.5, 26 + b, ec, er);
+          c.poly([
+            [cx - 15, 22 + b], [cx - 10, 10 + b], [cx + 10, 10 + b],
+            [cx + 15, 22 + b], [cx + 13, 35 + b], [cx + 8, 22 + b],
+            [cx - 8, 22 + b], [cx - 13, 35 + b]
+          ], '#c9902a', { metallic: true });
+          c.animeSkull(cx - 0.5, 25 + b, 0.92, '#d8d2c7', ec);
         },
         drawGear: (c, cx, b, f) => {
-          const sy = 40 + b - f * 3;
-          c.glow(cx + 24, sy + 6, 10, '#ffffff', '#f6e58d', '#7ed6df');
-          c.plate(cx + 18, sy, 12, 16, '#f6e58d', { round: 2, trim: '#f6c967' });
-          c.plate(cx + 17, sy - 2, 14, 3, '#b7791f', { metallic: true, round: 1 });
-          c.plate(cx + 17, sy + 15, 14, 3, '#b7791f', { metallic: true, round: 1 });
+          const sy = 39 + b - f * 2;
+          c.glow(cx - 21, sy + 6, 9, '#ffffff', '#f6e58d', '#7ed6df');
+          c.plate(cx - 26, sy, 11, 15, '#f6e58d', { round: 2, trim: '#f6c967' });
+          c.plate(cx - 27, sy - 2, 13, 3, '#b7791f', { metallic: true, round: 1 });
+          c.plate(cx - 27, sy + 14, 13, 3, '#b7791f', { metallic: true, round: 1 });
         }
       });
     },
@@ -100,15 +99,15 @@
         skin: '#f2d4cc', armor: '#781023', pauldron: '#4a0915', cape: '#240811',
         trim: '#f6c967', boots: '#1c060c', eye: '#ff4757', tunicSkirt: '#5c0c1b',
         drawHeadgear: (c, cx, b) => {
-          c.hairCap(cx, 17 + b, 15.2, 8.2, '#1e1e2c');
-          c.curve(cx - 11, 14 + b, cx - 20, 9 + b, cx - 23, 3 + b, 3.4, 1.0, '#ff4757');
-          c.curve(cx + 11, 14 + b, cx + 20, 9 + b, cx + 23, 3 + b, 3.4, 1.0, '#ff4757');
+          c.animeHair(cx, 24 + b, 1.0, '#1e1a2b', { sideLen: 10, spiky: true });
+          c.poly([[cx - 9, 15 + b], [cx - 21, 5 + b], [cx - 17, 13 + b], [cx - 9, 18 + b]], '#ff4757');
+          c.poly([[cx + 9, 15 + b], [cx + 21, 5 + b], [cx + 17, 13 + b], [cx + 9, 18 + b]], '#ff4757');
         },
         drawGear: (c, cx, b, f) => {
-          const cy = 40 + b - f * 3;
-          c.plate(cx + 18, cy, 12, 15, '#ffeaa7', { round: 2, trim: '#c0392b' });
-          c.glow(cx + 24, cy - 5, 10, '#ffffff', f ? '#ff9f43' : '#ff4757', '#c0392b');
-          c.curve(cx + 24, cy, cx + 21 + f * 4, cy - 7, cx + 24, cy - 13, 4.6, 1.1, f ? '#ff9f43' : '#ff4757');
+          const cy = 39 + b - f * 2;
+          c.plate(cx - 26, cy, 11, 14, '#ffeaa7', { round: 2, trim: '#c0392b' });
+          c.glow(cx - 21, cy - 5, 9, '#ffffff', f ? '#ff9f43' : '#ff4757', '#c0392b');
+          c.curve(cx - 21, cy, cx - 24 + f * 3, cy - 7, cx - 21, cy - 13, 4.0, 1.0, f ? '#ff9f43' : '#ff4757');
         }
       });
     },
@@ -118,13 +117,16 @@
         skin: '#f7d2b4', armor: '#2980b9', pauldron: '#1b4f72', cape: '#154360',
         trim: '#f6c967', boots: '#5d4037', eye: '#3498db', tunicSkirt: '#1f618d',
         drawHeadgear: (c, cx, b, f) => {
-          c.oval(cx, 17 + b, 18, 7.2, '#2980b9');
-          c.curve(cx + 8, 14 + b, cx + 20, 8 + b - f * 2, cx + 27, 2 + b - f * 2, 3.6, 1.0, '#ff6b81');
-          c.oval(cx, 35 + b, 9.5, 2.8, '#6d4c41');
+          c.animeHair(cx, 24 + b, 1.0, '#6d4c41', { sideLen: 11 });
+          c.poly([
+            [cx - 16, 17 + b], [cx - 10, 9 + b], [cx + 11, 10 + b],
+            [cx + 16, 17 + b], [cx, 19 + b]
+          ], '#2980b9');
+          c.curve(cx + 6, 13 + b, cx + 18, 7 + b - f * 2, cx + 25, 2 + b - f * 2, 3.2, 0.9, '#ff6b81');
         },
         drawGear: (c, cx, b, f) => {
-          c.plate(cx + 18, 43 + b, 12, 15, '#8d5524', { round: 2, trim: '#f6c967' });
-          c.curve(cx + 24, 42 + b - f * 2, cx + 28, 33 + b - f * 2, cx + 32, 23 + b - f * 2, 2.2, 0.7, '#ffffff');
+          c.plate(cx - 26, 41 + b, 11, 14, '#8d5524', { round: 2, trim: '#f6c967' });
+          c.curve(cx - 21, 41 + b - f * 2, cx - 25, 32 + b - f * 2, cx - 29, 22 + b - f * 2, 2.0, 0.6, '#ffffff');
         }
       });
     }
