@@ -2901,6 +2901,20 @@ const Game = {
             <div class="hub-emo-btns">${emoBtnsHtml}</div>
           </div>
         </div>
+        <div class="hub-resource-guide">
+          <div class="hub-res-guide-head">
+            <span>${ch.secondaryResourceIcon} <strong>고유 자원 & 클래스 시스템: ${(ch.resourceGuide && ch.resourceGuide.resShort) || ch.secondaryResourceName.split('(')[0]}</strong></span>
+            <span class="hub-res-pill">5+ 클릭 시 궁극 개방 (1/턴)</span>
+          </div>
+          ${ch.resourceGuide ? `
+            <div class="hub-res-rows">
+              <div><strong style="color:#74b9ff;">⚡ 충전 방법:</strong> ${ch.resourceGuide.howToCharge}</div>
+              <div><strong style="color:#f6c967;">🔥 궁극 개방(5+):</strong> ${ch.resourceGuide.burstEffect}</div>
+              <div><strong style="color:#55efc4;">⚙️ 전용 기믹:</strong> ${ch.resourceGuide.coreMechanic}</div>
+              <div style="color:#ffeaa7;">💡 <strong>운용 팁:</strong> ${ch.resourceGuide.tip}</div>
+            </div>
+          ` : `<div style="font-size:0.75rem; color:#dfe6e9;">${ch.secondaryResourceDesc}</div>`}
+        </div>
         <div class="subclass-picker-title">
           🎴 <strong>${ch.name.split(' ')[0]}의 4대 하위 직업 카드 계통</strong> · <span style="color:#55efc4;">${ch.growthCurve || ''}</span>
         </div>
@@ -3986,16 +4000,14 @@ const Game = {
       }
     }
 
-    // Slay the Spire 2 5-Act Difficulty Scaling:
-    // - Act 1: ~10% Synergy Build / <1% Random (Early Group A ~12-15% vs Late Group B ~5-8%)
-    // - Act 2~5: Mid-Build & Endgame Capstone scaling where Late-Scaling Group B surges to 35~50%!
-    const hpScale = 1.05 + (this.run.act - 1) * 0.16 + (this.run.stage - 1) * 0.028;
-    const dmgScale = 0.94 + (this.run.act - 1) * 0.14 + (this.run.stage - 1) * 0.023;
+    // Balanced 5-Act Difficulty Scaling (Golden Roguelike Zone: Tactical & Challenging from Rank C Act 1 -> Epic Act 5!):
+    const hpScale = 0.96 + (this.run.act - 1) * 0.16 + (this.run.stage - 1) * 0.025;
+    const dmgScale = 0.86 + (this.run.act - 1) * 0.14 + (this.run.stage - 1) * 0.020;
     const enragePerTurn =
       encounterType === 'boss'
-        ? Math.max(1, Math.floor(this.run.act * 0.9 + 0.5))
+        ? (this.run.act >= 2 ? Math.max(1, Math.floor(this.run.act * 0.85)) : 0)
         : encounterType === 'elite' || encounterType === 'midboss'
-          ? (this.run.act >= 2 || this.run.stage >= 8 ? 1 : 0)
+          ? (this.run.act >= 2 ? 1 : 0)
           : 0;
 
     const enemies = enemyTemplates.map((t, i) => {
@@ -4022,8 +4034,8 @@ const Game = {
         maxHp: calcMaxHp,
         hp: useNeowLament ? 1 : calcMaxHp,
         expReward: t.expReward || 50,
-        block: useNeowLament ? 0 : encounterType === 'boss' ? this.run.act * 12 : encounterType === 'elite' || encounterType === 'midboss' ? this.run.act * 5 : 0,
-        strength: (encounterType === 'boss' ? this.run.act : 0) + (hasPhiloStone ? 1 : 0),
+        block: useNeowLament ? 0 : encounterType === 'boss' ? this.run.act * 10 : encounterType === 'elite' || encounterType === 'midboss' ? this.run.act * 5 : 0,
+        strength: (encounterType === 'boss' ? Math.max(0, this.run.act - 1) : 0) + (hasPhiloStone ? 1 : 0),
         thorns: t.thorns ? t.thorns + Math.floor((this.run.act - 1) * 0.8) : 0,
         regen: t.regen ? Math.round(t.regen * (1 + (this.run.act - 1) * 0.35)) : 0,
         artifact: t.artifact || (encounterType === 'boss' ? Math.min(3, Math.ceil(this.run.act * 0.6)) : 0),
@@ -4165,7 +4177,7 @@ const Game = {
 
     // 2. 8 Distinct Class Start-of-Combat Systems (Balanced to Slay the Spire 2 starter relic power!)
     if (cid === 'fighter') {
-      this.combat.secondaryResource += 1;
+      this.combat.secondaryResource += 2;
       this.combat.player.parry += 2;
     }
     if (cid === 'barbarian') {
@@ -4465,7 +4477,7 @@ const Game = {
 
   triggerClericHolyBrandReflection(healOrBlockAmt) {
     if (!this.combat || this.run.charId !== 'cleric') return;
-    if ((this.combat.clericBrandTriggersThisTurn || 0) >= 2) return;
+    if ((this.combat.clericBrandTriggersThisTurn || 0) >= 3) return;
     let triggered = false;
     this.combat.enemies.forEach(en => {
       if (en.hp > 0 && (en.holyBrand || 0) > 0) {
@@ -4488,9 +4500,9 @@ const Game = {
     const idx = order.indexOf(this.combat.paladinAura || 'retribution');
     this.combat.paladinAura = order[(idx + 1) % order.length];
     const names = {
-      retribution: '🔥 응보의 오라 (피격 시 적에게 광휘 반사)',
-      devotion: '🛡️ 헌신의 오라 (받는 피해 15% 감소 & 매 턴 방어도 +3)',
-      crusader: '⚔️ 성전의 오라 (모든 공격 피해량 +15% & 문장 추가)'
+      retribution: '🔥 응보의 오라 (피격 시 적에게 광휘 반사 + 문장+1)',
+      devotion: '🛡️ 헌신의 오라 (받는 피해 15% 감소 & 매 턴 방어도 +4+)',
+      crusader: '⚔️ 성전의 오라 (모든 공격 피해량 +20% & 문장 추가)'
     };
     this.logCombat(`⚜️ 성기사 오라 전환: [${names[this.combat.paladinAura]}]`);
     this.renderCombat();
@@ -4527,7 +4539,10 @@ const Game = {
           this.spawnFloatingVfx('enemy', `💀 파멸 처형!`, 'vfx-doom', eIdx);
           this.logCombat(`💀 [파멸(Doom) 처형 발동!] ${en.name}이(가) 파멸(${en.doom})에 삼켜져 즉시 처형되었습니다!`);
           if (this.run.charId === 'warlock') {
-            this.combat.energy += 1;
+            if (!this.combat.warlockDoomApUsed) {
+              this.combat.warlockDoomApUsed = true;
+              this.combat.energy += 1;
+            }
             if (this.combat.summon.active) this.summonOrBuffCompanion(4, 1);
           }
         }
@@ -4545,6 +4560,7 @@ const Game = {
     this.combat.comboCount = 0;
     this.combat.comboApGrantedThisTurn = false;
     this.combat.rogueFinisherApUsed = false;
+    this.combat.warlockDoomApUsed = false;
     this.combat.clericBrandTriggersThisTurn = 0;
     this.combat.player.parry = this.run.charId === 'fighter' ? 2 : 0;
 
@@ -4650,9 +4666,9 @@ const Game = {
           baseDamage = Math.round(baseDamage * this.getBarbarianBloodlustMult());
         }
 
-        // 3) Paladin Crusader Aura (+15% attack damage!)
+        // 3) Paladin Crusader Aura (+20% attack damage!)
         if (this.run && this.run.charId === 'paladin' && this.combat.paladinAura === 'crusader') {
-          baseDamage = Math.round(baseDamage * 1.15);
+          baseDamage = Math.round(baseDamage * 1.2);
         }
 
         if (this.combat.stance === 'wrath') baseDamage = Math.round(baseDamage * 1.75);
@@ -4688,16 +4704,16 @@ const Game = {
     const tpl = GAME_DATA.cards[cardInst.id];
     const stats = this.computeCardStats(cardInst);
     return tpl.desc
-      .replace('{damage}', `<strong style="color:#ff7675">${stats.damage}</strong>`)
-      .replace('{block}', `<strong style="color:#74b9ff">${stats.block}</strong>`)
-      .replace('{poison}', `<strong style="color:#55efc4">${stats.poison}</strong>`)
-      .replace('{vuln}', stats.vuln)
-      .replace('{weak}', stats.weak)
-      .replace('{strength}', stats.strength)
-      .replace('{dexterity}', stats.dexterity)
-      .replace('{draw}', stats.draw)
-      .replace('{summonHeal}', stats.summonHeal)
-      .replace('{summonAtkBoost}', stats.summonAtkBoost);
+      .replace(/\{damage\}/g, `<strong style="color:#ff7675">${stats.damage}</strong>`)
+      .replace(/\{block\}/g, `<strong style="color:#74b9ff">${stats.block}</strong>`)
+      .replace(/\{poison\}/g, `<strong style="color:#55efc4">${stats.poison}</strong>`)
+      .replace(/\{vuln\}/g, stats.vuln)
+      .replace(/\{weak\}/g, stats.weak)
+      .replace(/\{strength\}/g, stats.strength)
+      .replace(/\{dexterity\}/g, stats.dexterity)
+      .replace(/\{draw\}/g, stats.draw)
+      .replace(/\{summonHeal\}/g, stats.summonHeal)
+      .replace(/\{summonAtkBoost\}/g, stats.summonAtkBoost);
   },
 
   getCardBaseCost(cardInst) {
@@ -5058,12 +5074,14 @@ const Game = {
 
             this.dealDamageToEnemy(en, dmg, false, h, cardVfxTheme, motionProfile.vfxScale);
 
-            // Barbarian Bleed Burst on hit (20% of Bleed, capped at 4) + Bloodied Lifesteal (<50% HP)!
-            if (cid === 'barbarian' && en.hp > 0 && (en.bleed || 0) > 0) {
-              const bleedBurst = Math.min(4, Math.max(1, Math.floor(en.bleed * 0.2)));
-              this.dealDamageToEnemy(en, bleedBurst, true);
+            // Barbarian Bloodied Lifesteal (<50% HP on ANY attack hit!) + Bleed Burst (20% of Bleed, capped at 4)!
+            if (cid === 'barbarian') {
               if (this.run.hp <= this.run.maxHp * 0.5) {
                 this.run.hp = Math.min(this.run.maxHp, this.run.hp + 1);
+              }
+              if (en.hp > 0 && (en.bleed || 0) > 0) {
+                const bleedBurst = Math.min(4, Math.max(1, Math.floor(en.bleed * 0.2)));
+                this.dealDamageToEnemy(en, bleedBurst, true);
               }
             }
 
@@ -5083,11 +5101,11 @@ const Game = {
         const sealCnt = en.seal;
         en.seal = 0;
         SfxEngine.play('holy');
-        VfxEngine.effectOnTarget('enemy', eIdx, 'holy');
+        VfxEngine.effectOnTarget('enemy', eIdx, 'holy', 1.35);
         VfxEngine.banner(`⚖️ 심판의 문장 ${sealCnt} 폭발!`, 'holy');
-        if (en.hp > 0) this.dealDamageToEnemy(en, sealCnt * 3, true);
-        this.combat.player.block += sealCnt;
-        this.logCombat(`⚖️ [심판의 문장 ${sealCnt}개 폭발!] 추가 광휘 피해 +${sealCnt * 3} 및 방어도 +${sealCnt}!`);
+        if (en.hp > 0) this.dealDamageToEnemy(en, sealCnt * 4, true);
+        this.combat.player.block += sealCnt * 2;
+        this.logCombat(`⚖️ [심판의 문장 ${sealCnt}개 폭발!] 추가 광휘 피해 +${sealCnt * 4} 및 방어도 +${sealCnt * 2}!`);
       }
       if (tpl.comboPoint) {
         en.comboPoints = (en.comboPoints || 0) + tpl.comboPoint;
@@ -5215,7 +5233,12 @@ const Game = {
       return;
     }
     if (this.combat.secondaryResource < cost) {
-      this.logCombat(`⚠️ 고유 자원이 ${cost} 이상 모였을 때 클릭하면 클래스 궁극 개방을 발동할 수 있습니다!`);
+      const ch = GAME_DATA.characters[this.run.charId];
+      const g = ch && ch.resourceGuide;
+      const rName = (g && g.resShort) || ch.secondaryResourceName.split('(')[0];
+      const need = cost - this.combat.secondaryResource;
+      this.logCombat(`⚠️ [${rName}] ${need} 더 필요! (현재 ${this.combat.secondaryResource}/${cost}) — ❓ 버튼을 눌러 자세한 설명을 확인하세요.`);
+      this.showToast(`${ch.secondaryResourceIcon} [${rName}] ${need} 더 모으면 궁극 개방! (${g ? g.burstEffect : ''})`, 'info');
       this.renderCombat();
       return;
     }
@@ -5475,7 +5498,7 @@ const Game = {
     }
     // Paladin Devotion Aura: Automatic Block at end of turn!
     if (this.run.charId === 'paladin' && this.combat.paladinAura === 'devotion') {
-      this.combat.player.block += 3 + Math.floor((this.combat.auraPower || 3) * 0.5);
+      this.combat.player.block += 4 + Math.floor((this.combat.auraPower || 3) * 0.5);
     }
     if (this.run.relics.includes('orichalcum_relic') && this.combat.player.block === 0) {
       this.combat.player.block += 6;
@@ -5946,8 +5969,8 @@ const Game = {
     } else if (cid === 'paladin') {
       const auraNames = {
         retribution: `🔥 응보오라(반사+${this.combat.auraPower || 3})`,
-        devotion: `🛡️ 헌신오라(감소15%)`,
-        crusader: `⚔️ 성전오라(공격+15%)`
+        devotion: `🛡️ 헌신오라(피해-15%/방어+${4 + Math.floor((this.combat.auraPower || 3) * 0.5)})`,
+        crusader: `⚔️ 성전오라(공격+20%/문장+1)`
       };
       pBuffs.push(auraNames[this.combat.paladinAura || 'retribution']);
     } else if (cid === 'warlock') {
@@ -5966,7 +5989,7 @@ const Game = {
       // Warlock Demon 3-Stage Evolution title
       let displayTitle = s.name;
       if (cid === 'warlock') {
-        displayTitle = s.atk >= 18 ? '👑 심연의 대악마 군주' : s.atk >= 11 ? '😈 지옥마신 핀드' : '👿 계약 임프 사역마';
+        displayTitle = s.atk >= 15 ? '👑 심연의 대악마 군주' : s.atk >= 10 ? '😈 지옥마신 핀드' : '👿 계약 임프 사역마';
       }
       const rangerModeBtn =
         cid === 'ranger'
@@ -6139,6 +6162,10 @@ const Game = {
       hintEl.textContent = this.combat.burstUsedThisTurn ? '사용됨(1/턴)' : `${bCost}+ 클릭: 개방!`;
     }
     const secOrb = document.getElementById('secondary-resource-box');
+    const g = ch.resourceGuide;
+    if (secOrb && g) {
+      secOrb.title = `${ch.secondaryResourceIcon} ${g.resShort} (${this.combat.secondaryResource}/${bCost})\n• 충전: ${g.howToCharge}\n• 개방 효과: ${g.burstEffect}\n• 전용 기믹: ${g.coreMechanic}`;
+    }
     if (this.combat.secondaryResource >= bCost && !this.combat.burstUsedThisTurn) {
       secOrb.classList.add('ready-burst');
     } else {
@@ -6533,6 +6560,56 @@ const Game = {
         mutBtn.textContent = `🔮 카드 강화(+) + 룬 각인 [이번 상점 1회 한정] (${cost} GP)`;
       }
     }
+  },
+
+  openClassGuideModal() {
+    const cid = (this.run && this.run.charId) || (this.meta && this.meta.selectedCharId) || 'fighter';
+    const ch = GAME_DATA.characters[cid];
+    if (!ch) return;
+    const g = ch.resourceGuide || {};
+    const curVal = this.combat ? this.combat.secondaryResource : 0;
+    const bCost = this.combat ? (this.combat.burstCost || 5) : 5;
+    const ready = this.combat && curVal >= bCost && !this.combat.burstUsedThisTurn;
+    const modal = document.getElementById('modal-class-guide');
+    const body = document.getElementById('class-guide-modal-body');
+    if (!modal || !body) return;
+    body.innerHTML = `
+      <div class="class-guide-hero-head">
+        <span class="class-guide-icon">${ch.secondaryResourceIcon}</span>
+        <div>
+          <h3 style="color:${ch.accent}; margin:0;">${ch.name} — ${g.resShort || ch.secondaryResourceName}</h3>
+          <div style="font-size:0.78rem; color:#b2bec3;">${ch.passiveName}</div>
+        </div>
+        ${this.combat ? `
+          <div class="class-guide-live-pill ${ready ? 'ready' : ''}">
+            현재 ${curVal} / ${bCost} ${ready ? '🔥 개방 가능!' : '(충전 중)'}
+          </div>
+        ` : ''}
+      </div>
+      <div class="class-guide-section">
+        <h4>⚡ 고유 자원이란? / 어떻게 모으나요?</h4>
+        <p>${g.howToCharge || ch.secondaryResourceDesc}</p>
+      </div>
+      <div class="class-guide-section highlight-gold">
+        <h4>🔥 궁극 개방 발동 효과 (하단 자원 버튼 ${bCost}+ 클릭 · 1턴 1회)</h4>
+        <p>${g.burstEffect || ''}</p>
+        <small style="color:#a4b0be;">※ 매 발동마다 필요 자원량이 5 → 7 → 9로 증가하며, 다음 전투 시작 시 5로 초기화됩니다.</small>
+      </div>
+      <div class="class-guide-section highlight-teal">
+        <h4>⚙️ 클래스 전용 전투 시스템 & 상태이상</h4>
+        <p>${g.coreMechanic || ch.passiveDesc}</p>
+      </div>
+      <div class="class-guide-section">
+        <h4>💡 실전 공략 팁</h4>
+        <p style="color:#ffeaa7;">${g.tip || ''}</p>
+      </div>
+    `;
+    modal.classList.remove('hidden');
+  },
+
+  closeClassGuideModal() {
+    const modal = document.getElementById('modal-class-guide');
+    if (modal) modal.classList.add('hidden');
   },
 
   openDeckModal(mode = 'all') {
