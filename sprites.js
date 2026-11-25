@@ -935,14 +935,104 @@
       }, { motion: 'px-motion-float', aura: '#e056fd' })
   };
 
-  // Lazy Cache for all 8 Heroes x 6 Emotions = 48 unique 80x80 Hi-Bit Emotion Assets!
+  // ==========================================================================
+  // 1B. GENUINE 160x160 SUBCULTURE ANIME PIXEL-ART RENDERER (6-EMOTION FX!)
+  // ==========================================================================
+  const ANIME_SPRITE_VER = '18';
+  const EMOTION_PIXEL_FX = {
+    neutral: '',
+    happy:
+      `<span class="px-emo-fx px-emo-happy" aria-hidden="true">` +
+      `<svg viewBox="0 0 16 16" shape-rendering="crispEdges">` +
+      `<rect x="4" y="1" width="2" height="6" fill="#ffd32a"/><rect x="2" y="3" width="6" height="2" fill="#ffd32a"/><rect x="4" y="3" width="2" height="2" fill="#ffffff"/>` +
+      `<rect x="11" y="6" width="2" height="5" fill="#ff9ff3"/><rect x="9" y="8" width="6" height="1" fill="#ff9ff3"/><rect x="11" y="8" width="2" height="1" fill="#ffffff"/>` +
+      `<rect x="2" y="11" width="2" height="2" fill="#ffeaa7"/>` +
+      `</svg></span>`,
+    angry:
+      `<span class="px-emo-fx px-emo-angry" aria-hidden="true">` +
+      `<svg viewBox="0 0 16 16" shape-rendering="crispEdges">` +
+      `<rect x="2" y="2" width="12" height="12" rx="2" fill="#2d0910" opacity="0.72"/>` +
+      `<rect x="4" y="4" width="3" height="2" fill="#ff4757"/><rect x="5" y="4" width="2" height="3" fill="#ff4757"/>` +
+      `<rect x="9" y="4" width="3" height="2" fill="#ff4757"/><rect x="9" y="4" width="2" height="3" fill="#ff4757"/>` +
+      `<rect x="4" y="10" width="3" height="2" fill="#ff4757"/><rect x="5" y="9" width="2" height="3" fill="#ff4757"/>` +
+      `<rect x="9" y="10" width="3" height="2" fill="#ff4757"/><rect x="9" y="9" width="2" height="3" fill="#ff4757"/>` +
+      `<rect x="7" y="7" width="2" height="2" fill="#ffeaa7"/>` +
+      `</svg></span>`,
+    sad:
+      `<span class="px-emo-fx px-emo-sad" aria-hidden="true">` +
+      `<svg viewBox="0 0 16 16" shape-rendering="crispEdges">` +
+      `<rect x="7" y="2" width="2" height="2" fill="#0984e3"/>` +
+      `<rect x="6" y="4" width="4" height="3" fill="#74b9ff"/>` +
+      `<rect x="5" y="7" width="6" height="5" fill="#0984e3"/>` +
+      `<rect x="6" y="7" width="4" height="4" fill="#74b9ff"/>` +
+      `<rect x="6" y="12" width="4" height="2" fill="#0984e3"/>` +
+      `<rect x="6" y="6" width="2" height="3" fill="#ffffff"/>` +
+      `</svg></span>`,
+    surprised:
+      `<span class="px-emo-fx px-emo-surprised" aria-hidden="true">` +
+      `<svg viewBox="0 0 16 16" shape-rendering="crispEdges">` +
+      `<rect x="5" y="1" width="6" height="10" fill="#13192c" opacity="0.8"/>` +
+      `<rect x="6" y="2" width="4" height="8" fill="#00d2d3"/><rect x="7" y="2" width="2" height="7" fill="#ffffff"/>` +
+      `<rect x="6" y="11" width="4" height="4" fill="#13192c" opacity="0.8"/>` +
+      `<rect x="7" y="12" width="2" height="2" fill="#ffd32a"/>` +
+      `<rect x="1" y="4" width="3" height="1" fill="#ffd32a"/><rect x="12" y="4" width="3" height="1" fill="#ffd32a"/>` +
+      `</svg></span>`,
+    smug:
+      `<span class="px-emo-fx px-emo-smug" aria-hidden="true">` +
+      `<svg viewBox="0 0 16 16" shape-rendering="crispEdges">` +
+      `<rect x="7" y="1" width="2" height="14" fill="#e056fd"/>` +
+      `<rect x="1" y="7" width="14" height="2" fill="#e056fd"/>` +
+      `<rect x="5" y="5" width="6" height="6" fill="#f6c967"/>` +
+      `<rect x="7" y="3" width="2" height="10" fill="#ffffff"/>` +
+      `<rect x="3" y="7" width="10" height="2" fill="#ffffff"/>` +
+      `</svg></span>`
+  };
+
+  const HERO_ANIME_ART = {
+    fighter:   { src: `assets/chars/fighter.png?v=${ANIME_SPRITE_VER}`,   motion: 'px-motion-heavy', aura: '#74b9ff' },
+    barbarian: { src: `assets/chars/barbarian.png?v=${ANIME_SPRITE_VER}`, motion: 'px-motion-heavy', aura: '#ff4757' },
+    rogue:     { src: `assets/chars/rogue.png?v=${ANIME_SPRITE_VER}`,     motion: 'px-motion-agile', aura: '#2ed573' },
+    ranger:    { src: `assets/chars/ranger.png?v=${ANIME_SPRITE_VER}`,    motion: 'px-motion-agile', aura: '#55efc4' },
+    wizard:    { src: `assets/chars/wizard.png?v=${ANIME_SPRITE_VER}`,    motion: 'px-motion-float', aura: '#00d2d3' },
+    cleric:    { src: `assets/chars/cleric.png?v=${ANIME_SPRITE_VER}`,    motion: 'px-motion-float', aura: '#ffeaa7' },
+    paladin:   { src: `assets/chars/paladin.png?v=${ANIME_SPRITE_VER}`,   motion: 'px-motion-heavy', aura: '#f6c967' },
+    warlock:   { src: `assets/chars/warlock.png?v=${ANIME_SPRITE_VER}`,   motion: 'px-motion-float', aura: '#e056fd' }
+  };
+
+  function renderAnimeSprite(imgPath, emotion = 'neutral', opts = {}) {
+    const emo = EMOTION_META[emotion] ? emotion : 'neutral';
+    const motion = opts.motion || 'px-motion-agile';
+    const aura = opts.aura || '';
+    const auraHtml = aura
+      ? `<span class="px-aura-glow" style="background:radial-gradient(circle, ${aura}48 0%, ${aura}00 72%);"></span>`
+      : '';
+    const fxHtml = EMOTION_PIXEL_FX[emo] || '';
+    return (
+      `<div class="pixel-sprite px-hibit px-anime-art ${motion}" data-res="160x160" data-emo="${emo}" aria-hidden="true">` +
+      auraHtml +
+      `<img class="px-frame px-f1" src="${imgPath}" alt="" decoding="async">` +
+      `<img class="px-frame px-f2 px-anime-bob" src="${imgPath}" alt="" decoding="async">` +
+      fxHtml +
+      `</div>`
+    );
+  }
+
+  // Lazy Cache for all 8 Heroes x 6 Emotions = 48 unique 160x160 Anime Pixel-Art Emotion Assets!
   const _heroEmotionCache = {};
   function getHeroEmotionSprite(charId, emotion = 'neutral') {
     const cid = HERO_SPRITES[charId] ? charId : 'fighter';
     const emo = EMOTION_META[emotion] ? emotion : 'neutral';
     const key = `${cid}::${emo}`;
     if (!_heroEmotionCache[key]) {
-      _heroEmotionCache[key] = HERO_SPRITES[cid](emo);
+      const anime = HERO_ANIME_ART[cid];
+      if (anime) {
+        _heroEmotionCache[key] = renderAnimeSprite(anime.src, emo, {
+          motion: anime.motion,
+          aura: anime.aura
+        });
+      } else {
+        _heroEmotionCache[key] = HERO_SPRITES[cid](emo);
+      }
     }
     return _heroEmotionCache[key];
   }
@@ -1564,7 +1654,7 @@
     }
   }
 
-  window.HIBIT_ART = { HiBitCanvas, renderAnimatedSprite, drawHiBitHeroBase, hueShade, makeRamp, BAYER4 };
+  window.HIBIT_ART = { HiBitCanvas, renderAnimatedSprite, renderAnimeSprite, drawHiBitHeroBase, hueShade, makeRamp, BAYER4 };
   window.PIXEL_SPRITES = {
     EMOTIONS,
     EMOTION_META,

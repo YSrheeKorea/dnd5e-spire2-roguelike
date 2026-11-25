@@ -193,6 +193,12 @@
     }
   };
 
+  const NPC_ANIME_ART = {
+    durnan:   'assets/npcs/durnan.png?v=18',
+    jaheira:  'assets/npcs/jaheira.png?v=18',
+    guardian: 'assets/npcs/guardian.png?v=18'
+  };
+
   const _npcEmotionCache = {};
   function getNpcEmotionSprite(npcId, emotion = 'neutral') {
     const id = NPCS[npcId] ? npcId : 'durnan';
@@ -201,7 +207,15 @@
     const key = `${id}::${emo}`;
     if (!_npcEmotionCache[key]) {
       const npc = NPCS[id];
-      _npcEmotionCache[key] = renderHiBitNpc(NPC_DRAWERS[id], npc.accent, npc.motion, emo);
+      const art = typeof window !== 'undefined' ? window.HIBIT_ART : null;
+      if (NPC_ANIME_ART[id] && art && typeof art.renderAnimeSprite === 'function') {
+        _npcEmotionCache[key] = art.renderAnimeSprite(NPC_ANIME_ART[id], emo, {
+          aura: npc.accent,
+          motion: npc.motion
+        });
+      } else {
+        _npcEmotionCache[key] = renderHiBitNpc(NPC_DRAWERS[id], npc.accent, npc.motion, emo);
+      }
     }
     return _npcEmotionCache[key];
   }

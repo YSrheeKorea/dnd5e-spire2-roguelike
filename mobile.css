@@ -597,6 +597,11 @@ body.mobile-edition {
   height: 64px;
 }
 
+.mobile-edition .unit-avatar .pixel-sprite.px-anime-art {
+  width: 86px;
+  height: 86px;
+}
+
 .mobile-edition .unit-avatar .pixel-sprite.px-boss {
   width: 80px;
   height: 80px;
@@ -605,6 +610,11 @@ body.mobile-edition {
 .mobile-edition .char-avatar-wrap .pixel-sprite {
   width: 56px;
   height: 56px;
+}
+
+.mobile-edition .char-avatar-wrap .pixel-sprite.px-anime-art {
+  width: 70px;
+  height: 70px;
 }
 
 .mobile-edition .enemy-lunge {
@@ -671,8 +681,12 @@ body.mobile-edition {
 }
 .mobile-edition .story-actor-sprite,
 .mobile-edition .story-actor-sprite .pixel-sprite {
-  width: 80px;
-  height: 80px;
+  width: 96px;
+  height: 96px;
+}
+.mobile-edition .story-actor-sprite .pixel-sprite.px-anime-art {
+  width: 104px;
+  height: 104px;
 }
 .mobile-edition .story-dialogue-box {
   padding: 12px 13px;
@@ -693,13 +707,18 @@ body.mobile-edition .hub-emotion-studio {
 }
 
 body.mobile-edition .hub-emo-preview {
-  width: 58px;
-  height: 58px;
+  width: 68px;
+  height: 68px;
 }
 
 body.mobile-edition .hub-emo-preview .pixel-sprite {
-  width: 52px;
-  height: 52px;
+  width: 56px;
+  height: 56px;
+}
+
+body.mobile-edition .hub-emo-preview .pixel-sprite.px-anime-art {
+  width: 64px;
+  height: 64px;
 }
 
 body.mobile-edition .hub-emo-controls {
