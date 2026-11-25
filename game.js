@@ -1129,17 +1129,48 @@ const Game = {
 
   loadMeta() {
     try {
+      // Emergency URL reset support (?reset=1)
+      if (typeof window !== 'undefined' && window.location && window.location.search && window.location.search.includes('reset=1')) {
+        this.wipeAllStorageKeys();
+        this.meta = this.createFreshDefaultMeta();
+        this.saveMeta();
+        if (window.history && window.history.replaceState) {
+          window.history.replaceState({}, '', window.location.pathname);
+        }
+        return;
+      }
       const saved = localStorage.getItem('DND5E_SPIRE_2_TOWER_META');
       if (saved) {
         const parsed = JSON.parse(saved);
         // Cleanly merge while preserving new achievement progression fields
-        this.meta = Object.assign(this.meta, parsed);
+        this.meta = Object.assign(this.createFreshDefaultMeta(), parsed);
+      } else {
+        this.meta = this.createFreshDefaultMeta();
       }
       this.initAchievementState();
     } catch (e) {
       console.warn('Meta load skipped:', e);
+      this.meta = this.createFreshDefaultMeta();
       this.initAchievementState();
     }
+  },
+
+  wipeAllStorageKeys() {
+    try {
+      const toRemove = ['DND5E_SPIRE_2_TOWER_META', 'DND5E_SPIRE_2_ACTIVE_RUN'];
+      if (typeof localStorage !== 'undefined') {
+        for (let i = 0; i < (localStorage.length || 0); i++) {
+          const k = localStorage.key ? localStorage.key(i) : null;
+          if (k && /DND5E|SPIRE|TOWER/i.test(k) && !toRemove.includes(k)) {
+            toRemove.push(k);
+          }
+        }
+        toRemove.forEach(k => localStorage.removeItem(k));
+      }
+      if (typeof sessionStorage !== 'undefined' && sessionStorage.clear) {
+        sessionStorage.clear();
+      }
+    } catch (e) { }
   },
 
   // --------------------------------------------------------------------------
@@ -1706,11 +1737,16 @@ const Game = {
     }, 350);
   },
 
+  cancelTwoStepReset() {
+    this._pendingResetKey = null;
+    this.renderSettingsModal();
+  },
+
   requestTwoStepReset(kind) {
     if (this._pendingResetKey !== kind) {
       this._pendingResetKey = kind;
       this.renderSettingsModal();
-      this.showToast('⚠️ 한 번 더 누르면 즉시 초기화됩니다! (실수 방지 2단계 확인)', 'warn');
+      this.showToast('⚠️ 확인 버튼이 빨간색으로 바뀌었습니다! 한 번 더 누르면 즉시 초기화됩니다.', 'warn');
       return;
     }
     this._pendingResetKey = null;
@@ -1728,10 +1764,18 @@ const Game = {
     const sys = typeof window !== 'undefined' ? window.ACHIEVEMENT_SYSTEM : null;
     const starterClasses = sys ? sys.STARTER_CLASSES : ['fighter', 'rogue', 'wizard'];
     const unlocked = {};
+    const ranks = {};
+    const classBestFloor = {};
     Object.keys(GAME_DATA.characters).forEach(cid => {
       unlocked[cid] = starterClasses.includes(cid);
+      ranks[cid] = 'C';
+      classBestFloor[cid] = '1층 1F';
     });
     this.meta.unlocked = unlocked;
+    this.meta.ranks = ranks;
+    this.meta.classBestFloor = classBestFloor;
+    this.meta.bestAct = 1;
+    this.meta.bestStage = 1;
     this.meta.unlockedSubclasses = sys ? sys.getDefaultUnlockedSubclasses(GAME_DATA) : {};
     this.meta.unlockedLegendaries = {};
     this.meta.achievements = {};
@@ -1751,31 +1795,39 @@ const Game = {
     this.updateAchievementBadges();
     this.renderHub();
     this.renderSettingsModal();
-    this.showToast('🏆 업적 & 해금 상태가 초기화되었습니다! 기본 3클래스(파이터·로그·위저드)부터 다시 해금하세요.', 'success');
+    this.showToast('🏆 업적·해금·전 클래스 등급(C급)이 초기화되었습니다! 기본 3클래스부터 다시 해금하세요.', 'success');
   },
 
   resetFullAccountData() {
-    try {
-      localStorage.removeItem('DND5E_SPIRE_2_TOWER_META');
-      localStorage.removeItem('DND5E_SPIRE_2_ACTIVE_RUN');
-    } catch (e) { }
+    this.wipeAllStorageKeys();
     this.run = null;
     this.combat = null;
     this._storyState = null;
     this._lobbyEmo = 'neutral';
     this._lobbyEmoVariant = 0;
     this._lastPlayerAvatarChar = null;
+    this._pendingResetKey = null;
     this.meta = this.createFreshDefaultMeta();
     this.saveMeta();
+    // Also clear PWA CacheStorage asynchronously so stale assets never linger
+    try {
+      if (typeof window !== 'undefined' && 'caches' in window && window.caches && window.caches.keys) {
+        window.caches.keys().then(keys => Promise.all(keys.map(k => window.caches.delete(k)))).catch(() => {});
+      }
+    } catch (e) { }
     this.updateAchievementBadges();
     this.closeSettingsModal();
     this.showHub();
-    this.showToast('✅ 계정 데이터가 완전히 초기화되었습니다! 기본 3클래스 · 업적 0/28 · 마석 300으로 새로 시작합니다.', 'success');
+    this.showToast('✅ 전체 계정 데이터 완전 초기화 완료! 전 클래스 C급 · Lv.1 · 기본 3클래스 · 업적 0/28 · 마석 300으로 새로 시작합니다.', 'success');
   },
 
   renderSettingsModal() {
     const body = document.getElementById('settings-modal-body');
     if (!body) return;
+    // Preserve scroll position so 2-step reset button never jumps away on mobile/PC!
+    const prevScrollBody = body.scrollTop || 0;
+    const modalBox = body.parentNode;
+    const prevScrollBox = modalBox ? (modalBox.scrollTop || 0) : 0;
     const sfxOn = !SfxEngine.muted;
     const vfxOn = !VfxEngine.isVfxDisabledByUser();
     let bgOn = true;
@@ -1859,20 +1911,23 @@ const Game = {
 
       <div class="settings-section settings-danger-zone">
         <h3>⚠️ 계정 & 업적 데이터 초기화</h3>
-        <p class="settings-danger-note">이전 계정 데이터가 남아 업적·해금 체험이 꼬였다면 아래에서 안전하게 초기화할 수 있습니다. (실수 방지를 위해 2번 클릭해야 실행됩니다)</p>
+        <p class="settings-danger-note">브라우저 캐시 삭제만으로는 저장된 계정(localStorage)이 지워지지 않습니다. 아래 초기화 버튼을 <strong>2번 클릭</strong>하면 S급 등급·업적·세이브가 모두 C급 초기 상태로 완전히 리셋됩니다.</p>
         <div class="settings-reset-col">
           <button class="settings-reset-btn ${pend === 'achievements_only' ? 'confirming' : ''}" onclick="Game.requestTwoStepReset('achievements_only')">
-            ${pend === 'achievements_only' ? '⚠️ 정말 업적/해금만 초기화할까요? 한 번 더 클릭!' : '🏆 업적 & 해금만 초기화 (기본 3클래스 · 업적 0/28로 리셋)'}
+            ${pend === 'achievements_only' ? '⚠️ 한 번 더 클릭하면 즉시 실행! (전 클래스 C급 · 기본 3클래스 · 업적 0/28)' : '🏆 업적 · 해금 · 클래스 등급(C급) 초기화 (마석/무구 유지)'}
           </button>
           <button class="settings-reset-btn ${pend === 'run_only' ? 'confirming' : ''}" onclick="Game.requestTwoStepReset('run_only')" ${hasSavedRun ? '' : 'disabled'}>
             ${pend === 'run_only' ? '⚠️ 진행 중인 모험 세이브를 삭제할까요? 한 번 더 클릭!' : hasSavedRun ? '💾 진행 중인 모험(이어하기) 데이터만 삭제' : '💾 저장된 진행 중 모험 없음'}
           </button>
           <button class="settings-reset-btn danger-full ${pend === 'full_account' ? 'confirming' : ''}" onclick="Game.requestTwoStepReset('full_account')">
-            ${pend === 'full_account' ? '🚨 모든 계정 데이터(마석·레벨·무구·업적·세이브) 영구 삭제! 한 번 더 클릭!' : '💣 전체 계정 데이터 완전 초기화 (처음부터 새로 시작)'}
+            ${pend === 'full_account' ? '🚨 확인 완료! 한 번 더 클릭하면 전 클래스 C급 · Lv.1 · 마석 300으로 완전 초기화!' : '💣 전체 계정 + 캐시 완전 초기화 (모든 S급/레벨/무구/업적 삭제)'}
           </button>
+          ${pend ? `<button class="hud-btn" style="align-self:flex-end; font-size:0.74rem;" onclick="Game.cancelTwoStepReset()">취소</button>` : ''}
         </div>
       </div>
     `;
+    body.scrollTop = prevScrollBody;
+    if (modalBox) modalBox.scrollTop = prevScrollBox;
   },
 
   updateMobileNavActive(activeTab) {
