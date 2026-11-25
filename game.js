@@ -1380,13 +1380,20 @@ const Game = {
   },
 
   showStoryCutin(actNum = 1, onComplete = null) {
+    this.showFloorStoryEpisode(actNum, 1, onComplete);
+  },
+
+  showFloorStoryEpisode(actNum = 1, epNum = 1, onComplete = null) {
     const se = typeof window !== 'undefined' ? window.STORY_ENGINE : null;
     if (!se || !this.isStoryCutinEnabled()) {
       if (onComplete) onComplete();
       return;
     }
     const charId = (this.run && this.run.charId) || this.meta.selectedCharId || 'fighter';
-    const scene = se.getActDialogueScene(actNum, charId);
+    const bossId = this.run && this.run.selectedBosses && this.run.selectedBosses[actNum];
+    const scene = se.getFloorStoryEpisode
+      ? se.getFloorStoryEpisode(actNum, epNum, charId, bossId)
+      : se.getActDialogueScene(actNum, charId);
     this.openStoryScene(scene, onComplete);
   },
 
@@ -1410,12 +1417,13 @@ const Game = {
     });
   },
 
-  replayActStoryScene(actNum) {
+  replayMainStory(part = 'prologue') {
     const se = typeof window !== 'undefined' ? window.STORY_ENGINE : null;
-    if (!se) return;
+    if (!se || !se.getMainStoryScene) return;
     this.closeStoryChronicleModal();
     const charId = (this.run && this.run.charId) || this.meta.selectedCharId || 'fighter';
-    const scene = se.getActDialogueScene(actNum, charId);
+    const bossId = (this.run && this.run.selectedBosses && this.run.selectedBosses[5]) || 'tiamat_dragon_queen';
+    const scene = se.getMainStoryScene(part, charId, bossId);
     const prevWasRun = this.run && !document.getElementById('screen-hub').classList.contains('active');
     this.openStoryScene(scene, () => {
       if (prevWasRun) {
@@ -1425,6 +1433,30 @@ const Game = {
         this.showHub();
       }
     });
+  },
+
+  replayFloorEpisode(actNum, epNum = 1) {
+    const se = typeof window !== 'undefined' ? window.STORY_ENGINE : null;
+    if (!se) return;
+    this.closeStoryChronicleModal();
+    const charId = (this.run && this.run.charId) || this.meta.selectedCharId || 'fighter';
+    const bossId = (this.run && this.run.selectedBosses && this.run.selectedBosses[actNum]) || null;
+    const scene = se.getFloorStoryEpisode
+      ? se.getFloorStoryEpisode(actNum, epNum, charId, bossId)
+      : se.getActDialogueScene(actNum, charId);
+    const prevWasRun = this.run && !document.getElementById('screen-hub').classList.contains('active');
+    this.openStoryScene(scene, () => {
+      if (prevWasRun) {
+        this.switchScreen('screen-map');
+        this.renderMap();
+      } else {
+        this.showHub();
+      }
+    });
+  },
+
+  replayActStoryScene(actNum) {
+    this.replayFloorEpisode(actNum, 1);
   },
 
   openStoryScene(scene, onComplete = null) {
@@ -1466,17 +1498,27 @@ const Game = {
 
     const charId = (this.run && this.run.charId) || this.meta.selectedCharId || 'fighter';
     const hero = GAME_DATA.characters[charId] || GAME_DATA.characters.fighter;
-    const npc = se.NPCS[curLine.npcId] || se.NPCS.durnan;
+    const isNarrator = curLine.speaker === 'narrator';
     const isHeroSpeaking = curLine.speaker === 'hero';
+    const isBossSpeaking = curLine.speaker === 'boss';
+    const bossId = curLine.bossId || curLine.replyBossId || scene.bossId || null;
+    const useBossRight = !!(bossId && (isBossSpeaking || (!curLine.npcId && GAME_DATA.enemies[bossId])));
+    const bossEnemy = useBossRight ? GAME_DATA.enemies[bossId] : null;
+    const bossLore = useBossRight && se.getBossLore ? se.getBossLore(bossId, scene.actNum || 1) : null;
+    const npc = se.NPCS[curLine.npcId] || se.NPCS.durnan;
     const ps = typeof window !== 'undefined' ? window.PIXEL_SPRITES : null;
     const activeEmo = curLine.emotion || 'neutral';
     const heroEmo = isHeroSpeaking ? activeEmo : (curLine.heroEmotion || 'neutral');
-    const npcEmo = !isHeroSpeaking ? activeEmo : (curLine.npcEmotion || 'neutral');
+    const npcEmo = !isHeroSpeaking && !isNarrator ? activeEmo : (curLine.npcEmotion || 'neutral');
     const emoMeta = (ps && ps.EMOTION_META && ps.EMOTION_META[activeEmo]) || { icon: '🙂', label: '평온', color: '#dfe6e9' };
-    const motionCls = ps && ps.pickMotion ? ps.pickMotion(`emo_${activeEmo}`) : 'mot-neutral-breathe';
+    const motionCls = ps && ps.pickMotion ? ps.pickMotion(isBossSpeaking ? 'enemy_buff' : `emo_${activeEmo}`) : 'mot-neutral-breathe';
 
     const heroSpriteHtml = ps && ps.getHeroEmotionSprite ? ps.getHeroEmotionSprite(charId, heroEmo) : hero.avatarSvg;
-    const npcSpriteHtml = se.getNpcEmotionSprite ? se.getNpcEmotionSprite(npc.id, npcEmo) : npc.svg;
+    const rightSpriteHtml = useBossRight && bossEnemy
+      ? bossEnemy.svg
+      : se.getNpcEmotionSprite
+        ? se.getNpcEmotionSprite(npc.id, npcEmo)
+        : npc.svg;
 
     const chapEl = document.getElementById('story-stage-chapter');
     const titleEl = document.getElementById('story-stage-title');
@@ -1493,10 +1535,13 @@ const Game = {
       `;
     }
     if (npcSlot) {
-      npcSlot.className = `story-actor-slot actor-right ${!isHeroSpeaking ? 'speaking ' + motionCls : 'listening'}`;
+      const rightActive = !isHeroSpeaking && !isNarrator;
+      npcSlot.className = `story-actor-slot actor-right ${useBossRight ? 'is-boss-actor ' : ''}${rightActive ? 'speaking ' + motionCls : 'listening'}`;
       npcSlot.innerHTML = `
-        <div class="story-actor-sprite">${npcSpriteHtml}</div>
-        <div class="story-actor-tag" style="border-color:${npc.accent}; color:${npc.accent};">${npc.icon} ${npc.name.split(' ')[0]}</div>
+        <div class="story-actor-sprite">${rightSpriteHtml}</div>
+        <div class="story-actor-tag" style="border-color:${useBossRight ? '#ff6b81' : npc.accent}; color:${useBossRight ? '#ff9ff3' : npc.accent};">
+          ${useBossRight && bossLore ? `👑 ${bossLore.name}` : `${npc.icon} ${npc.name.split(' ')[0]}`}
+        </div>
       `;
     }
 
@@ -1508,13 +1553,30 @@ const Game = {
     const nextBtn = document.getElementById('story-next-btn');
 
     if (speakerEl) {
-      speakerEl.innerHTML = `${isHeroSpeaking ? `⚔️ ${hero.name}` : `${npc.icon} ${npc.name}`} <span class="story-emotion-pill" style="border-color:${emoMeta.color}; color:${emoMeta.color};">${emoMeta.icon} ${emoMeta.label}</span>`;
-      speakerEl.style.color = isHeroSpeaking ? '#74b9ff' : npc.accent;
+      if (isNarrator) {
+        speakerEl.innerHTML = `📖 상황 묘사`;
+        speakerEl.style.color = '#ffeaa7';
+      } else if (isBossSpeaking && bossLore) {
+        speakerEl.innerHTML = `👑 ${bossLore.name} <span class="story-emotion-pill" style="border-color:#ff4757; color:#ff6b81;">🔥 층의 군주</span>`;
+        speakerEl.style.color = '#ff6b81';
+      } else {
+        speakerEl.innerHTML = `${isHeroSpeaking ? `⚔️ ${hero.name}` : `${npc.icon} ${npc.name}`} <span class="story-emotion-pill" style="border-color:${emoMeta.color}; color:${emoMeta.color};">${emoMeta.icon} ${emoMeta.label}</span>`;
+        speakerEl.style.color = isHeroSpeaking ? '#74b9ff' : npc.accent;
+      }
     }
     if (factionEl) {
-      factionEl.textContent = isHeroSpeaking ? hero.heroName : `${npc.title} · ${npc.faction}`;
+      factionEl.textContent = isNarrator
+        ? scene.title
+        : isBossSpeaking && bossLore
+          ? `${bossLore.epithet} · ${bossLore.sealName}`
+          : isHeroSpeaking
+            ? hero.heroName
+            : `${npc.title} · ${npc.faction}`;
     }
-    if (textEl) textEl.textContent = curLine.text;
+    if (textEl) {
+      textEl.textContent = curLine.text;
+      textEl.classList.toggle('is-narrator', isNarrator);
+    }
     if (progEl) {
       progEl.textContent = pendingReply ? '대화 마무리' : `${index + 1} / ${scene.lines.length}`;
     }
@@ -1550,6 +1612,7 @@ const Game = {
     st.pendingReply = {
       speaker: opt.replySpeaker || 'npc',
       npcId: opt.replyNpcId || curLine.npcId,
+      bossId: opt.replyBossId || curLine.bossId || st.scene.bossId,
       emotion: opt.replyEmotion || 'happy',
       heroEmotion: opt.heroEmotion || 'neutral',
       text: opt.reply
@@ -1609,25 +1672,44 @@ const Game = {
     const curChar = GAME_DATA.characters[curCharId];
     const origin = se.CLASS_ORIGINS[curCharId];
 
+    const mainStoryHtml = se.MAIN_STORY
+      ? `
+        <div class="chronicle-card unlocked epilogue" style="margin-bottom:12px;">
+          <div class="chronicle-head">
+            <span class="story-chap-pill">📖 메인 스토리 (1개)</span>
+            <button class="hud-btn" style="padding:3px 9px; font-size:0.7rem; border-color:#f6c967; color:#ffeaa7;" onclick="Game.replayMainStory('prologue')">🎬 프롤로그 재생</button>
+          </div>
+          <h4>《${se.MAIN_STORY.title}》</h4>
+          <div class="story-loc-tag">🌕 ${se.MAIN_STORY.subtitle}</div>
+          <div class="chronicle-text">${se.MAIN_STORY.synopsis.map(p => `<p>${p}</p>`).join('')}</div>
+        </div>
+      `
+      : '';
+
     const chaptersHtml = [1, 2, 3, 4, 5]
       .map(act => {
         const chap = se.ACT_CHAPTERS[act];
+        const ft = se.FLOOR_THEMES && se.FLOOR_THEMES[act];
         const unlocked = act <= maxAct;
+        const epBtns = unlocked && ft
+          ? `<div class="chronicle-ep-row">
+               ${ft.epTitles
+                 .map((t, i) => `<button class="chronicle-ep-btn" onclick="Game.replayFloorEpisode(${act}, ${i + 1})">🎬 ${t}</button>`)
+                 .join('')}
+             </div>`
+          : '';
         return `
           <div class="chronicle-card ${unlocked ? 'unlocked' : 'locked'}">
             <div class="chronicle-head">
               <span class="story-chap-pill">${chap.chapter}</span>
-              <div style="display:flex; align-items:center; gap:6px;">
-                <span style="font-size:0.72rem; color:${unlocked ? '#55efc4' : '#95a5a6'};">${unlocked ? '🔓 열람 가능' : `🔒 제${act}계층 도달 시 해금`}</span>
-                ${unlocked ? `<button class="hud-btn" style="padding:2px 8px; font-size:0.68rem; border-color:#f6c967; color:#ffeaa7;" onclick="Game.replayActStoryScene(${act})">🎬 대화 씬 재생</button>` : ''}
-              </div>
+              <span style="font-size:0.72rem; color:${unlocked ? '#55efc4' : '#95a5a6'};">${unlocked ? '🔓 3개 에피소드 열람 가능' : `🔒 제${act}계층 도달 시 해금`}</span>
             </div>
             <h4>${unlocked ? chap.title : `??? (제${act}계층 스토리 미해금)`}</h4>
             <div class="story-loc-tag">📍 ${unlocked ? chap.location : '미지의 영역'}</div>
             ${
               unlocked
-                ? `<div class="chronicle-text">${chap.paragraphs.map(p => `<p>${p}</p>`).join('')}</div>`
-                : `<p class="chronicle-locked-hint">첨탑 제${act}계층에 도달하면 발더스 게이트 연대기의 다음 장이 해금됩니다.</p>`
+                ? `<div class="chronicle-text">${chap.paragraphs.map(p => `<p>${p}</p>`).join('')}</div>${epBtns}`
+                : `<p class="chronicle-locked-hint">첨탑 제${act}계층에 도달하면 이 층의 3개 보스 연동 스토리가 해금됩니다.</p>`
             }
           </div>
         `;
@@ -1638,24 +1720,28 @@ const Game = {
       <div class="chronicle-card ${hasVictory ? 'unlocked epilogue' : 'locked'}">
         <div class="chronicle-head">
           <span class="story-chap-pill">${se.VICTORY_EPILOGUE.chapter}</span>
-          <span style="font-size:0.72rem; color:${hasVictory ? '#f6c967' : '#95a5a6'};">${hasVictory ? '👑 최종 클리어 달성' : '🔒 제5계층 최종 클리어 시 해금'}</span>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="font-size:0.72rem; color:${hasVictory ? '#f6c967' : '#95a5a6'};">${hasVictory ? '👑 최종 클리어 달성' : '🔒 제5계층 최종 클리어 시 해금'}</span>
+            ${hasVictory ? `<button class="hud-btn" style="padding:2px 8px; font-size:0.68rem; border-color:#f6c967; color:#ffeaa7;" onclick="Game.replayMainStory('epilogue')">🎬 에필로그 재생</button>` : ''}
+          </div>
         </div>
         <h4>${hasVictory ? se.VICTORY_EPILOGUE.title : '??? (최종 결전 에필로그)'}</h4>
         ${
           hasVictory
             ? `<div class="chronicle-text">${se.VICTORY_EPILOGUE.paragraphs.map(p => `<p>${p}</p>`).join('')}</div>`
-            : `<p class="chronicle-locked-hint">제5계층 최종 보스를 토벌하면 발더스 게이트와 소드 코스트의 결말이 공개됩니다.</p>`
+            : `<p class="chronicle-locked-hint">제5계층 최종 군주를 토벌하면 다섯 인장의 결말이 공개됩니다.</p>`
         }
       </div>
     `;
 
     body.innerHTML = `
+      ${mainStoryHtml}
       ${
         curChar && origin
           ? `<div class="story-origin-box" style="margin-bottom:12px;">
                <div class="story-origin-avatar">${curChar.avatarSvg}</div>
                <div>
-                 <div class="story-origin-tag">⚔️ ${curChar.name} 오리진 스토리 · ${origin.title}</div>
+                 <div class="story-origin-tag">⚔️ ${curChar.name} 동기 · ${origin.title}</div>
                  <p class="story-origin-quote">${origin.quote}</p>
                </div>
              </div>`
@@ -2368,7 +2454,7 @@ const Game = {
     const talked = this.meta.talkedNpcs || {};
     bar.innerHTML = `
       <div class="hub-npc-bar-head">
-        <span>🍺 <strong>하품하는 포털 주점 NPC와 대화하기</strong> <small>(터치하면 대화 전용 화면으로 입장 · 첫 대화 보너스 💎+20)</small></span>
+        <span>🍺 <strong>잿빛 화덕 여관 인물들과 대화하기</strong> <small>(대화 전용 화면 입장 · 첫 대화 보너스 💎+20)</small></span>
         <button class="hud-btn btn-story-hud" style="padding:3px 9px; font-size:0.72rem;" onclick="Game.openStoryChronicleModal()">📖 메인 스토리 연대기</button>
       </div>
       <div class="hub-npc-chips">
@@ -2956,9 +3042,9 @@ const Game = {
         npcBox.innerHTML = '';
       }
     }
-    document.getElementById('event-title').textContent = '🔮 아스트랄 프리즘 수호자의 축복 — 하품하는 포털 우물 입구';
+    document.getElementById('event-title').textContent = '🔮 천칭의 잔영의 축복 — 잿빛 여관 우물 입구';
     document.getElementById('event-desc').textContent =
-      '"더난과 자헤이라의 안내를 받았구나, 모험가여… 머릿속 일리시드 올챙이가 깨어나기 전에 탈취된 언더마운틴 5대 차원문을 돌파해야 한다. 우물로 내려가기 전, 내가 내리는 4가지 축복 중 하나를 선택하여라."';
+      '"손등의 인장 파편이 깨어나기 시작했다… 1층 군주에게 맞서기 전, 내가 남길 수 있는 마지막 힘 네 가지 중 하나를 골라라."';
 
     const choicesBox = document.getElementById('event-choices');
     choicesBox.innerHTML = '';
@@ -3153,6 +3239,16 @@ const Game = {
       this.saveRun();
     }
     if (type === 'combat' || type === 'elite' || type === 'midboss' || type === 'boss') {
+      if (this.run && this.isStoryCutinEnabled() && typeof window !== 'undefined' && window.STORY_ENGINE) {
+        if (type === 'midboss') {
+          this.showFloorStoryEpisode(this.run.act, 2, () => this.startCombat(type));
+          return;
+        }
+        if (type === 'boss') {
+          this.showFloorStoryEpisode(this.run.act, 3, () => this.startCombat(type));
+          return;
+        }
+      }
       this.startCombat(type);
     } else if (type === 'rest') {
       this.switchScreen('screen-rest');

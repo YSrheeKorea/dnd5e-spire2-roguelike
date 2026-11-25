@@ -3957,3 +3957,59 @@ html.pixel-bg-off .battlefield-bg-img {
   0%, 100% { transform: rotate(0deg) scale(1); }
   40%      { transform: rotate(-6deg) translateY(-8px) scale(1.1); filter: drop-shadow(0 0 16px rgba(246, 201, 103, 0.95)); }
 }
+
+/* ==========================================================================
+   V2.2 NARRATOR MODE, BOSS CONFRONTATION STAGE & 3-EPISODE CHRONICLE BUTTONS
+   ========================================================================== */
+.story-dialogue-text.is-narrator {
+  font-style: italic;
+  color: #f6e5c5;
+  border-left: 3px solid rgba(246, 201, 103, 0.72);
+  padding-left: 12px;
+  background: rgba(246, 201, 103, 0.06);
+  border-radius: 0 8px 8px 0;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.story-actor-slot.is-boss-actor .story-actor-sprite {
+  width: 148px;
+  height: 148px;
+  filter: drop-shadow(0 0 18px rgba(255, 71, 87, 0.65));
+}
+
+.chronicle-ep-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 9px;
+}
+
+.chronicle-ep-btn {
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(246, 201, 103, 0.38);
+  background: rgba(246, 201, 103, 0.1);
+  color: #ffeaa7;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.12s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.chronicle-ep-btn:hover {
+  transform: translateY(-1px);
+  background: rgba(246, 201, 103, 0.22);
+  border-color: #f6c967;
+}
+
+@media (max-width: 640px) {
+  .chronicle-ep-row {
+    grid-template-columns: 1fr;
+  }
+  .story-actor-slot.is-boss-actor .story-actor-sprite {
+    width: 102px;
+    height: 102px;
+  }
+}
